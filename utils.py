@@ -13,6 +13,84 @@ from itertools import chain
 from ConAcq import SOLVER
 
 
+def parse_con_file(file_path):
+    biases = []
+
+    with open(file_path, 'r') as file:
+        for line in file:
+            con_type, var1, var2 = map(int, line.strip().split())
+            biases.append((con_type, var1, var2))
+
+    return biases
+
+
+def constraint_type_to_string(con_type):
+    return {
+        0: "!=",
+        1: "==",
+        2: ">",
+        3: "<",
+        4: ">=",
+        5: "<="
+    }.get(con_type, "Unknown")
+
+
+def parse_vars_file(file_path):
+    with open(file_path, 'r') as file:
+        total_vars = int(file.readline().strip())
+        vars_values = [0] * total_vars
+
+        for i, line in enumerate(file):
+            value, _ = map(int, line.split())
+            vars_values[i] = value
+
+    return vars_values
+
+
+def parse_model_file(file_path):
+    max_index = -1
+    constraints = []
+
+    with open(file_path, 'r') as file:
+        for line in file:
+            parts = line.strip().split('\t')
+            if len(parts) < 2:
+                continue
+
+            constraint_type, indices_part = parts[0], parts[1]
+            indices = re.findall(r'\d+', indices_part)
+            indices = [int(i) for i in indices]
+
+            max_index_in_line = max(indices)
+            if max_index_in_line > max_index:
+                max_index = max_index_in_line
+
+            if constraint_type == 'ALLDIFFERENT':
+                constraints.append((constraint_type, indices))
+
+    return constraints, max_index
+
+
+def are_comparisons_equal(comp1, comp2):
+    """
+    Checks if two Comparison objects are equal.
+
+    :param comp1: The first Comparison object.
+    :param comp2: The second Comparison object.
+    :return: True if the Comparisons are equal, False otherwise.
+    """
+    if comp1.name != comp2.name:
+        return False
+
+    if comp1.args[0] != comp2.args[0]:
+        return False
+
+    if comp1.args[1] != comp2.args[1]:
+        return False
+
+    return True
+
+
 def check_value(c):
     return bool(c.value())
 

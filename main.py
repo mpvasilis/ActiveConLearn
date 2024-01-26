@@ -1,3 +1,4 @@
+import json
 import os
 import argparse
 
@@ -45,9 +46,13 @@ def parse_args():
                                  "golomb8", "murder", "job_shop_scheduling",
                                  "exam_timetabling", "exam_timetabling_simple", "exam_timetabling_adv",
                                  "exam_timetabling_advanced", "nurse_rostering", "nurse_rostering_simple",
-                                 "nurse_rostering_advanced", "nurse_rostering_adv"],
+                                 "nurse_rostering_advanced", "nurse_rostering_adv", "custom"],
                         help="The name of the benchmark to use")
 
+    parser.add_argument("-exp", "--experiment", type=int, required=False,
+                    help="Experiment name for custom benchmark")
+    parser.add_argument("-o", "--output", type=int, required=False,
+                        help="Output directory")
     # Parsing specific to job-shop scheduling benchmark
     parser.add_argument("-nj", "--num-jobs", type=int, required=False,
                         help="Only relevant when the chosen benchmark is job-shop scheduling - the number of jobs")
@@ -117,8 +122,49 @@ def parse_args():
     return args
 
 
+
+
+def construct_custom(experiment):
+    model = Model()
+    vars = parse_vars_file(r"C:\Users\Balafas\IdeaProjects\VM_Placement\modules\benchmarks\b07_23_00_00_44_GreaterThanSudoku_9x9_8b_diverse_sols_activeOnly\b07_23_00_00_44_GreaterThanSudoku_9x9_8b_diverse_sols_activeOnly_var")
+    #vars = parse_vars_file(f"experiments/{experiment}/vars.txt")
+    variables = []
+    cnt=0
+    for var in vars:
+        variables.append(intvar(1, 9, name="var"+str(var)))
+    #parsed_constraints, max_index = parse_model_file(f"experiments/{experiment}/model.txt")
+    parsed_constraints, max_index = parse_model_file(r"C:\Users\Balafas\IdeaProjects\VM_Placement\modules\benchmarks\b07_23_00_00_44_GreaterThanSudoku_9x9_8b_diverse_sols_activeOnly\b07_23_00_00_44_GreaterThanSudoku_9x9_8b_diverse_sols_activeOnly_model")
+    for constraint_type, indices in parsed_constraints:
+        if constraint_type == 'ALLDIFFERENT':
+            model += AllDifferent([variables[i] for i in indices])
+
+    #ct = parse_vars_file(f"experiments/{experiment}/con.txt")
+    #bias = parse_vars_file(f"experiments/{experiment}/bias.txt")
+    bias = parse_con_file(r"C:\Users\Balafas\IdeaProjects\VM_Placement\modules\benchmarks\b07_23_00_00_44_GreaterThanSudoku_9x9_8b_diverse_sols_activeOnly\b07_23_00_00_44_GreaterThanSudoku_9x9_8b_diverse_sols_activeOnly_bias")
+    biases = [(constraint_type_to_string(con_type), var1, var2) for con_type, var1, var2 in bias]
+    B = []
+    for rel in biases:
+        model += eval(f"({rel[1]}{rel[0]}{rel[2]})")
+        B.append(eval(f"({rel[1]}{rel[0]}{rel[2]})"))
+
+    cl = parse_vars_file(f"experiments/{experiment}/cl.txt")
+    cls = [(constraint_type_to_string(con_type), var1, var2) for con_type, var1, var2 in cl]
+
+
+# grid = intvar(1, 9, shape=(9, 9), name="grid")
+
+#
+# model.add(variables)
+#
+#     return vars, ct, bias, cl, model
+
+
 def construct_benchmark():
-    if args.benchmark == "9sudoku":
+    if args.benchmark == "custom":
+        grid, C_T, oracle = construct_custom(args.experiment)
+        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2"]
+
+    elif args.benchmark == "9sudoku":
         grid, C_T, oracle = construct_9sudoku()
         gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"]
 
@@ -290,6 +336,9 @@ if __name__ == "__main__":
 
     benchmark_name, grid, C_T, oracle, gamma = construct_benchmark()
     grid.clear()
+    with open('grid_file.json', 'w') as file:
+        json.dump(grid, file)
+
     print("Size of C_T: ", len(C_T))
 
     if args.findscope is None:
@@ -303,6 +352,38 @@ if __name__ == "__main__":
         fc_version = args.findc
 
     start = time.time()
+
+    all_cons = []
+    X = list(list(grid.flatten()))
+    for relation in gamma:
+        if relation.count("var") == 2:
+            for v1, v2 in all_pairs(X):
+                constraint = relation.replace("var1", "v1")
+                constraint = constraint.replace("var2", "v2")
+                constraint = eval(constraint)
+                all_cons.append(constraint)
+
+    bias = all_cons
+    bias.pop()
+    C_l=[all_cons[i] for i in range(0, len(all_cons), 2)]
+    C_l=[all_cons[-1]]
+
+# bias_filtered = []
+    # for item_cl in C_l:
+    #     for item_bias in bias:
+    #         if not are_comparisons_equal(item_cl, item_bias):
+    #             bias_filtered.append(item_cl)
+    # bias = bias_filtered
+
+    ca_system = MQuAcq2(gamma, grid, C_T, qg=args.query_generation, obj=args.objective,
+                        time_limit=args.time_limit, findscope_version=fs_version,
+                        findc_version=fc_version,bias=bias, C_l=C_l)
+    ca_system.learn()
+
+    save_results()
+    exit()
+
+
     if args.algorithm == "quacq":
         ca_system = QuAcq(gamma, grid, C_T, qg=args.query_generation, obj=args.objective,
                           time_limit=args.time_limit, findscope_version=fs_version,
