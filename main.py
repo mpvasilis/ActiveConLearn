@@ -93,6 +93,9 @@ def parse_args():
     parser.add_argument("-np", "--num-professors", type=int, required=False,
                         help="Only relevant when the chosen benchmark is exam timetabling - "
                              "the number of professors")
+    parser.add_argument("-ulm", "--use_learned_model", type=bool, required=False,
+                        help="Use the Passive Learning model as CT")
+
     args = parser.parse_args()
 
     # Additional validity checks
@@ -126,45 +129,57 @@ def parse_args():
 
 def construct_custom(experiment):
     model = Model()
-    vars = parse_vars_file(r"C:\Users\Balafas\IdeaProjects\VM_Placement\modules\benchmarks\b07_23_00_00_44_GreaterThanSudoku_9x9_8b_diverse_sols_activeOnly\b07_23_00_00_44_GreaterThanSudoku_9x9_8b_diverse_sols_activeOnly_var")
+    vars = parse_vars_file("data/exp/b12_05_13_35_23_greaterThanSudoku_b20__diverse_diversity_RandomSampling_100_sols_20_var")
     #vars = parse_vars_file(f"experiments/{experiment}/vars.txt")
     variables = []
     cnt=0
     for var in vars:
         variables.append(intvar(1, 9, name="var"+str(var)))
     #parsed_constraints, max_index = parse_model_file(f"experiments/{experiment}/model.txt")
-    parsed_constraints, max_index = parse_model_file(r"C:\Users\Balafas\IdeaProjects\VM_Placement\modules\benchmarks\b07_23_00_00_44_GreaterThanSudoku_9x9_8b_diverse_sols_activeOnly\b07_23_00_00_44_GreaterThanSudoku_9x9_8b_diverse_sols_activeOnly_model")
+    parsed_constraints, max_index = parse_model_file("data/exp/b12_05_13_35_23_greaterThanSudoku_b20__diverse_diversity_RandomSampling_100_sols_20_model")
     for constraint_type, indices in parsed_constraints:
         if constraint_type == 'ALLDIFFERENT':
             model += AllDifferent([variables[i] for i in indices])
 
     #ct = parse_vars_file(f"experiments/{experiment}/con.txt")
     #bias = parse_vars_file(f"experiments/{experiment}/bias.txt")
-    bias = parse_con_file(r"C:\Users\Balafas\IdeaProjects\VM_Placement\modules\benchmarks\b07_23_00_00_44_GreaterThanSudoku_9x9_8b_diverse_sols_activeOnly\b07_23_00_00_44_GreaterThanSudoku_9x9_8b_diverse_sols_activeOnly_bias")
+    bias = parse_con_file("data/exp/b12_05_13_35_23_greaterThanSudoku_b20__diverse_diversity_RandomSampling_100_sols_20_bias")
     biases = [(constraint_type_to_string(con_type), var1, var2) for con_type, var1, var2 in bias]
     B = []
     for rel in biases:
-        model += eval(f"({rel[1]}{rel[0]}{rel[2]})")
-        B.append(eval(f"({rel[1]}{rel[0]}{rel[2]})"))
+        print(f"var{rel[1]} {rel[0]} var{rel[2]}")
+        v1 = variables[rel[1]]
+        v2 = variables[rel[2]]
+        print(eval(f"v1 {rel[0]} v2"))
+        B.append(eval(f"v1 {rel[0]} v2"))
 
-    cl = parse_vars_file(f"experiments/{experiment}/cl.txt")
+    cl = parse_con_file("data/exp/b12_05_13_35_23_greaterThanSudoku_b20__diverse_diversity_RandomSampling_100_sols_20_cl")
     cls = [(constraint_type_to_string(con_type), var1, var2) for con_type, var1, var2 in cl]
+    CL = []
+    for rel in cls:
+        print(f"var{rel[1]} {rel[0]} var{rel[2]}")
+        v1 = variables[rel[1]]
+        v2 = variables[rel[2]]
+        print(eval(f"v1 {rel[0]} v2"))
+        CL.append(eval(f"v1 {rel[0]} v2"))
+
+        model += eval(f"v1 {rel[0]} v2")
 
 
-# grid = intvar(1, 9, shape=(9, 9), name="grid")
+    grid = cp.cpm_array(np.expand_dims(variables, 0))
 
-#
-# model.add(variables)
-#
-#     return vars, ct, bias, cl, model
+    if args.use_learned_model:
+        C = list(model.constraints)
+        C_T = set(toplevel_list(C))
+        print(len(C_T))
+    else:
+        grid, C_T, oracle = construct_9sudoku()
+
+    return grid, C_T, model, variables, B, CL
 
 
 def construct_benchmark():
-    if args.benchmark == "custom":
-        grid, C_T, oracle = construct_custom(args.experiment)
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2"]
-
-    elif args.benchmark == "9sudoku":
+    if args.benchmark == "9sudoku":
         grid, C_T, oracle = construct_9sudoku()
         gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"]
 
@@ -299,7 +314,10 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
 
     res_name.append(str(conacq.obj))
 
-    res_name.append(bench)
+    if bench:
+        res_name.append(bench)
+    else:
+        res_name.append("custom")
 
     results_file = "_".join(res_name)
 
@@ -334,10 +352,14 @@ if __name__ == "__main__":
     # Setup
     args = parse_args()
 
-    benchmark_name, grid, C_T, oracle, gamma = construct_benchmark()
+    if args.benchmark == "custom":
+        benchmark_name = args.experiment
+        grid, C_T, oracle, X, bias, C_l = construct_custom(benchmark_name)
+        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2"]
+    else:
+        benchmark_name, grid, C_T, oracle, gamma = construct_benchmark()
     grid.clear()
-    with open('grid_file.json', 'w') as file:
-        json.dump(grid, file)
+
 
     print("Size of C_T: ", len(C_T))
 
@@ -353,20 +375,21 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    all_cons = []
-    X = list(list(grid.flatten()))
-    for relation in gamma:
-        if relation.count("var") == 2:
-            for v1, v2 in all_pairs(X):
-                constraint = relation.replace("var1", "v1")
-                constraint = constraint.replace("var2", "v2")
-                constraint = eval(constraint)
-                all_cons.append(constraint)
-
-    bias = all_cons
-    bias.pop()
-    C_l=[all_cons[i] for i in range(0, len(all_cons), 2)]
-    C_l=[all_cons[-1]]
+    # all_cons = []
+    # X = list(list(grid.flatten()))
+    # for relation in gamma:
+    #     if relation.count("var") == 2:
+    #         for v1, v2 in all_pairs(X):
+    #             print(v1,v2)
+    #             constraint = relation.replace("var1", "v1")
+    #             constraint = constraint.replace("var2", "v2")
+    #             constraint = eval(constraint)
+    #             all_cons.append(constraint)
+    #
+    # bias = all_cons
+    # bias.pop()
+    # C_l=[all_cons[i] for i in range(0, len(all_cons), 2)]
+    # C_l=[all_cons[-1]]
 
 # bias_filtered = []
     # for item_cl in C_l:
@@ -375,13 +398,14 @@ if __name__ == "__main__":
     #             bias_filtered.append(item_cl)
     # bias = bias_filtered
 
-    ca_system = MQuAcq2(gamma, grid, C_T, qg=args.query_generation, obj=args.objective,
-                        time_limit=args.time_limit, findscope_version=fs_version,
-                        findc_version=fc_version,bias=bias, C_l=C_l)
-    ca_system.learn()
+    if args.benchmark == "custom":
+        ca_system = MQuAcq2(gamma, grid, C_T, qg=args.query_generation, obj=args.objective,
+                            time_limit=args.time_limit, findscope_version=fs_version,
+                            findc_version=fc_version, bias=bias, C_l=C_l, X=X)
+        ca_system.learn()
 
-    save_results()
-    exit()
+        save_results()
+        exit()
 
 
     if args.algorithm == "quacq":

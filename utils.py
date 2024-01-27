@@ -289,7 +289,10 @@ def get_relation(c, gamma):
 
 def get_var_name(var):
     name = re.findall("\[\d+[,\d+]*\]", var.name)
-    name = var.name.replace(name[0], '')
+    if not name:
+        name = var.name.replace('var','')
+    else:
+        name = var.name.replace(name[0], '')
     return name
 
 
@@ -302,9 +305,14 @@ def get_var_ndims(var):
 
 def get_var_dims(var):
     dims = re.findall("\[\d+[,\d+]*\]", var.name)
-    dims_str = "".join(dims)
-    dims = re.split("[\[\]]", dims_str)[1]
-    dims = [int(dim) for dim in re.split(",", dims)]
+    if dims:
+        dims_str = "".join(dims)
+        dims = re.split("[\[\]]", dims_str)[1]
+        dims = [int(dim) for dim in re.split(",", dims)]
+    else:
+        dims = var.name.replace("var","")
+        dims=[int(dims)]
+
     return dims
 
 
