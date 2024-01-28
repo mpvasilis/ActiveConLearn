@@ -12,6 +12,17 @@ from itertools import chain
 
 from ConAcq import SOLVER
 
+def parse_dom_file(file_path):
+    domain_constraints = {}
+    with open(file_path, 'r') as file:
+        for line in file:
+            parts = line.split()
+            if len(parts) >= 3:
+                var_index = int(parts[0])
+                lower_bound = int(parts[2])
+                upper_bound = int(parts[-1])
+                domain_constraints[var_index] = (lower_bound, upper_bound)
+    return domain_constraints
 
 def parse_con_file(file_path):
     biases = []

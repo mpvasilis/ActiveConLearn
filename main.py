@@ -159,7 +159,9 @@ def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
     model = Model()
     vars_file = f"{data_dir}/{experiment}_var"
     vars = parse_vars_file(vars_file)
-    variables = [intvar(1, 9, name=f"var{var}") for var in vars]
+    dom_file = f"{data_dir}/{experiment}_dom"
+    domain_constraints = parse_dom_file(dom_file)
+    variables = [intvar(domain_constraints[0][0], domain_constraints[0][1], name=f"var{var}") for var in vars]
 
     model_file = f"{data_dir}/{experiment}_model"
     parsed_constraints, max_index = parse_model_file(model_file)
