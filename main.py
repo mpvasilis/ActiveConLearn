@@ -49,10 +49,15 @@ def parse_args():
                                  "nurse_rostering_advanced", "nurse_rostering_adv", "custom"],
                         help="The name of the benchmark to use")
 
-    parser.add_argument("-exp", "--experiment", type=int, required=False,
+    parser.add_argument("-exp", "--experiment", type=str, required=False,
                     help="Experiment name for custom benchmark")
-    parser.add_argument("-o", "--output", type=int, required=False,
+    parser.add_argument("-i", "--input", type=str, required=False,
+                        help="File path of input files (_var, _model, _con, _cl, _bias) for custom problems")
+    parser.add_argument("-o", "--output", type=str, required=False,
                         help="Output directory")
+    parser.add_argument("-ulm", "--use_learned_model", type=bool, required=False,
+                        help="Use the Passive Learning model as CT")
+
     # Parsing specific to job-shop scheduling benchmark
     parser.add_argument("-nj", "--num-jobs", type=int, required=False,
                         help="Only relevant when the chosen benchmark is job-shop scheduling - the number of jobs")
@@ -93,8 +98,7 @@ def parse_args():
     parser.add_argument("-np", "--num-professors", type=int, required=False,
                         help="Only relevant when the chosen benchmark is exam timetabling - "
                              "the number of professors")
-    parser.add_argument("-ulm", "--use_learned_model", type=bool, required=False,
-                        help="Use the Passive Learning model as CT")
+
 
     args = parser.parse_args()
 
@@ -127,56 +131,59 @@ def parse_args():
 
 
 
-def construct_custom(experiment):
+def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
+    """
+    Constructs a custom model based on the given experiment.
+    
+    Args:
+        experiment (str): The name of the experiment.
+        data_dir (str): The directory where experiment data is stored.
+        use_learned_model (bool): Flag to use a learned model or not.
+
+    Returns:
+        Tuple: Contains grid, constraints, model, variables, biases, and cls.
+    """
+    def parse_and_apply_constraints(file_path, variables, model=None):
+        parsed_data = parse_con_file(file_path)
+        constraints = []
+        for con_type, var1, var2 in parsed_data:
+            con_str = constraint_type_to_string(con_type)
+            print(f"var{var1} {con_str} var{var2}")
+            constraint = eval(f"variables[var1] {con_str} variables[var2]")
+            print(constraint)
+            constraints.append(constraint)
+            if model is not None:
+                model += constraint
+        return constraints
+
     model = Model()
-    vars = parse_vars_file("data/exp/b12_05_13_35_23_greaterThanSudoku_b20__diverse_diversity_RandomSampling_100_sols_20_var")
-    #vars = parse_vars_file(f"experiments/{experiment}/vars.txt")
-    variables = []
-    cnt=0
-    for var in vars:
-        variables.append(intvar(1, 9, name="var"+str(var)))
-    #parsed_constraints, max_index = parse_model_file(f"experiments/{experiment}/model.txt")
-    parsed_constraints, max_index = parse_model_file("data/exp/b12_05_13_35_23_greaterThanSudoku_b20__diverse_diversity_RandomSampling_100_sols_20_model")
+    vars_file = f"{data_dir}/{experiment}_var"
+    vars = parse_vars_file(vars_file)
+    variables = [intvar(1, 9, name=f"var{var}") for var in vars]
+
+    model_file = f"{data_dir}/{experiment}_model"
+    parsed_constraints, max_index = parse_model_file(model_file)
     for constraint_type, indices in parsed_constraints:
         if constraint_type == 'ALLDIFFERENT':
             model += AllDifferent([variables[i] for i in indices])
+        # Add other constraint types if needed
 
-    #ct = parse_vars_file(f"experiments/{experiment}/con.txt")
-    #bias = parse_vars_file(f"experiments/{experiment}/bias.txt")
-    bias = parse_con_file("data/exp/b12_05_13_35_23_greaterThanSudoku_b20__diverse_diversity_RandomSampling_100_sols_20_bias")
-    biases = [(constraint_type_to_string(con_type), var1, var2) for con_type, var1, var2 in bias]
-    B = []
-    for rel in biases:
-        print(f"var{rel[1]} {rel[0]} var{rel[2]}")
-        v1 = variables[rel[1]]
-        v2 = variables[rel[2]]
-        print(eval(f"v1 {rel[0]} v2"))
-        B.append(eval(f"v1 {rel[0]} v2"))
+    bias_file = f"{data_dir}/{experiment}_bias"
+    biases = parse_and_apply_constraints(bias_file, variables)
 
-    cl = parse_con_file("data/exp/b12_05_13_35_23_greaterThanSudoku_b20__diverse_diversity_RandomSampling_100_sols_20_cl")
-    cls = [(constraint_type_to_string(con_type), var1, var2) for con_type, var1, var2 in cl]
-    CL = []
-    for rel in cls:
-        print(f"var{rel[1]} {rel[0]} var{rel[2]}")
-        v1 = variables[rel[1]]
-        v2 = variables[rel[2]]
-        print(eval(f"v1 {rel[0]} v2"))
-        CL.append(eval(f"v1 {rel[0]} v2"))
-
-        model += eval(f"v1 {rel[0]} v2")
-
+    cl_file = f"{data_dir}/{experiment}_cl"
+    cls = parse_and_apply_constraints(cl_file, variables, model)
 
     grid = cp.cpm_array(np.expand_dims(variables, 0))
 
-    if args.use_learned_model:
+    if use_learned_model:
         C = list(model.constraints)
         C_T = set(toplevel_list(C))
         print(len(C_T))
     else:
         grid, C_T, oracle = construct_9sudoku()
 
-    return grid, C_T, model, variables, B, CL
-
+    return grid, C_T, model, variables, biases, cls
 
 def construct_benchmark():
     if args.benchmark == "9sudoku":
@@ -354,7 +361,8 @@ if __name__ == "__main__":
 
     if args.benchmark == "custom":
         benchmark_name = args.experiment
-        grid, C_T, oracle, X, bias, C_l = construct_custom(benchmark_name)
+        path = args.input
+        grid, C_T, oracle, X, bias, C_l = construct_custom(benchmark_name, path, args.use_learned_model)
         gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2"]
     else:
         benchmark_name, grid, C_T, oracle, gamma = construct_benchmark()
