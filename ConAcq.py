@@ -635,6 +635,7 @@ class ConAcq:
                 # If no example could be generated
                 # check if delta is the empty set, and if yes then collapse
                 if len(delta) == 0:
+                    print(self.B)
                     print("Collapse, the constraint we seek is not in B")
                     exit(-2)
 

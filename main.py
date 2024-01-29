@@ -427,6 +427,8 @@ if __name__ == "__main__":
     # bias = bias_filtered
 
     if args.benchmark == "custom":
+        print("Size of bias: ", len(bias))
+        print(bias)
         ca_system = MQuAcq2(gamma, grid, C_T, qg=args.query_generation, obj=args.objective,
                             time_limit=args.time_limit, findscope_version=fs_version,
                             findc_version=fc_version, bias=bias, C_l=C_l, X=X)
