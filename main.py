@@ -151,9 +151,7 @@ def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
         constraints = []
         for con_type, var1, var2 in parsed_data:
             con_str = constraint_type_to_string(con_type)
-            print(f"var{var1} {con_str} var{var2}")
             constraint = eval(f"variables[var1] {con_str} variables[var2]")
-            print(constraint)
             constraints.append(constraint)
             if model is not None:
                 model += constraint
