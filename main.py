@@ -328,7 +328,10 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
     else:
         res_name.append("custom")
 
-    results_file = "_".join(res_name)
+    if args.output:
+        results_file = args.output+"/mquack2_results_"+args.experiment
+    else:
+        results_file = "_".join(res_name)
 
     file_exists = os.path.isfile(results_file)
     f = open(results_file, "a")
@@ -354,6 +357,9 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
 
     f.write(results)
     f.close()
+
+
+
 
 
 if __name__ == "__main__":
