@@ -57,7 +57,10 @@ def parse_args():
                         help="Output directory")
     parser.add_argument("-ulm", "--use_learned_model", type=bool, required=False,
                         help="Use the Passive Learning model as CT")
-
+    parser.add_argument("-con", "--useCon", type=bool, required=False,
+                        help="Use _con (fixed arity constraints) file as target model")
+    parser.add_argument("-oa", "--onlyActive", type=bool, required=False,
+                        help="Run a custom model with only active learning - don't use the Passive Learning CL and bias")
     # Parsing specific to job-shop scheduling benchmark
     parser.add_argument("-nj", "--num-jobs", type=int, required=False,
                         help="Only relevant when the chosen benchmark is job-shop scheduling - the number of jobs")
@@ -162,19 +165,30 @@ def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
     dom_file = f"{data_dir}/{experiment}_dom"
     domain_constraints = parse_dom_file(dom_file)
     variables = [intvar(domain_constraints[0][0], domain_constraints[0][1], name=f"var{var}") for var in vars]
+    grid = intvar(domain_constraints[0][0], domain_constraints[0][1], shape=(1, len(variables)), name="grid")
+    for i, var in enumerate(variables):
+        grid[1:i] = var
 
-    model_file = f"{data_dir}/{experiment}_model"
-    parsed_constraints, max_index = parse_model_file(model_file)
-    for constraint_type, indices in parsed_constraints:
-        if constraint_type == 'ALLDIFFERENT':
-            model += AllDifferent([variables[i] for i in indices])
-        # Add other constraint types if needed
+    if use_learned_model:
+        model_file = f"{data_dir}/{experiment}_model"
+        parsed_constraints, max_index = parse_model_file(model_file)
+        for constraint_type, indices in parsed_constraints:
+            if constraint_type == 'ALLDIFFERENT':
+                model += AllDifferent([variables[i] for i in indices])
 
-    bias_file = f"{data_dir}/{experiment}_bias"
-    biases = parse_and_apply_constraints(bias_file, variables)
+    if args.useCon:
+        con_file = f"{data_dir}/{experiment}_con"
+        fixed_arity_ct = parse_and_apply_constraints(con_file, variables, model)
 
-    cl_file = f"{data_dir}/{experiment}_cl"
-    cls = parse_and_apply_constraints(cl_file, variables, model)
+    if args.onlyActive:
+        biases = []
+        cls = []
+    else:
+        bias_file = f"{data_dir}/{experiment}_bias"
+        biases = parse_and_apply_constraints(bias_file, variables)
+
+        cl_file = f"{data_dir}/{experiment}_cl"
+        cls = parse_and_apply_constraints(cl_file, variables)
 
     grid = cp.cpm_array(np.expand_dims(variables, 0))
 
@@ -183,7 +197,7 @@ def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
         C_T = set(toplevel_list(C))
         print(len(C_T))
     else:
-        grid, C_T, oracle = construct_9sudoku()
+        C_T = set(fixed_arity_ct)
 
     return grid, C_T, model, variables, biases, cls
 
