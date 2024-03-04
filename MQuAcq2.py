@@ -2,6 +2,7 @@ import time
 
 import numpy as np
 from cpmpy.expressions.utils import all_pairs
+from cpmpy.transformations.normalize import toplevel_list
 
 from ConAcq import ConAcq
 from utils import construct_bias, get_kappa, get_scope, get_relation
@@ -9,10 +10,10 @@ from utils import construct_bias, get_kappa, get_scope, get_relation
 cliques_cutoff = 0.5
 
 class MQuAcq2(ConAcq):
-    def __init__(self, gamma, grid, ct=list(), bias=list(), X=set(), C_l=set(), qg="pqgen", obj="proba",
+    def __init__(self, gamma, grid, ct=list(), B=list(), Bg=list(), X=set(), C_l=set(), qg="pqgen", obj="proba",
                  time_limit=None, findscope_version=4, findc_version=1, tqgen_t=None,
                  qgen_blimit=5000, perform_analyzeAndLearn=False):
-        super().__init__(gamma, grid, ct, bias, X, C_l, qg, obj, time_limit, findscope_version,
+        super().__init__(gamma, grid, ct, B, Bg, X, C_l, qg, obj, time_limit, findscope_version,
                     findc_version, tqgen_t, qgen_blimit)
         self.perform_analyzeAndLearn = perform_analyzeAndLearn
 
@@ -20,13 +21,13 @@ class MQuAcq2(ConAcq):
 
         answer = True
 
-        if len(self.B) == 0:
+        if len(self.B + toplevel_list(self.Bg)) == 0:
             self.B = construct_bias(self.X, self.gamma)
 
         while True:
             if self.debug_mode:
                 print("Size of CL: ", len(self.C_l.constraints))
-                print("Size of B: ", len(self.B))
+                print("Size of B: ", len(self.B + toplevel_list(self.Bg)))
                 print("Number of queries: ", self.metrics.queries_count)
                 print("MQuAcq-2 Queries: ", self.metrics.top_lvl_queries)
                 print("FindScope Queries: ", self.metrics.findscope_queries)
@@ -42,7 +43,7 @@ class MQuAcq2(ConAcq):
                 # if no query can be generated it means we have converged to the target network -----
                 break
 
-            kappaB = get_kappa(self.B, Y)
+            kappaB = get_kappa(self.B + toplevel_list(self.Bg), Y)
             Yprime = Y.copy()
             answer = True
 
@@ -73,7 +74,7 @@ class MQuAcq2(ConAcq):
 
                     Yprime = [y2 for y2 in Yprime if not any(y2 in set(nscope) for nscope in NScopes)]
 
-                    kappaB = get_kappa(self.B, Yprime)
+                    kappaB = get_kappa(self.B + toplevel_list(self.Bg), Yprime)
 
     def analyze_and_learn(self, Y):
 
@@ -94,7 +95,7 @@ class MQuAcq2(ConAcq):
         if len(QCliques) == 0:
             return set()
 
-        Cq = [c for c in get_kappa(self.B, Y) if any(
+        Cq = [c for c in get_kappa(self.B + toplevel_list(self.Bg), Y) if any(
             set(get_scope(c)).issubset(clique) and get_relation(c, self.gamma) in cliques_relations[i] for i, clique in
             enumerate(QCliques))]
 
@@ -105,7 +106,7 @@ class MQuAcq2(ConAcq):
             if self.ask_query(pscope):
                 # It is a solution, so all candidates violated must go
                 # B <- B \setminus K_B(e)
-                kappaB = get_kappa(self.B, pscope)
+                kappaB = get_kappa(self.B + toplevel_list(self.Bg), pscope)
                 self.remove_from_bias(kappaB)
 
             else:  # User says UNSAT
