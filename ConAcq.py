@@ -1,9 +1,12 @@
+import time
 from statistics import mean, stdev
 
 SOLVER = "ortools"
 
 from cpmpy import *
 from cpmpy.transformations.get_variables import get_variables
+from cpmpy.expressions.utils import is_any_list
+from cpmpy.transformations.normalize import toplevel_list
 from utils import *
 import math
 from ortools.sat.python import cp_model as ort
@@ -14,18 +17,23 @@ partial = False
 
 class ConAcq:
 
-    def __init__(self, gamma, grid, ct=list(), bias=list(), X=set(), C_l=set(), qg="pqgen", obj="proba",
+    def __init__(self, gamma, grid, ct=list(), B=list(), Bg=None, X=set(), C_l=None, qg="pqgen", obj="proba",
                  time_limit=None, findscope_version=4, findc_version=1, tqgen_t=None,
                  qgen_blimit=5000):
 
-        self.debug_mode = True
+        self.debug_mode = False
 
         # Target network
         self.C_T = ct
 
         self.grid = grid
         self.gamma = gamma
-        self.B = bias
+        if B is None:
+            B = []
+        self.B = B
+        if Bg is None:
+            Bg = []
+        self.Bg = Bg
 
         # Guery generation, FindScope and FindC versions
         self.qg = qg
@@ -40,6 +48,8 @@ class ConAcq:
         self.countsB = [0] * len(gamma)
 
         # Initialize learned network
+        if C_l is None:
+            C_l = []
         if len(C_l) > 0:
             self.C_l = Model(C_l)
         else:
@@ -74,9 +84,6 @@ class ConAcq:
         # Time limit for during FindScope with objective function
         self.fs_limit = 0.5
 
-        self.dataset_X = []
-        self.dataset_Y = []
-
         # To be used in the constraint features
         # -------------------------------------
 
@@ -100,53 +107,39 @@ class ConAcq:
 
         self.metrics = Metrics()
 
-    def set_counts(self, counts, countsB):
+    def flatten_blists(self, C):
+        if not is_any_list(C):
+            C = [C]
+        i=0
+        while i < len(self.Bg):
+            bl = self.Bg[i]
+            if any(c in set(bl) for c in C):
+                self.B.extend(bl)
+                self.Bg.pop(i)
+                i = i-1
+            i +=1
 
-        self.counts = counts
-        self.countsB = countsB
-
-    def increase_count_cl(self, c):
-
-        # Increase the count for the relation of a learned constraint
-
-        rel = get_relation(c, self.gamma)
-        self.counts[rel] += 1
-
-    def increase_count_bias(self, c):
-
-        # Increase the count for the relation of a constraint removed from the bias
-
-        rel = get_relation(c, self.gamma)
-        self.countsB[rel] += 1
-        return True
-
-    def get_counts(self):
-
-        return self.counts, self.countsB
-
-    def set_dataset(self, dataset_X, dataset_Y):
-
-        self.dataset_X = dataset_X
-        self.dataset_Y = dataset_Y
-
-    def get_dataset(self):
-
-        return self.dataset_X, self.dataset_Y
+        self.B = list(set(self.B))
 
     def remove_from_bias(self, C):
 
-        # Remove all the constraints from network C from B
-        if self.obj == "proba":
-            for c in C:
-                self.increase_count_bias(c)
+        #Flatten that list adding it to B (removal of such constraints from B will happen in next step)
+        self.flatten_blists(C)
 
+        # Remove all the constraints from network C from B
         prev_B_length = len(self.B)
         self.B = list(set(self.B) - set(C))
 
         if self.debug_mode:
             print(f"Removed from bias: {C}")
-        if not (prev_B_length - len(C) == len(self.B)):
-            raise Exception(f'Something was not removed properly: {prev_B_length} - {len(C)} = {len(self.B)}')
+#        if not (prev_B_length - len(C) == len(self.B)):
+#            print("B: ", self.B)
+#            print("C:", C)
+#            raise Exception(f'Something was not removed properly: {prev_B_length} - {len(C)} = {len(self.B)}')
+
+#        for bl in self.Bg:
+#            if any(c in bl for c in C):
+#                self.Bg -= bl
 
     def add_to_cl(self, c):
 
@@ -154,7 +147,7 @@ class ConAcq:
         if self.debug_mode:
             print(f"adding {c} to C_L")
         self.C_l += c
-        self.increase_count_cl(c)
+        self.genAcq(c)
 
     def remove(self, B, C):
 
@@ -182,23 +175,22 @@ class ConAcq:
 
         # Remove all constraints with the given scope from B
         scope_set = set(scope)
-        learned_con_rel = get_relation(self.C_l.constraints[-1], self.gamma)
-        B_scopes_set = [set(get_scope(c)) for c in self.B]
+#        learned_con_rel = get_relation(self.C_l.constraints[-1], self.gamma)
+        B_scopes_set = [set(get_scope(c)) for c in self.B + toplevel_list(self.Bg)]
 
-        removing = [c for i, c in enumerate(self.B) if B_scopes_set[i] == scope_set
-                    and get_relation(c, self.gamma) != learned_con_rel]
+        removing = [c for i, c in enumerate(self.B + toplevel_list(self.Bg)) if B_scopes_set[i] == scope_set]
+#                    and get_relation(c, self.gamma) != learned_con_rel]
 
-        for c in removing:
-            self.increase_count_bias(c)
+        self.flatten_blists(removing)
 
-        prev_B_length = len(self.B)
+#        prev_B_length = len(self.B)
         self.B = [c for i, c in enumerate(self.B) if not (B_scopes_set[i] == scope_set)]
 
-        if len(self.B) == prev_B_length:
-            if self.debug_mode:
-                print(self.B)
-                print(scope)
-            raise Exception("Removing constraints from Bias did not result in reducing its size")
+#        if len(self.B) == prev_B_length:
+#            if self.debug_mode:
+#                print(self.B)
+#                print(scope)
+#            raise Exception("Removing constraints from Bias did not result in reducing its size")
 
     def set_cl(self, C_l):
 
@@ -214,7 +206,7 @@ class ConAcq:
         if self.fc == 1:
 
             # Initialize delta
-            delta = get_con_subset(self.B, scope)
+            delta = get_con_subset(self.B + toplevel_list(self.Bg), scope)
             delta = [c for c in delta if check_value(c) is False]
 
             c = self.findC(scope, delta)
@@ -307,18 +299,18 @@ class ConAcq:
         # A basic version of query generation for small problems. May lead
         # to premature convergence, so generally not used
 
-        if len(self.B) == 0:
+        if len(self.B + toplevel_list(self.Bg)) == 0:
             return False
 
         # B are taken into account as soft constraints that we do not want to satisfy (i.e., that we want to violate)
         m = Model(self.C_l.constraints)  # could use to-be-implemented m.copy() here...
 
         # Get the amount of satisfied constraints from B
-        objective = sum([c for c in self.B])
+        objective = sum([c for c in self.B + toplevel_list(self.Bg)])
 
         # We want at least one constraint to be violated to assure that each answer of the
         # user will reduce the set of candidates
-        m += objective < len(self.B)
+        m += objective < len(self.B + toplevel_list(self.Bg))
 
         s = SolverLookup.get(SOLVER, m)
         flag = s.solve(time_limit=600)
@@ -338,15 +330,11 @@ class ConAcq:
         t0 = time.time()
 
         # Project down to only vars in scope of B
-        Y = frozenset(get_variables(self.B))
+        Y = frozenset(get_variables(self.B + toplevel_list(self.Bg)))
         lY = list(Y)
 
-        if len(Y) == len(self.X):
-            B = self.B
-            Cl = self.C_l.constraints
-        else:
-            B = get_con_subset(self.B, Y)
-            Cl = get_con_subset(self.C_l.constraints, Y)
+        B = get_con_subset(self.B + toplevel_list(self.Bg), Y)
+        Cl = get_con_subset(self.C_l.constraints, Y)
 
         global partial
 
@@ -358,7 +346,7 @@ class ConAcq:
         if len(Cl) == 0:
             Cl = [sum(Y) >= 1]
 
-        if not partial and len(B) > self.qgen_blimit:
+        if not partial and len(self.B + toplevel_list(self.Bg)) > self.qgen_blimit:
 
             m = Model(Cl)
             flag = m.solve()  # no time limit to ensure convergence
@@ -371,9 +359,12 @@ class ConAcq:
         m = Model(Cl)
         s = SolverLookup.get(SOLVER, m)
 
+        hybridB = self.Bg + self.B
+
         # Create indicator variables upfront
-        V = boolvar(shape=(len(B),))
-        s += (V == B)
+        V = boolvar(shape=(len(hybridB),))
+        s += [V[i] == all(hybridB[i]) if is_any_list(hybridB[i]) else V[i] == hybridB[i] for i in range(len(V))]
+        #s += (V == all(hybridB))
 
         # We want at least one constraint to be violated to assure that each answer of the user
         # will lead to new information
@@ -402,11 +393,10 @@ class ConAcq:
         else: # self.obj == "proba"
 
             # Use the counts to calculate the probability
-            theta = [(self.counts[i] + 0.25) / (self.countsB[i] + 0.5) for i in range(len(self.gamma))]
-            P_c = [theta[get_relation(c, self.gamma)] for c in B]
+            O_c = [1 if is_any_list(c) else 0 for c in hybridB]
 
             objective = sum(
-                [~v * (1 - len(self.gamma) * ((1 / P_c[c]) <= math.log2(len(Y)))) for
+                [~v * (1 - len(self.gamma) * O_c[c]) for
                  v, c in zip(V, range(len(B)))])
 
         # Run with the objective
@@ -481,8 +471,8 @@ class ConAcq:
             #print(f"Query: is this a solution?")
             #print(np.array([[v if v != 0 else -0 for v in row] for row in value]))
 
-            print("B:", get_con_subset(self.B,Y))
-            print("violated from B: ", get_kappa(self.B, Y))
+            print("B:", get_con_subset(self.B + toplevel_list(self.Bg),Y))
+            print("violated from B: ", get_kappa(self.B + toplevel_list(self.Bg), Y))
             print("violated from C_T: ", get_kappa(self.C_T, Y))
             print("violated from C_L: ", get_kappa(self.C_l.constraints, Y))
 
@@ -510,6 +500,40 @@ class ConAcq:
 
         return ret
 
+    def genAsk(self, c, bl):
+
+        self.metrics.increase_gen_queries_count()
+        print(f"Query({self.metrics.gen_queries_count}: Can I generalize constraint {c} to all {bl}?")
+
+        ret = all(c in set(self.C_T) for c in bl)
+        print("Answer: ", ("Yes" if ret else "No"))
+
+        return ret
+
+    def genAcq(self, con):
+
+        cl = []
+        i = 0
+        while i < len(self.Bg):
+
+            bl = self.Bg[i]
+
+            # skip the lists not including the constraint on hand
+            if con not in set(bl):
+                i += 1
+                continue
+
+            # remove from Bg as we are going to ask a query for it!
+            self.Bg.pop(i)
+
+            if self.genAsk(con, bl):
+                cl += bl
+                self.B = list(set(self.B) - set(cl)) # remove only from normal B
+            else:
+                self.B += bl
+
+        [self.add_to_cl(c) for c in cl]
+
     # This is the version of the FindScope function that was presented in "Constraint acquisition via Partial Queries", IJCAI 2013
     def findScope(self, e, R, Y, do_ask):
         #if self.debug_mode:
@@ -530,7 +554,7 @@ class ConAcq:
 
             e_R[sel] = e[sel]
             if self.ask_query(e_R):
-                kappaB = get_kappa(self.B, R)
+                kappaB = get_kappa(self.B + toplevel_list(self.Bg), R)
                 self.remove_from_bias(kappaB)
 
             else:
@@ -550,8 +574,8 @@ class ConAcq:
     # This is the version of the FindScope function that was presented in "Constraint acquisition through Partial Queries", AIJ 2023
     def findScope2(self, e, R, Y, kappaB):
 
-        if not frozenset(kappaB).issubset(self.B):
-            raise Exception(f"kappaB given in findscope {call} is not part of B: \nkappaB: {kappaB}, \nB: {self.B}")
+        if not frozenset(kappaB).issubset(self.B + toplevel_list(self.Bg)):
+            raise Exception(f"kappaB given in findscope is not part of B: \nkappaB: {kappaB}, \nB: {self.B}")
 
         # if ask(e_R) = yes: B \setminus K(e_R)
         # need to project 'e' down to vars in R,
@@ -677,7 +701,7 @@ class ConAcq:
         # TODO optimize to work better (probably only needs to make better the generate_find_query2)
 
         # Initialize delta
-        delta = get_con_subset(self.B, scope)
+        delta = get_con_subset(self.B + toplevel_list(self.Bg), scope)
         delta = join_con_net(delta, [c for c in delta if check_value(c) is False])
 
         # We need to take into account only the constraints in the scope we search on

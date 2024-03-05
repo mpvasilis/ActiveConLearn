@@ -447,6 +447,7 @@ def compute_sample_weights(Y):
 class Metrics:
 
     def __init__(self):
+        self.gen_queries_count = 0
         self.queries_count = 0
         self.top_lvl_queries = 0
         self.generated_queries = 0
@@ -460,6 +461,9 @@ class Metrics:
         self.generation_time = 0
 
         self.converged = 1
+
+    def increase_gen_queries_count(self, amount=1):
+        self.gen_queries_count += amount
 
     def increase_queries_count(self, amount=1):
         self.queries_count += amount
