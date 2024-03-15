@@ -46,7 +46,7 @@ def parse_args():
                                  "golomb8", "murder", "job_shop_scheduling",
                                  "exam_timetabling", "exam_timetabling_simple", "exam_timetabling_adv",
                                  "exam_timetabling_advanced", "nurse_rostering", "nurse_rostering_simple",
-                                 "nurse_rostering_advanced", "nurse_rostering_adv", "custom"],
+                                 "nurse_rostering_advanced", "nurse_rostering_adv", "custom", "vgc"],
                         help="The name of the benchmark to use")
 
     parser.add_argument("-exp", "--experiment", type=str, required=False,
@@ -199,6 +199,64 @@ def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
 
     return grid, C_T, model, variables, biases, cls
 
+def verify_global_constraints(experiment, data_dir="data/exp", use_learned_model=False):
+    biasg = []
+    def parse_and_apply_constraints(file_path, variables, model=None):
+        parsed_data = parse_con_file(file_path)
+        constraints = []
+        for con_type, var1, var2 in parsed_data:
+            con_str = constraint_type_to_string(con_type)
+            constraint = eval(f"variables[var1] {con_str} variables[var2]")
+            constraints.append(constraint)
+            if model is not None:
+                model += constraint
+        return constraints
+
+    model = Model()
+    vars_file = f"{data_dir}/{experiment}_var"
+    vars = parse_vars_file(vars_file)
+    dom_file = f"{data_dir}/{experiment}_dom"
+    domain_constraints = parse_dom_file(dom_file)
+    variables = [intvar(domain_constraints[0][0], domain_constraints[0][1], name=f"var{var}") for var in vars]
+    grid = intvar(domain_constraints[0][0], domain_constraints[0][1], shape=(1, len(variables)), name="grid")
+    for i, var in enumerate(variables):
+        grid[1:i] = var
+
+
+    model_file = f"{data_dir}/{experiment}_model"
+    parsed_constraints, max_index = parse_model_file(model_file)
+    for constraint_type, indices in parsed_constraints:
+        if constraint_type == 'ALLDIFFERENT':
+            if use_learned_model:
+                model += AllDifferent([variables[i] for i in indices])
+            biasg.append(AllDifferent([variables[i] for i in indices]).decompose()[0])
+
+    if args.useCon:
+        con_file = f"{data_dir}/{experiment}_con"
+        fixed_arity_ct = parse_and_apply_constraints(con_file, variables, model)
+
+    if args.onlyActive:
+        biases = []
+        cls = []
+    else:
+        bias_file = f"{data_dir}/{experiment}_bias"
+        biases = parse_and_apply_constraints(bias_file, variables)
+
+        cl_file = f"{data_dir}/{experiment}_cl"
+        cls = parse_and_apply_constraints(cl_file, variables)
+
+    grid = cp.cpm_array(np.expand_dims(variables, 0))
+
+    if use_learned_model:
+        C = list(model.constraints)
+        C_T = set(toplevel_list(C))
+        print(len(C_T))
+    else:
+        C_T = set(fixed_arity_ct)
+
+    return grid, C_T, model, variables, biases, biasg, cls
+
+
 def construct_benchmark():
     if args.benchmark == "9sudoku":
         grid, C_T, oracle = construct_9sudoku()
@@ -297,6 +355,11 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
     print("\n\nConverged ------------------------")
 
     print("Total number of queries: ", conacq.metrics.queries_count)
+    print("Number of generalization queries: ", conacq.metrics.gen_queries_count)
+    print("Number of top-level queries: ", conacq.metrics.top_lvl_queries)
+    print("Number of generated queries: ", conacq.metrics.generated_queries)
+    print("Number of findscope queries: ", conacq.metrics.findscope_queries)
+
 
     avg_size = conacq.metrics.average_size_queries / conacq.metrics.queries_count if conacq.metrics.queries_count > 0 else 0
     print("Average size of queries: ", avg_size)
@@ -376,20 +439,7 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
 
 if __name__ == "__main__":
 
-    # Setup
     args = parse_args()
-
-    if args.benchmark == "custom":
-        benchmark_name = args.experiment
-        path = args.input
-        grid, C_T, oracle, X, bias, C_l = construct_custom(benchmark_name, path, args.use_learned_model)
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2"]
-    else:
-        benchmark_name, grid, C_T, oracle, gamma = construct_benchmark()
-    grid.clear()
-
-
-    print("Size of C_T: ", len(C_T))
 
     if args.findscope is None:
         fs_version = 2
@@ -403,39 +453,74 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    # all_cons = []
-    # X = list(list(grid.flatten()))
-    # for relation in gamma:
-    #     if relation.count("var") == 2:
-    #         for v1, v2 in all_pairs(X):
-    #             print(v1,v2)
-    #             constraint = relation.replace("var1", "v1")
-    #             constraint = constraint.replace("var2", "v2")
-    #             constraint = eval(constraint)
-    #             all_cons.append(constraint)
-    #
-    # bias = all_cons
-    # bias.pop()
-    # C_l=[all_cons[i] for i in range(0, len(all_cons), 2)]
-    # C_l=[all_cons[-1]]
+    if args.benchmark == "vgc": #verify global constraints
+        benchmark_name = args.experiment
+        path = args.input
+        grid, C_T, oracle, X, bias, biasg, C_l = verify_global_constraints(benchmark_name, path, args.use_learned_model)
+        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2"]
 
-# bias_filtered = []
-    # for item_cl in C_l:
-    #     for item_bias in bias:
-    #         if not are_comparisons_equal(item_cl, item_bias):
-    #             bias_filtered.append(item_cl)
-    # bias = bias_filtered
+
+        print("Size of bias: ", len(bias))
+        ca_system = MQuAcq2(gamma, grid, C_T, qg=args.query_generation, obj=args.objective,
+                            time_limit=args.time_limit, findscope_version=fs_version,
+                            findc_version=fc_version, B=bias, Bg=biasg, C_l=C_l, X=X)
+        ca_system.learn()
+
+        save_results()
+        exit()
+
+
+
+    if args.benchmark == "custom":
+        benchmark_name = args.experiment
+        path = args.input
+        grid, C_T, oracle, X, bias, C_l = construct_custom(benchmark_name, path, args.use_learned_model)
+        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2"]
+    else:
+        benchmark_name, grid, C_T, oracle, gamma = construct_benchmark()
+    grid.clear()
+
+
+    print("Size of C_T: ", len(C_T))
+
+
+
+    all_cons = []
+    X = list(list(grid.flatten()))
+    for relation in gamma:
+        if relation.count("var") == 2:
+            for v1, v2 in all_pairs(X):
+                print(v1,v2)
+                constraint = relation.replace("var1", "v1")
+                constraint = constraint.replace("var2", "v2")
+                constraint = eval(constraint)
+                all_cons.append(constraint)
+
+    bias = all_cons
+    bias.pop()
+    C_l=[all_cons[i] for i in range(0, len(all_cons), 2)]
+    C_l=[all_cons[-1]]
+
+    bias_filtered = []
+    for item_cl in C_l:
+        for item_bias in bias:
+            if not are_comparisons_equal(item_cl, item_bias):
+                bias_filtered.append(item_cl)
+    bias = bias_filtered
+
 
     if args.benchmark == "custom":
         print("Size of bias: ", len(bias))
         print(bias)
         ca_system = MQuAcq2(gamma, grid, C_T, qg=args.query_generation, obj=args.objective,
                             time_limit=args.time_limit, findscope_version=fs_version,
-                            findc_version=fc_version, bias=bias, C_l=C_l, X=X)
+                            findc_version=fc_version, B=bias, Bg=bias, C_l=C_l, X=X)
         ca_system.learn()
 
         save_results()
         exit()
+
+
 
 
     if args.algorithm == "quacq":

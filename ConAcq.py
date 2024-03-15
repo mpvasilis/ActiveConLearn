@@ -21,7 +21,7 @@ class ConAcq:
                  time_limit=None, findscope_version=4, findc_version=1, tqgen_t=None,
                  qgen_blimit=5000):
 
-        self.debug_mode = False
+        self.debug_mode = True
 
         # Target network
         self.C_T = ct
