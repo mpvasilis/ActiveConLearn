@@ -461,7 +461,9 @@ if __name__ == "__main__":
 
 
         print("Size of bias: ", len(bias))
-        ca_system = MQuAcq2(gamma, grid, C_T, qg=args.query_generation, obj=args.objective,
+        print("Size of biasg: ", len(biasg))
+        print("Size of C_l: ", len(C_l))
+        ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
                             time_limit=args.time_limit, findscope_version=fs_version,
                             findc_version=fc_version, B=bias, Bg=biasg, C_l=C_l, X=X)
         ca_system.learn()
