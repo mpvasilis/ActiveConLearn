@@ -457,7 +457,7 @@ if __name__ == "__main__":
         benchmark_name = args.experiment
         path = args.input
         grid, C_T, oracle, X, bias, biasg, C_l = verify_global_constraints(benchmark_name, path, args.use_learned_model)
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2"]
+        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 <= var2", "var1 >= var2"]
 
 
         print("Size of bias: ", len(bias))
@@ -465,7 +465,7 @@ if __name__ == "__main__":
         print("Size of C_l: ", len(C_l))
         ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
                             time_limit=args.time_limit, findscope_version=fs_version,
-                            findc_version=fc_version, B=bias, Bg=biasg, C_l=C_l, X=X)
+                            findc_version=fc_version, X=X)
         ca_system.learn()
 
         save_results()

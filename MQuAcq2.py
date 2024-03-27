@@ -32,7 +32,6 @@ class MQuAcq2(ConAcq):
                 print("MQuAcq-2 Queries: ", self.metrics.top_lvl_queries)
                 print("FindScope Queries: ", self.metrics.findscope_queries)
                 print("FindC Queries: ", self.metrics.findc_queries)
-
             gen_start = time.time()
 
             gen_flag, Y = self.call_query_generation(answer)

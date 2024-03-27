@@ -660,7 +660,7 @@ class ConAcq:
                 # check if delta is the empty set, and if yes then collapse
                 if len(delta) == 0:
                     print(self.B)
-                    print("Collapse, the constraint we seek is not in B")
+                    print("Collapse, the constraint we seek is not in B on scope: ", scope)
                     exit(-2)
 
                 # FindC changes the values of the variables in the scope,
