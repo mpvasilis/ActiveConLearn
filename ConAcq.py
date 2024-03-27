@@ -215,7 +215,8 @@ class ConAcq:
             c = self.findC2(scope)
 
         if c is None:
-            raise Exception("findC did not find any, collapse")
+            self.remove_scope_from_bias(scope)
+            #raise Exception("findC did not find any, collapse")
         else:
             self.add_to_cl(c)
             self.remove_scope_from_bias(scope)
@@ -371,7 +372,7 @@ class ConAcq:
         s += ~all(V)
 
         # Solve first without objective (to find at least one solution)
-        flag = s.solve()
+        flag = s.solve(time_limit=time_limit)
 
         t1 = time.time() - t0
         if not flag or (t1 > time_limit):
@@ -654,11 +655,11 @@ class ConAcq:
         while True:
             # Try to generate a counter example to reduce the candidates
             flag = generate_findc_query(sub_cl, delta)
-
             if flag is False:
                 # If no example could be generated
                 # check if delta is the empty set, and if yes then collapse
                 if len(delta) == 0:
+                    return None
                     print(self.B)
                     print("Collapse, the constraint we seek is not in B")
                     exit(-2)
