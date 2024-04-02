@@ -465,7 +465,7 @@ if __name__ == "__main__":
         print("Size of C_l: ", len(C_l))
         ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
                             time_limit=args.time_limit, findscope_version=fs_version,
-                            findc_version=fc_version, X=X)
+                            findc_version=fc_version, X=X, B=bias, Bg=biasg, C_l=C_l)
         ca_system.learn()
 
         save_results()

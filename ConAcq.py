@@ -119,7 +119,7 @@ class ConAcq:
                 i = i-1
             i +=1
 
-        self.B = list(set(self.B))
+        self.B = list(dict.fromkeys(self.B))
 
     def remove_from_bias(self, C):
 
@@ -129,6 +129,10 @@ class ConAcq:
         # Remove all the constraints from network C from B
         prev_B_length = len(self.B)
         self.B = list(set(self.B) - set(C))
+
+        if any(c in set(self.C_T) for c in C):
+            print(f"Constraint from C_T {[c for c in C if c in set(self.C_T)]} was removed from B")
+            #input()
 
         if self.debug_mode:
             print(f"Removed from bias: {C}")
@@ -180,6 +184,10 @@ class ConAcq:
 
         removing = [c for i, c in enumerate(self.B + toplevel_list(self.Bg)) if B_scopes_set[i] == scope_set]
 #                    and get_relation(c, self.gamma) != learned_con_rel]
+
+        if any((c in set(self.C_T) and c not in set(self.C_l.constraints)) for c in removing):
+            print(f"Constraint from C_T {[c for c in removing if c in set(self.C_T)]} was removed from B")
+            #input()
 
         self.flatten_blists(removing)
 
@@ -475,6 +483,13 @@ class ConAcq:
             print("B:", get_con_subset(self.B + toplevel_list(self.Bg),Y))
             print("violated from B: ", get_kappa(self.B + toplevel_list(self.Bg), Y))
             print("violated from C_T: ", get_kappa(self.C_T, Y))
+            k = get_kappa(self.C_T, Y)
+            k2 = [c for c in k if c not in set(self.B)]
+            if len(k2) > 0:
+                print(f'violated from C_T and not in B {k2}' )
+                for c in k2:
+                    self.B.append(c)
+                #input()
             print("violated from C_L: ", get_kappa(self.C_l.constraints, Y))
 
         # Need the oracle to answer based only on the constraints with a scope that is a subset of Y
@@ -659,8 +674,6 @@ class ConAcq:
                 # If no example could be generated
                 # check if delta is the empty set, and if yes then collapse
                 if len(delta) == 0:
-                    return None
-                    print(self.B)
                     print("Collapse, the constraint we seek is not in B on scope: ", scope)
                     exit(-2)
 
