@@ -1,6 +1,8 @@
 import json
 import os
 import argparse
+import subprocess
+
 from QuAcq import QuAcq
 from MQuAcq import MQuAcq
 from MQuAcq2 import MQuAcq2
@@ -180,7 +182,10 @@ def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
         cls = []
     else:
         bias_file = f"{data_dir}/{experiment}_bias"
-        biases = parse_and_apply_constraints(bias_file, variables)
+        if os.path.isfile(bias_file):
+            biases = parse_and_apply_constraints(bias_file, variables)
+        else:
+            biases = []
 
         cl_file = f"{data_dir}/{experiment}_cl"
         cls = parse_and_apply_constraints(cl_file, variables)
@@ -237,7 +242,10 @@ def verify_global_constraints(experiment, data_dir="data/exp", use_learned_model
         cls = []
     else:
         bias_file = f"{data_dir}/{experiment}_bias"
-        biases = parse_and_apply_constraints(bias_file, variables)
+        if os.path.isfile(bias_file):
+            biases = parse_and_apply_constraints(bias_file, variables)
+        else:
+            biases = []
 
         cl_file = f"{data_dir}/{experiment}_cl"
         cls = parse_and_apply_constraints(cl_file, variables)
