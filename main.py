@@ -3,6 +3,8 @@ import os
 import argparse
 import subprocess
 
+import yaml
+
 from QuAcq import QuAcq
 from MQuAcq import MQuAcq
 from MQuAcq2 import MQuAcq2
@@ -502,9 +504,15 @@ if __name__ == "__main__":
         benchmark_name = args.experiment
         path = args.input
         grid, C_T, oracle, X, bias, biasg, C_l = verify_global_constraints(benchmark_name, path, args.use_learned_model)
-        print("Size of bias: ", len(bias))
+        print("Size of bias: ", len(set(bias)))
         print("Size of biasg: ", len(biasg))
         print("Size of C_l: ", len(C_l))
+        print("Size of C_T: ", len(C_T))
+        print("C_T: ", C_T)
+        missing_constraints = C_T - set(bias) - set(C_l)
+        bias.extend(missing_constraints)
+        print("Size of bias: ", len(set(bias)))
+
         ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
                             time_limit=args.time_limit, findscope_version=fs_version,
                             findc_version=fc_version, X=X, B=bias, Bg=biasg, C_l=C_l)
