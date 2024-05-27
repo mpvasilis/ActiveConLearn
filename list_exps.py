@@ -2,7 +2,7 @@ import os
 
 def list_experiments(directory):
     base_command = "python main.py -a mquacq2-a -b vgc -qg pqgen"
-    output_path = "C:\\Users\\Balafas\\IdeaProjects\\VM_Placement\\src\\outputs\\GtS_2"
+    output_path = "results"
     use_con = "True"
 
     try:
@@ -16,5 +16,5 @@ def list_experiments(directory):
         command = f"{base_command} -exp {dir_name} -i {input_path}/ --output {output_path} --useCon {use_con}"
         print(command)
 
-directory = "D:\\ActiveConLearn\\confirming_globalk_constraints_exps"
+directory = "exps/gts"
 list_experiments(directory)

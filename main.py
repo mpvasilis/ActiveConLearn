@@ -1,17 +1,15 @@
 import json
 import os
 import argparse
-
 from QuAcq import QuAcq
 from MQuAcq import MQuAcq
 from MQuAcq2 import MQuAcq2
 from GrowAcq import GrowAcq
-
 from benchmarks import *
-
 from utils import *
 
-
+jar_path = './phD.jar'
+output_directory = './results'
 def parse_args():
     parser = argparse.ArgumentParser()
 
@@ -101,6 +99,8 @@ def parse_args():
     parser.add_argument("-np", "--num-professors", type=int, required=False,
                         help="Only relevant when the chosen benchmark is exam timetabling - "
                              "the number of professors")
+    parser.add_argument("-pl", "--run-passive-learning", required=False,type=bool,  help="Run passive learning")
+    parser.add_argument("-sols", "--solution-set-path", type=str, required=False, help="Path to the solution set JSON file")
 
 
     args = parser.parse_args()
@@ -130,9 +130,6 @@ def parse_args():
                      " and a number of professors must be specified")
 
     return args
-
-
-
 
 def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
     """
@@ -337,7 +334,6 @@ def construct_benchmark():
 
     return args.benchmark, grid, C_T, oracle, gamma
 
-
 def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None, fs=None, fc=None, bench=None,
                  start_time=None, conacq=None):
 
@@ -434,32 +430,70 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
     f.close()
 
 
+def run_jar_with_config(jar_path, config_path):
+    result = subprocess.run(['java', '-jar', jar_path, config_path], capture_output=True, text=True)
+    print(" ".join(['java', '-jar', jar_path, config_path]))
+    if result.returncode != 0:
+        print(f"Error running jar with config {config_path}: {result.stderr}")
+    else:
+        print(f"Successfully ran jar with config {config_path}\nOutput:\n{result.stdout}")
 
+
+def generate_config_file(solution_set_path, output_directory):
+    base_name = os.path.normpath(os.path.basename(solution_set_path).replace('.json', ''))
+    config_data = {
+        'problem': solution_set_path,
+        'problemType': base_name,
+        'runName': base_name,
+        'activeLearning': False,
+        'constraintsToCheck': [
+            "allDifferent"
+        ],
+        'decreasingLearning': False,
+        'numberOfSolutionsForDecreasingLearning': 0,
+        'enableSolutionGeneratorForActiveLearning': True,
+        'plotChart': False,
+        'validateConstraints': True,
+        'mQuack2MaxIterations': 1,
+        'mQuack2SatisfyWithChoco': False,
+        'runTestCases': True,
+        'testCasesFile': "testcases/gts-testcases.json"
+    }
+
+    config_file_path = os.path.join(output_directory, f"{base_name}_config.yaml")
+    with open(config_file_path, 'w') as file:
+        yaml.dump(config_data, file, default_flow_style=False)
+
+    print(f"Config file for {base_name} has been written to {config_file_path}")
+    return config_file_path
+
+
+def run_passive_learning_with_jar(jar_path, solution_set_path, output_directory):
+    config_path = generate_config_file(solution_set_path, output_directory)
+    run_jar_with_config(jar_path, config_path)
 
 
 if __name__ == "__main__":
 
     args = parse_args()
-
     if args.findscope is None:
         fs_version = 2
     else:
         fs_version = args.findscope
-
     if args.findc is None:
         fc_version = 1
     else:
         fc_version = args.findc
-
     start = time.time()
+    gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 <= var2", "var1 >= var2"]
 
-    if args.benchmark == "vgc": #verify global constraints
+    if args.benchmark == "vgc": #verify global constraints - genacq
+        if args.run_passive_learning:
+            run_passive_learning_with_jar(jar_path, args.solution_set_path, output_directory)
+
         benchmark_name = args.experiment
         path = args.input
         grid, C_T, oracle, X, bias, biasg, C_l = verify_global_constraints(benchmark_name, path, args.use_learned_model)
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 <= var2", "var1 >= var2"]
-
-
         print("Size of bias: ", len(bias))
         print("Size of biasg: ", len(biasg))
         print("Size of C_l: ", len(C_l))
@@ -473,19 +507,18 @@ if __name__ == "__main__":
 
 
 
-    if args.benchmark == "custom":
+    if args.benchmark == "custom": #mquack2 custom problem
+        if args.run_passive_learning:
+            run_passive_learning_with_jar(jar_path, args.solution_set_path, output_directory)
+
         benchmark_name = args.experiment
         path = args.input
         grid, C_T, oracle, X, bias, C_l = construct_custom(benchmark_name, path, args.use_learned_model)
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2"]
     else:
         benchmark_name, grid, C_T, oracle, gamma = construct_benchmark()
     grid.clear()
 
-
     print("Size of C_T: ", len(C_T))
-
-
 
     all_cons = []
     X = list(list(grid.flatten()))
