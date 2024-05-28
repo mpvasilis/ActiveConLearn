@@ -25,10 +25,10 @@ def generate_config_file(solution_set_path, output_directory):
             "arithm"
         ],
         'decreasingLearning': False,
-        'numberOfSolutionsForDecreasingLearning': 0,
+        'numberOfSolutionsForDecreasingLearning': 2,
         'enableSolutionGeneratorForActiveLearning': True,
         'plotChart': False,
-        'validateConstraints': True,
+        'validateConstraints': False,
         'mQuack2MaxIterations': 1,
         'mQuack2SatisfyWithChoco': False,
         'runTestCases': False,
@@ -40,12 +40,13 @@ def generate_config_file(solution_set_path, output_directory):
         yaml.dump(config_data, file, default_flow_style=False)
 
     print(f"Config file for {base_name} has been written to {config_file_path}")
-    return config_file_path
+    return base_name,config_file_path
 
 
 def run_passive_learning_with_jar(jar_path, solution_set_path, output_directory):
-    config_path = generate_config_file(solution_set_path, output_directory)
+    basename, config_path = generate_config_file(solution_set_path, output_directory)
     run_jar_with_config(jar_path, config_path)
+    return basename
 
 
 # List of benchmark problems
@@ -56,7 +57,6 @@ benchmarks = [
 ]
 
 # Experiment configuration parameters
-experiment_name = "b03_21_00_40_27_greaterThanSudoku_b10__diverse_diversity_Hamming_10_1_sols_100"
 input_directory = "exps/instances/gts/"
 output_directory = "results"
 use_constraints = True
@@ -76,14 +76,15 @@ configs = [
 for benchmark in benchmarks:
     # Run passive learning with the jar
     solution_set_path = os.path.join(input_directory, benchmark)
-    run_passive_learning_with_jar(jar_path, solution_set_path, output_directory)
+    experiment_name = run_passive_learning_with_jar(jar_path, solution_set_path, output_directory)
+    experiment_path = "./modules/benchmarks/"+experiment_name
 
     for config in configs:
         command = base_command.format(
             config["algo"],
             config["bench"],
             experiment_name,
-            solution_set_path,
+            experiment_path,
             output_directory,
             str(use_constraints)
         )
