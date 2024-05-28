@@ -7,6 +7,7 @@
           <resourceRoots>
             <path value="file://$PROJECT_DIR$/exps" />
             <path value="file://$PROJECT_DIR$/exps/gts/gts_bench" />
+            <path value="file://$PROJECT_DIR$/outputs" />
           </resourceRoots>
         </entryData>
       </entry>
