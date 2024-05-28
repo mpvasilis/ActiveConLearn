@@ -252,6 +252,7 @@ def verify_global_constraints(experiment, data_dir="data/exp", use_learned_model
         cl_file = f"{data_dir}/{experiment}_cl"
         cls = parse_and_apply_constraints(cl_file, variables)
 
+
     grid = cp.cpm_array(np.expand_dims(variables, 0))
 
     if use_learned_model:
@@ -375,9 +376,9 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
 
     print("Average waiting time for a query: ", average_waiting_time)
     print("Maximum waiting time for a query: ", conacq.metrics.max_waiting_time)
-
+    print("Size of B: ", len(conacq.B)+len(toplevel_list(conacq.Bg)))
     print("C_L size: ", len(toplevel_list(conacq.C_l.constraints)))
-
+    print((toplevel_list(conacq.C_l.constraints)))
     res_name = ["results"]
     res_name.append(alg)
 
@@ -505,13 +506,16 @@ if __name__ == "__main__":
         path = args.input
         grid, C_T, oracle, X, bias, biasg, C_l = verify_global_constraints(benchmark_name, path, args.use_learned_model)
         print("Size of bias: ", len(set(bias)))
-        print("Size of biasg: ", len(biasg))
+        print("Size of biasg: ",len(toplevel_list(biasg)), len(biasg))
         print("Size of C_l: ", len(C_l))
         print("Size of C_T: ", len(C_T))
-        print("C_T: ", C_T)
+        #C_l = [constraint for constraint in C_l if constraint not in biasg]
         missing_constraints = C_T - set(bias) - set(C_l)
         bias.extend(missing_constraints)
+        print("-------------------")
         print("Size of bias: ", len(set(bias)))
+
+
 
         ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
                             time_limit=args.time_limit, findscope_version=fs_version,
@@ -530,6 +534,12 @@ if __name__ == "__main__":
         benchmark_name = args.experiment
         path = args.input
         grid, C_T, oracle, X, bias, C_l = construct_custom(benchmark_name, path, args.use_learned_model)
+        print("Size of bias: ", len(set(bias)))
+        print("Size of C_l: ", len(C_l))
+        print("Size of C_T: ", len(C_T))
+        missing_constraints = C_T - set(bias) - set(C_l)
+        bias.extend(missing_constraints)
+        print("Size of bias: ", len(set(bias)))
     else:
         benchmark_name, grid, C_T, oracle, gamma = construct_benchmark()
     grid.clear()

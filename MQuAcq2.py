@@ -28,6 +28,7 @@ class MQuAcq2(ConAcq):
             if self.debug_mode:
                 print("Size of CL: ", len(self.C_l.constraints))
                 print("Size of B: ", len(self.B + toplevel_list(self.Bg)))
+                print("Size of Bg: ", len(toplevel_list(self.Bg)), len(self.Bg))
                 print("Number of queries: ", self.metrics.queries_count)
                 print("MQuAcq-2 Queries: ", self.metrics.top_lvl_queries)
                 print("FindScope Queries: ", self.metrics.findscope_queries)
