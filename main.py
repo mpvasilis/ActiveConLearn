@@ -411,7 +411,7 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
         res_name.append("custom")
 
     if args.output:
-        results_file = args.output+"/mquack2_results_"+args.experiment
+        results_file = args.output+"/"+args.experiment+"_"+args.benchmark
     else:
         results_file = "_".join(res_name)
 

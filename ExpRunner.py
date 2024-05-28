@@ -52,6 +52,7 @@ def run_passive_learning_with_jar(jar_path, solution_set_path, output_directory)
 # List of benchmark problems
 benchmarks = [
     "greaterThansudoku_9x9_16b_diverse.json",
+"greaterThansudoku_9x9_8b_nodiverse.json",
    # "greaterThansudoku_9x9_24b_diverse.json",
     #"greaterThansudoku_9x9_8b_diverse.json"
 ]
@@ -76,7 +77,13 @@ configs = [
 for benchmark in benchmarks:
     # Run passive learning with the jar
     solution_set_path = os.path.join(input_directory, benchmark)
-    experiment_name = run_passive_learning_with_jar(jar_path, solution_set_path, output_directory)
+
+    experiment_name = os.path.normpath(os.path.basename(solution_set_path).replace('.json', ''))
+    if os.path.exists(f"./modules/benchmarks/{experiment_name}"):
+        print(f"Skipping {experiment_name} as it has already been run")
+    else:
+        experiment_name = run_passive_learning_with_jar(jar_path, solution_set_path, output_directory)
+
     experiment_path = "./modules/benchmarks/"+experiment_name
 
     for config in configs:

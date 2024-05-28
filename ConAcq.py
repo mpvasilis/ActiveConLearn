@@ -371,7 +371,7 @@ class ConAcq:
         s += ~all(V)
 
         # Solve first without objective (to find at least one solution)
-        flag = s.solve(time_limit=10)
+        flag = s.solve(time_limit=600)
         t1 = time.time() - t0
         if not flag or (t1 > time_limit):
             # UNSAT or already above time_limit, stop here --- cannot maximize
