@@ -456,9 +456,10 @@ def generate_config_file(solution_set_path, output_directory):
         'problem': solution_set_path,
         'problemType': base_name,
         'runName': base_name,
-        'activeLearning': False,
+        'activeLearning': True,
         'constraintsToCheck': [
-            "allDifferent"
+            "allDifferent",
+            "arithm"
         ],
         'decreasingLearning': False,
         'numberOfSolutionsForDecreasingLearning': 0,
@@ -467,7 +468,7 @@ def generate_config_file(solution_set_path, output_directory):
         'validateConstraints': True,
         'mQuack2MaxIterations': 1,
         'mQuack2SatisfyWithChoco': False,
-        'runTestCases': True,
+        'runTestCases': False,
         'testCasesFile': "testcases/gts-testcases.json"
     }
 

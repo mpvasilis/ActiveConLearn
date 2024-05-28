@@ -1,2 +1,5 @@
-cpmpy
-scikit-learn
+cpmpy~=0.9.20
+scikit-learn~=1.4.2
+numpy~=1.26.4
+PyYAML~=6.0.1
+ortools~=9.9.3963
