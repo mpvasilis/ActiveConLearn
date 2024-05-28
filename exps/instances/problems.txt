@@ -16,3 +16,14 @@ From https://www.youtube.com/watch?v=6oZW55C-8bo&list=PL97NT99ttj2AAQh9_KxxEGVBA
 14: N-Queens vari   fairy chess ?
 15: N-Queens vari
 16: N-Queens vari
+
+02: N-queens (CSPlib 054) - The AllDifferent constraint is used to ensure that no two queens are placed in the same row, column, or diagonal.
+04: Golomb Ruler (CSPlib 006) - The AllDifferent constraint is applied to the implicit decision variables representing the distances between consecutive marks on the ruler.
+05: Sudoku (Pre-assigned) - The AllDifferent constraint is used to ensure that each row, column, and 3x3 block contains distinct digits from 1 to 9.
+06: Sudoku (No pre-assignment) - Similar to the pre-assigned Sudoku, the AllDifferent constraint is used for rows, columns, and 3x3 blocks.
+08: All Interval (CSPlib 007) - The AllDifferent constraint is applied to the auxiliary variables representing the differences between consecutive notes in the sequence.
+11: Orthogonal Latin Squares - The AllDifferent constraint is used to ensure that each symbol appears exactly once in each row and column of each Latin square.
+13: Costas Array (CSPlib 076) - The AllDifferent constraint is applied to the auxiliary variables representing the differences between elements in the Costas array.
+14: N-Queens variations (fairy chess) - Depending on the specific variation, the AllDifferent constraint may be used to enforce unique placements of queens or other chess pieces.
+15: N-Queens variations - Similar to the fairy chess variations, the AllDifferent constraint may be employed based on the problem's requirements.
+16: N-Queens variations - The usage of the AllDifferent constraint depends on the specific variation of the N-Queens problem.
