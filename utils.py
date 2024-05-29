@@ -11,6 +11,8 @@ from cpmpy.expressions.utils import all_pairs
 from itertools import chain
 
 from ConAcq import SOLVER
+import json
+
 
 def parse_dom_file(file_path):
     domain_constraints = {}
@@ -625,3 +627,17 @@ def generate_findc2_query(L, delta):
     #        print("OPT solve", s.status())
 
     return flag
+
+
+def write_solutions_to_json(instance, size, format_template, solutions, non_solutions, problem_type, output_file):
+    data = {
+        "instance": instance,
+        "size": size,
+        "formatTemplate": format_template,
+        "solutions": [{"array": sol} for sol in solutions],
+        "nonSolutions": [{"array": non_sol} for non_sol in non_solutions],
+        "problemType": problem_type
+    }
+
+    with open(output_file, 'w') as f:
+        json.dump(data, f, indent=4)
