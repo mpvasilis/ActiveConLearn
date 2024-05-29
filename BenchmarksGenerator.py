@@ -1,3 +1,4 @@
+import os.path
 import random
 import re
 
@@ -11,7 +12,7 @@ import concurrent.futures
 
 def save_solution_to_json(grid, file_name, format_template):
     try:
-        with open(file_name, 'r') as f:
+        with open(os.path.join("exps/instances/gts",file_name), 'r') as f:
             data = json.load(f)
     except FileNotFoundError:
         data = {"formatTemplate": format_template, "solutions": []}
@@ -19,7 +20,7 @@ def save_solution_to_json(grid, file_name, format_template):
     solution = {"array": grid.value().tolist()}
     data["solutions"].append(solution)
 
-    with open(file_name, 'w') as f:
+    with open(os.path.join("exps/instances/gts",file_name), 'w') as f:
         json.dump(data, f, indent=4)
 
 def save_constraints_to_txt(constraints, filename, grid_shape):
@@ -33,7 +34,7 @@ def save_constraints_to_txt(constraints, filename, grid_shape):
         raise ValueError(f"Invalid variable name format: {var_name}")
 
 
-    with open(filename, 'w') as f:
+    with open(os.path.join("binary_cons",filename), 'w') as f:
         for constraint in constraints:
             if constraint.name == "!=":
                 con_type = 0
@@ -46,7 +47,7 @@ def save_constraints_to_txt(constraints, filename, grid_shape):
                     var2 = convert_2d_to_1d(var2_idx, grid_shape)
                     f.write(f"{con_type} {var1} {var2}\n")
                 except ValueError:
-                    continue
+                    pass
 
 def generate_solutions(model_func, json_filename, txt_filename, max_solutions=1000):
     grid, C_T, model, format_template = model_func()
@@ -59,14 +60,14 @@ def generate_solutions(model_func, json_filename, txt_filename, max_solutions=10
 
 def run_benchmarks_in_parallel():
     benchmarks = [
-        (_construct_4sudoku, '4sudoku_solution.json', '4sudoku_constraints.txt'),
-        (_construct_9sudoku, '9sudoku_solution.json', '9sudoku_constraints.txt'),
-        (lambda: _construct_nurse_rostering(5, 3, 7), 'nurse_rostering_solution.json', 'nurse_rostering_constraints.txt'),
-        (lambda: _construct_nurse_rostering_advanced(5, 3, 2, 7), 'nurse_rostering_advanced_solution.json', 'nurse_rostering_advanced_constraints.txt'),
-        (lambda: _construct_examtt_simple(), 'examtt_simple_solution.json', 'examtt_simple_constraints.txt'),
-        (lambda: _construct_examtt_advanced(), 'examtt_advanced_solution.json', 'examtt_advanced_constraints.txt'),
-        (_construct_jsudoku, 'jsudoku_solution.json', 'jsudoku_constraints.txt'),
-        (_construct_murder_problem, 'murder_problem_solution.json', 'murder_problem_constraints.txt')
+        (_construct_4sudoku, '4sudoku_solution.json', '4sudoku_solution.txt'),
+        (_construct_9sudoku, '9sudoku_solution.json', '9sudoku_solution.txt'),
+        (lambda: _construct_nurse_rostering(5, 3, 7), 'nurse_rostering_solution.json', 'nurse_rostering_solution.txt'),
+        (lambda: _construct_nurse_rostering_advanced(5, 3, 2, 7), 'nurse_rostering_advanced_solution.json', 'nurse_rostering_advanced_solution.txt'),
+        (lambda: _construct_examtt_simple(), 'examtt_simple_solution.json', 'examtt_simple_solution.txt'),
+        (lambda: _construct_examtt_advanced(), 'examtt_advanced_solution.json', 'examtt_advanced_solution.txt'),
+        (_construct_jsudoku, 'jsudoku_solution.json', 'jsudoku_solution.txt'),
+        (_construct_murder_problem, 'murder_problem_solution.json', 'murder_problem_solution.txt')
     ]
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
