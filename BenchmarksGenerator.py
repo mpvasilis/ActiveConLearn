@@ -1,4 +1,6 @@
 import random
+import re
+
 import cpmpy as cp
 from cpmpy import *
 from cpmpy.expressions.utils import all_pairs
@@ -20,8 +22,35 @@ def save_solution_to_json(grid, file_name, format_template):
     with open(file_name, 'w') as f:
         json.dump(data, f, indent=4)
 
-def generate_solutions(model_func, json_filename, max_solutions=100):
+def save_constraints_to_txt(constraints, filename, grid_shape):
+    def convert_2d_to_1d(index, shape):
+        return index[0] * shape[1] + index[1]
+
+    def extract_indices(var_name):
+        match = re.search(r'\[(\d+),(\d+)\]', var_name)
+        if match:
+            return int(match.group(1)), int(match.group(2))
+        raise ValueError(f"Invalid variable name format: {var_name}")
+
+
+    with open(filename, 'w') as f:
+        for constraint in constraints:
+            if constraint.name == "!=":
+                con_type = 0
+                var1_name = constraint.args[0].name
+                var2_name = constraint.args[1].name
+                try:
+                    var1_idx = extract_indices(var1_name)
+                    var2_idx = extract_indices(var2_name)
+                    var1 = convert_2d_to_1d(var1_idx, grid_shape)
+                    var2 = convert_2d_to_1d(var2_idx, grid_shape)
+                    f.write(f"{con_type} {var1} {var2}\n")
+                except ValueError:
+                    continue
+
+def generate_solutions(model_func, json_filename, txt_filename, max_solutions=1000):
     grid, C_T, model, format_template = model_func()
+    save_constraints_to_txt(C_T, txt_filename, grid.shape)
     solutions_found = 0
     while solutions_found < max_solutions and model.solve():
         save_solution_to_json(grid, json_filename, format_template)
@@ -30,18 +59,18 @@ def generate_solutions(model_func, json_filename, max_solutions=100):
 
 def run_benchmarks_in_parallel():
     benchmarks = [
-        (_construct_4sudoku, '4sudoku_solution.json'),
-        (_construct_9sudoku, '9sudoku_solution.json'),
-        (lambda: _construct_nurse_rostering(5, 3, 7), 'nurse_rostering_solution.json'),
-        (lambda: _construct_nurse_rostering_advanced(5, 3, 2, 7), 'nurse_rostering_advanced_solution.json'),
-        (lambda: _construct_examtt_simple(), 'examtt_simple_solution.json'),
-        (lambda: _construct_examtt_advanced(), 'examtt_advanced_solution.json'),
-        (_construct_jsudoku, 'jsudoku_solution.json'),
-        (_construct_murder_problem, 'murder_problem_solution.json')
+        (_construct_4sudoku, '4sudoku_solution.json', '4sudoku_constraints.txt'),
+        (_construct_9sudoku, '9sudoku_solution.json', '9sudoku_constraints.txt'),
+        (lambda: _construct_nurse_rostering(5, 3, 7), 'nurse_rostering_solution.json', 'nurse_rostering_constraints.txt'),
+        (lambda: _construct_nurse_rostering_advanced(5, 3, 2, 7), 'nurse_rostering_advanced_solution.json', 'nurse_rostering_advanced_constraints.txt'),
+        (lambda: _construct_examtt_simple(), 'examtt_simple_solution.json', 'examtt_simple_constraints.txt'),
+        (lambda: _construct_examtt_advanced(), 'examtt_advanced_solution.json', 'examtt_advanced_constraints.txt'),
+        (_construct_jsudoku, 'jsudoku_solution.json', 'jsudoku_constraints.txt'),
+        (_construct_murder_problem, 'murder_problem_solution.json', 'murder_problem_constraints.txt')
     ]
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(generate_solutions, func, filename, 10) for func, filename in benchmarks]
+        futures = [executor.submit(generate_solutions, func, json_filename, txt_filename, 10) for func, json_filename, txt_filename in benchmarks]
         for future in concurrent.futures.as_completed(futures):
             try:
                 future.result()
@@ -221,10 +250,6 @@ def _construct_jsudoku():
             [{"high": 9, "low": 1, "type": "dvar"} for _ in range(9)] for _ in range(9)
         ]
     }
-
-    print(len(C_T))
-
     return grid, C_T, model, format_template
-
 
 run_benchmarks_in_parallel()

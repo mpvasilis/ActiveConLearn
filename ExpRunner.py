@@ -51,10 +51,19 @@ def run_passive_learning_with_jar(jar_path, solution_set_path, output_directory)
 
 # List of benchmark problems
 benchmarks = [
+    "4sudoku_solution.json",
+    "9sudoku_solution.json",
+    "examtt_advanced_solution.json",
+    "examtt_simple_solution.json",
     "greaterThansudoku_9x9_16b_diverse.json",
-"greaterThansudoku_9x9_8b_nodiverse.json",
-   # "greaterThansudoku_9x9_24b_diverse.json",
-    #"greaterThansudoku_9x9_8b_diverse.json"
+    "greaterThansudoku_9x9_24b_diverse.json",
+    "greaterThansudoku_9x9_8b_diverse.json",
+    "greaterThansudoku_9x9_8b_nodiverse.json",
+    "jsudoku_solution.json",
+    "murder_problem_solution.json",
+    "nurse_rostering_solution.json",
+    "sudoku_9x9_diverse.json",
+    "sudoku_9x9_nodiverse.json"
 ]
 #['exps/instances\\greaterThansudoku_9x9_16b_diverse.json', 'exps/instances\\greaterThansudoku_9x9_24b_diverse.json', 'exps/instances\\greaterThansudoku_9x9_8b_diverse.json', 'exps/instances\\greaterThansudoku_9x9_8b_nodiverse.json', 'exps/instances\\sudoku_9x9_diverse.json', 'exps/instances\\sudoku_9x9_nodiverse.json', 'exps/instances\\instance0.json', 'exps/instances\\instance1.json', 'exps/instances\\instance2.json', 'exps/instances\\instance3.json', 'exps/instances\\instance4.json', 'exps/instances\\instance5.json', 'exps/instances\\instance6.json', 'exps/instances\\instance7.json', 'exps/instances\\instance8.json', 'exps/instances\\instance9.json', 'exps/instances\\instance0.json', 'exps/instances\\instance1.json', 'exps/instances\\instance2.json', 'exps/instances\\instance3.json', 'exps/instances\\instance4.json', 'exps/instances\\instance5.json', 'exps/instances\\instance6.json', 'exps/instances\\instance7.json', 'exps/instances\\instance0.json', 'exps/instances\\instance1.json', 'exps/instances\\instance2.json', 'exps/instances\\instance3.json', 'exps/instances\\instance4.json', 'exps/instances\\instance5.json', 'exps/instances\\instance6.json', 'exps/instances\\instance7.json', 'exps/instances\\instance8.json', 'exps/instances\\instance9.json', 'exps/instances\\instance0.json', 'exps/instances\\instance1.json', 'exps/instances\\instance2.json', 'exps/instances\\instance3.json', 'exps/instances\\instance0.json', 'exps/instances\\instance1.json', 'exps/instances\\instance2.json', 'exps/instances\\instance3.json', 'exps/instances\\instance4.json', 'exps/instances\\instance5.json', 'exps/instances\\instance6.json', 'exps/instances\\instance7.json', 'exps/instances\\instance8.json', 'exps/instances\\instance9.json', 'exps/instances\\instance0.json', 'exps/instances\\instance1.json', 'exps/instances\\instance0.json', 'exps/instances\\instance1.json', 'exps/instances\\instance10.json', 'exps/instances\\instance2.json', 'exps/instances\\instance3.json', 'exps/instances\\instance4.json', 'exps/instances\\instance5.json', 'exps/instances\\instance6.json', 'exps/instances\\instance7.json', 'exps/instances\\instance8.json', 'exps/instances\\instance9.json', 'exps/instances\\instance0.json', 'exps/instances\\instance1.json', 'exps/instances\\instance10.json', 'exps/instances\\instance2.json', 'exps/instances\\instance3.json', 'exps/instances\\instance4.json', 'exps/instances\\instance5.json', 'exps/instances\\instance6.json', 'exps/instances\\instance7.json', 'exps/instances\\instance8.json', 'exps/instances\\instance9.json', 'exps/instances\\instance0.json', 'exps/instances\\instance1.json', 'exps/instances\\instance2.json', 'exps/instances\\instance3.json', 'exps/instances\\instance4.json', 'exps/instances\\instance5.json', 'exps/instances\\instance6.json', 'exps/instances\\instance0.json', 'exps/instances\\instance1.json', 'exps/instances\\instance10.json', 'exps/instances\\instance11.json', 'exps/instances\\instance12.json', 'exps/instances\\instance2.json', 'exps/instances\\instance3.json', 'exps/instances\\instance4.json', 'exps/instances\\instance5.json', 'exps/instances\\instance6.json', 'exps/instances\\instance7.json', 'exps/instances\\instance8.json', 'exps/instances\\instance9.json', 'exps/instances\\instance0.json', 'exps/instances\\instance1.json', 'exps/instances\\instance2.json', 'exps/instances\\instance3.json', 'exps/instances\\instance4.json', 'exps/instances\\instance5.json']
 
