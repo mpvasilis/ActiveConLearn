@@ -252,4 +252,5 @@ def _construct_jsudoku():
     }
     return grid, C_T, model, format_template
 
+
 run_benchmarks_in_parallel()
