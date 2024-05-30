@@ -426,6 +426,8 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
     else:
         results_file = "_".join(res_name)
 
+    constraints_file = results_file + "_constraints.txt"
+
     file_exists = os.path.isfile(results_file)
 
     # Create a DataFrame to store results
@@ -456,6 +458,11 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
     new_result_df = pd.DataFrame([new_result])
     results_df = pd.concat([results_df, new_result_df], ignore_index=True)
     results_df.to_csv(results_file, index=False)
+
+    constraints = toplevel_list(conacq.C_l.constraints)
+    with open(constraints_file, 'w') as f:
+        for constraint in constraints:
+            f.write(str(constraint) + "\n")
 
 
 def run_jar_with_config(jar_path, config_path):
