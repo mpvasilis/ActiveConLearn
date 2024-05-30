@@ -3,6 +3,7 @@ import os
 import argparse
 import subprocess
 
+import pandas as pd
 import yaml
 
 from QuAcq import QuAcq
@@ -159,6 +160,7 @@ def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
         return constraints
 
     model = Model()
+    total_global_constraints = 0
     vars_file = f"{data_dir}/{experiment}_var"
     vars = parse_vars_file(vars_file)
     dom_file = f"{data_dir}/{experiment}_dom"
@@ -168,12 +170,14 @@ def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
     for i, var in enumerate(variables):
         grid[1:i] = var
 
+    model_file = f"{data_dir}/{experiment}_model"
+    parsed_constraints, max_index = parse_model_file(model_file)
+    total_global_constraints = len(parsed_constraints)
     if use_learned_model:
-        model_file = f"{data_dir}/{experiment}_model"
-        parsed_constraints, max_index = parse_model_file(model_file)
         for constraint_type, indices in parsed_constraints:
             if constraint_type == 'ALLDIFFERENT':
                 model += AllDifferent([variables[i] for i in indices])
+
 
     if args.useCon:
         con_file = f"{data_dir}/{experiment}_con"
@@ -201,7 +205,7 @@ def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
     else:
         C_T = set(fixed_arity_ct)
 
-    return grid, C_T, model, variables, biases, cls
+    return grid, C_T, model, variables, biases, cls, total_global_constraints
 
 def verify_global_constraints(experiment, data_dir="data/exp", use_learned_model=False):
     biasg = []
@@ -345,8 +349,7 @@ def construct_benchmark():
 
     return args.benchmark, grid, C_T, oracle, gamma
 
-def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None, fs=None, fc=None, bench=None,
-                 start_time=None, conacq=None):
+def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None, fs=None, fc=None, bench=None, start_time=None, conacq=None, init_bias=None, init_cl=None, learned_global_cstrs=None):
 
     if conacq is None: conacq = ca_system
     if alg is None: alg = args.algorithm
@@ -367,7 +370,6 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
     print("Number of generated queries: ", conacq.metrics.generated_queries)
     print("Number of findscope queries: ", conacq.metrics.findscope_queries)
 
-
     avg_size = conacq.metrics.average_size_queries / conacq.metrics.queries_count if conacq.metrics.queries_count > 0 else 0
     print("Average size of queries: ", avg_size)
 
@@ -382,11 +384,9 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
     res_name = ["results"]
     res_name.append(alg)
 
-    # results_file = "results/results_" + args.algorithm + "_"
     if alg == "growacq":
         if inner_alg is None: inner_alg = args.inner_algorithm
         res_name.append(inner_alg)
-        # results_file += args.inner_algorithm + "_"
 
     res_name.append(f"{str(qg)}")
 
@@ -416,29 +416,35 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
         results_file = "_".join(res_name)
 
     file_exists = os.path.isfile(results_file)
-    f = open(results_file, "a")
 
-    if not file_exists:
-        results = "CL\tTot_q\ttop_lvl_q\tgen_q\tfs_q\tfc_q\tavg|q|\tgen_time\tavg_t\tmax_t\ttot_t\tconv\n"
-    else:
-        results = ""
+    # Create a DataFrame to store results
+    results_df = pd.DataFrame(columns=["CL", "Tot_q", "top_lvl_q", "genacq_q", "gen_q", "fs_q", "fc_q", "avg|q|", "gen_time", "avg_t", "max_t", "tot_t", "conv", "init_bias", "init_cl", "learned_global_cstrs"])
 
-    results += str(len(toplevel_list(conacq.C_l.constraints))) + "\t" + str(conacq.metrics.queries_count) + "\t" + str(
-        conacq.metrics.top_lvl_queries) \
-               + "\t" + str(conacq.metrics.generated_queries) + "\t" + str(conacq.metrics.findscope_queries) + "\t" + str(
-        conacq.metrics.findc_queries)
+    if file_exists:
+        results_df = pd.read_csv(results_file)
 
-    avg_size = round(conacq.metrics.average_size_queries / conacq.metrics.queries_count, 4) if conacq.metrics.queries_count > 0 else 0
+    new_result = {
+        "CL": len(toplevel_list(conacq.C_l.constraints)),
+        "Tot_q": conacq.metrics.queries_count,
+        "top_lvl_q": conacq.metrics.top_lvl_queries,
+        "genacq_q":  conacq.metrics.gen_queries_count,
+        "gen_q": conacq.metrics.generated_queries,
+        "fs_q": conacq.metrics.findscope_queries,
+        "fc_q": conacq.metrics.findc_queries,
+        "avg|q|": round(conacq.metrics.average_size_queries / conacq.metrics.queries_count, 4) if conacq.metrics.queries_count > 0 else 0,
+        "gen_time": round(conacq.metrics.generation_time / conacq.metrics.generated_queries, 4) if conacq.metrics.generated_queries > 0 else 0,
+        "avg_t": round(average_waiting_time, 4),
+        "max_t": round(conacq.metrics.max_waiting_time, 4),
+        "tot_t": round(total_time, 4),
+        "conv": conacq.metrics.converged,
+        "init_bias": len(init_bias),
+        "init_cl": len(init_cl),
+        "learned_global_cstrs": learned_global_cstrs
+    }
 
-    avg_qgen_time = round(conacq.metrics.generation_time / conacq.metrics.generated_queries, 4) if conacq.metrics.generated_queries > 0 else 0
-    results += "\t" + str(avg_size) + "\t" + str(avg_qgen_time) \
-               + "\t" + str(round(average_waiting_time, 4)) + "\t" + str(round(conacq.metrics.max_waiting_time, 4)) + "\t" + \
-               str(round(total_time, 4))
-
-    results += "\t" + str(conacq.metrics.converged) + "\n"
-
-    f.write(results)
-    f.close()
+    new_result_df = pd.DataFrame([new_result])
+    results_df = pd.concat([results_df, new_result_df], ignore_index=True)
+    results_df.to_csv(results_file, index=False)
 
 
 def run_jar_with_config(jar_path, config_path):
@@ -520,7 +526,7 @@ if __name__ == "__main__":
                             findc_version=fc_version, X=X, B=bias, Bg=biasg, C_l=C_l)
         ca_system.learn()
 
-        save_results()
+        save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=len(toplevel_list(biasg)))
         exit()
 
 
@@ -528,7 +534,7 @@ if __name__ == "__main__":
     if args.benchmark == "custom": #mquack2 custom problem
         benchmark_name = args.experiment
         path = args.input
-        grid, C_T, oracle, X, bias, C_l = construct_custom(benchmark_name, path, args.use_learned_model)
+        grid, C_T, oracle, X, bias, C_l, total_global_constraints = construct_custom(benchmark_name, path, args.use_learned_model)
         print("Size of bias: ", len(set(bias)))
         print("Size of C_l: ", len(C_l))
         print("Size of C_T: ", len(C_T))
@@ -541,7 +547,8 @@ if __name__ == "__main__":
                             findc_version=fc_version, B=bias, Bg=[], C_l=C_l, X=X)
         ca_system.learn()
 
-        save_results()
+        save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints)
+
         exit()
     # else:
     #     benchmark_name, grid, C_T, oracle, gamma = construct_benchmark()
