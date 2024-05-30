@@ -78,12 +78,15 @@ use_constraints = True
 jar_path = './phD.jar'
 
 # Base command template
-base_command = "python main.py -a {} -b {} -qg pqgen -exp {} -i {} --output {} --useCon {}"
+base_command = "python main.py -a {} -b {} -qg pqgen -exp {} -i {} --output {} --useCon {} --onlyActive {}"
 
 # Run configurations
 configs = [
-    {"algo": "mquacq2-a", "bench": "vgc"},
-    {"algo": "mquacq2-a", "bench": "custom"}
+    {"algo": "mquacq2-a", "bench": "vgc" , "onlyActive": False},
+    {"algo": "mquacq2-a", "bench": "vgc" , "onlyActive": True},
+    {"algo": "mquacq2-a", "bench": "custom", "onlyActive": False},
+    {"algo": "mquacq2-a", "bench": "custom", "onlyActive": True},
+
 ]
 
 for benchmark in benchmarks:
@@ -105,7 +108,8 @@ for benchmark in benchmarks:
             experiment_name,
             experiment_path,
             output_directory,
-            str(use_constraints)
+            str(use_constraints),
+            str(config["onlyActive"])
         )
         print("Running command:", command)
         subprocess.run(command, shell=True)

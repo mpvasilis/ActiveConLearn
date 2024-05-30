@@ -18,6 +18,16 @@ output_directory = './results'
 def parse_args():
     parser = argparse.ArgumentParser()
 
+    def str2bool(v):
+        if isinstance(v, bool):
+            return v
+        if v.lower() in ('yes', 'true', 't', 'y', '1'):
+            return True
+        elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+            return False
+        else:
+            raise argparse.ArgumentTypeError('Boolean value expected.')
+
     # Parsing algorithm
     parser.add_argument("-a", "--algorithm", type=str, choices=["quacq", "mquacq", "mquacq2", "mquacq2-a", "growacq"],
                         required=True,
@@ -62,7 +72,7 @@ def parse_args():
                         help="Use the Passive Learning model as CT")
     parser.add_argument("-con", "--useCon", type=bool, required=False,
                         help="Use _con (fixed arity constraints) file as target model")
-    parser.add_argument("-oa", "--onlyActive", type=bool, required=False,
+    parser.add_argument("-oa", "--onlyActive", type=str2bool, required=False,
                         help="Run a custom model with only active learning - don't use the Passive Learning CL and bias")
     # Parsing specific to job-shop scheduling benchmark
     parser.add_argument("-nj", "--num-jobs", type=int, required=False,
@@ -233,6 +243,7 @@ def verify_global_constraints(experiment, data_dir="data/exp", use_learned_model
 
     model_file = f"{data_dir}/{experiment}_model"
     parsed_constraints, max_index = parse_model_file(model_file)
+    total_global_constraints = len(parsed_constraints)
     for constraint_type, indices in parsed_constraints:
         if constraint_type == 'ALLDIFFERENT':
             if use_learned_model:
@@ -266,7 +277,7 @@ def verify_global_constraints(experiment, data_dir="data/exp", use_learned_model
     else:
         C_T = set(fixed_arity_ct)
 
-    return grid, C_T, model, variables, biases, biasg, cls
+    return grid, C_T, model, variables, biases, biasg, cls, total_global_constraints
 
 
 def construct_benchmark():
@@ -508,7 +519,7 @@ if __name__ == "__main__":
     if args.benchmark == "vgc": #verify global constraints - genacq
         benchmark_name = args.experiment
         path = args.input
-        grid, C_T, oracle, X, bias, biasg, C_l = verify_global_constraints(benchmark_name, path, args.use_learned_model)
+        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = verify_global_constraints(benchmark_name, path, args.use_learned_model)
         print("Size of bias: ", len(set(bias)))
         print("Size of biasg: ",len(toplevel_list(biasg)), len(biasg))
         print("Size of C_l: ", len(C_l))
@@ -526,7 +537,7 @@ if __name__ == "__main__":
                             findc_version=fc_version, X=X, B=bias, Bg=biasg, C_l=C_l)
         ca_system.learn()
 
-        save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=len(toplevel_list(biasg)))
+        save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints)
         exit()
 
 
