@@ -519,14 +519,18 @@ if __name__ == "__main__":
     if args.benchmark == "vgc": #verify global constraints - genacq
         benchmark_name = args.experiment
         path = args.input
-        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = verify_global_constraints(benchmark_name, path, args.use_learned_model)
+        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = verify_global_constraints(benchmark_name, path, False)
         print("Size of bias: ", len(set(bias)))
         print("Size of biasg: ",len(toplevel_list(biasg)), len(biasg))
         print("Size of C_l: ", len(C_l))
         print("Size of C_T: ", len(C_T))
         #C_l = [constraint for constraint in C_l if constraint not in biasg]
-        missing_constraints = C_T - set(bias) - set(C_l)
-        bias.extend(missing_constraints)
+        if args.onlyActive:
+            bias = []
+            C_l = []
+        else:
+            missing_constraints = C_T - set(bias) - set(C_l)
+            bias.extend(missing_constraints)
         print("-------------------")
         print("Size of bias: ", len(set(bias)))
 
@@ -545,12 +549,16 @@ if __name__ == "__main__":
     if args.benchmark == "custom": #mquack2 custom problem
         benchmark_name = args.experiment
         path = args.input
-        grid, C_T, oracle, X, bias, C_l, total_global_constraints = construct_custom(benchmark_name, path, args.use_learned_model)
+        grid, C_T, oracle, X, bias, C_l, total_global_constraints = construct_custom(benchmark_name, path, False)
         print("Size of bias: ", len(set(bias)))
         print("Size of C_l: ", len(C_l))
         print("Size of C_T: ", len(C_T))
-        missing_constraints = C_T - set(bias) - set(C_l)
-        bias.extend(missing_constraints)
+        if args.onlyActive:
+            bias = []
+            C_l = []
+        else:
+            missing_constraints = C_T - set(bias) - set(C_l)
+            bias.extend(missing_constraints)
         print("Size of bias: ", len(bias))
         print(bias)
         ca_system = MQuAcq2(gamma, grid, C_T, qg=args.query_generation, obj=args.objective,
