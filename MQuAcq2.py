@@ -21,7 +21,7 @@ class MQuAcq2(ConAcq):
 
         answer = True
 
-        if len(self.B + toplevel_list(self.Bg)) == 0:
+        if len(self.B) == 0: #+ toplevel_list(self.Bg)
             self.B = construct_bias(self.X, self.gamma)
 
         while True:
