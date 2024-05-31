@@ -224,10 +224,13 @@ def verify_global_constraints(experiment, data_dir="data/exp", use_learned_model
         constraints = []
         for con_type, var1, var2 in parsed_data:
             con_str = constraint_type_to_string(con_type)
-            constraint = eval(f"variables[var1] {con_str} variables[var2]")
-            constraints.append(constraint)
-            if model is not None:
-                model += constraint
+            try:
+                constraint = eval(f"variables[var1] {con_str} variables[var2]")
+                constraints.append(constraint)
+                if model is not None:
+                    model += constraint
+            except:
+                print(f"Error in {con_type} {var1} {var2}")
         return constraints
 
     model = Model()
@@ -247,8 +250,14 @@ def verify_global_constraints(experiment, data_dir="data/exp", use_learned_model
     for constraint_type, indices in parsed_constraints:
         if constraint_type == 'ALLDIFFERENT':
             if use_learned_model:
-                model += AllDifferent([variables[i] for i in indices])
-            biasg.append(AllDifferent([variables[i] for i in indices]).decompose()[0])
+                try:
+                    model += AllDifferent([variables[i] for i in indices])
+                except:
+                    print("Error in AllDifferent")
+            try:
+                biasg.append(AllDifferent([variables[i] for i in indices]).decompose()[0])
+            except:
+                print("Error in AllDifferent")
 
     if args.useCon:
         con_file = f"{data_dir}/{experiment}_con"
