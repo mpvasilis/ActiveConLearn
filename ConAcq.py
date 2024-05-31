@@ -119,7 +119,7 @@ class ConAcq:
                 i = i-1
             i +=1
 
-        self.B = list(set(self.B))
+        self.B = list(dict.fromkeys(self.B))
 
     def remove_from_bias(self, C):
 
