@@ -28,12 +28,15 @@ class ConAcq:
 
         self.grid = grid
         self.gamma = gamma
-        if B is None:
-            B = []
-        self.B = B
+
         if Bg is None:
             Bg = []
         self.Bg = Bg
+
+        if B is None:
+            B = []
+
+        self.B = [c for c in B if c not in frozenset(toplevel_list(Bg))]
 
         # Guery generation, FindScope and FindC versions
         self.qg = qg
@@ -143,11 +146,14 @@ class ConAcq:
 
     def add_to_cl(self, c):
 
+        if c in set(self.C_l.constraints):
+            return
         # Add a constraint c to the learned network
         if self.debug_mode:
             print(f"adding {c} to C_L")
         self.C_l += c
-        self.genAcq(c)
+
+
 
     def remove(self, B, C):
 
@@ -175,12 +181,11 @@ class ConAcq:
 
         # Remove all constraints with the given scope from B
         scope_set = set(scope)
-#        learned_con_rel = get_relation(self.C_l.constraints[-1], self.gamma)
+        learned_con_rel = get_relation(self.C_l.constraints[-1], self.gamma)
         B_scopes_set = [set(get_scope(c)) for c in self.B + toplevel_list(self.Bg)]
 
-        removing = [c for i, c in enumerate(self.B + toplevel_list(self.Bg)) if B_scopes_set[i] == scope_set]
-#                    and get_relation(c, self.gamma) != learned_con_rel]
-
+        removing = [c for i, c in enumerate(self.B + toplevel_list(self.Bg)) if B_scopes_set[i] == scope_set
+                    and get_relation(c, self.gamma) != learned_con_rel]
         self.flatten_blists(removing)
 
 #        prev_B_length = len(self.B)
@@ -219,6 +224,8 @@ class ConAcq:
         else:
             self.add_to_cl(c)
             self.remove_scope_from_bias(scope)
+            self.genAcq(c)
+
 
     def call_findscope(self, Y, kappa):
 
@@ -330,7 +337,7 @@ class ConAcq:
         t0 = time.time()
 
         # Project down to only vars in scope of B
-        Y = frozenset(get_variables(self.B + toplevel_list(self.Bg)))
+        Y = list(dict.fromkeys(get_variables(self.B + toplevel_list(self.Bg))))
         lY = list(Y)
 
         B = get_con_subset(self.B + toplevel_list(self.Bg), Y)
@@ -504,7 +511,7 @@ class ConAcq:
         self.metrics.increase_gen_queries_count()
         print(f"Query({self.metrics.gen_queries_count}: Can I generalize constraint {c} to all {bl}?")
 
-        ret = all(c in set(self.C_T) for c in bl)
+        ret = all(c in frozenset(self.C_T) for c in bl)
         print("Answer: ", ("Yes" if ret else "No"))
 
         return ret
@@ -518,7 +525,7 @@ class ConAcq:
             bl = self.Bg[i]
 
             # skip the lists not including the constraint on hand
-            if con not in set(bl):
+            if con not in frozenset(bl):
                 i += 1
                 continue
 
@@ -527,7 +534,10 @@ class ConAcq:
 
             if self.genAsk(con, bl):
                 cl += bl
-                self.B = list(set(self.B) - set(cl)) # remove only from normal B
+#                self.remove_from_bias(cl)
+                for c in cl:
+                    self.remove_scope_from_bias(get_scope(c))
+                #self.B = list(frozenset(self.B) - frozenset(cl)) # remove only from normal B
             else:
                 self.B += bl
 
@@ -633,7 +643,7 @@ class ConAcq:
             S2 = self.findScope2(e, RS1, Y1, kappaBRS1Y1)
 
         # remove from original kappaB
-        kappaBRS1Y1_removed = set(kappaBRS1Y1_prev) - set(kappaBRS1Y1)
+        kappaBRS1Y1_removed = frozenset(kappaBRS1Y1_prev) - frozenset(kappaBRS1Y1)
         self.remove(kappaB, kappaBRS1Y1_removed)
 
         return S1.union(S2)

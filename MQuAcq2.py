@@ -23,6 +23,7 @@ class MQuAcq2(ConAcq):
 
         if len(self.B) == 0: #+ toplevel_list(self.Bg)
             self.B = construct_bias(self.X, self.gamma)
+            self.B = [c for c in self.B if c not in frozenset(toplevel_list(self.Bg))]
 
         while True:
             if self.debug_mode:
@@ -66,11 +67,15 @@ class MQuAcq2(ConAcq):
 
                     scope = self.call_findscope(Yprime, kappaB)
                     self.call_findc(scope)
-                    NScopes = set()
-                    NScopes.add(tuple(scope))
+#                    NScopes = set()
+#                    NScopes.add(tuple(scope))
+
+#                    if self.perform_analyzeAndLearn:
+#                        NScopes = NScopes.union(self.analyze_and_learn(Y))
 
                     if self.perform_analyzeAndLearn:
                         NScopes = NScopes.union(self.analyze_and_learn(Y))
+                    NScopes = [get_scope(c) for c in self.C_l.constraints]
 
                     Yprime = [y2 for y2 in Yprime if not any(y2 in set(nscope) for nscope in NScopes)]
 
