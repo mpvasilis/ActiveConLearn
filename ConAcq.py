@@ -17,7 +17,7 @@ partial = False
 
 class ConAcq:
 
-    def __init__(self, gamma, grid, ct=list(), B=list(), Bg=None, X=set(), C_l=None, qg="pqgen", obj="proba",
+    def __init__(self, gamma, grid, ct=list(), B=None, Bg=None, X=set(), C_l=None, qg="pqgen", obj="proba",
                  time_limit=None, findscope_version=4, findc_version=1, tqgen_t=None,
                  qgen_blimit=5000):
 
@@ -113,7 +113,7 @@ class ConAcq:
         i=0
         while i < len(self.Bg):
             bl = self.Bg[i]
-            if any(c in set(bl) for c in C):
+            if any(c in frozenset(bl) for c in C):
                 self.B.extend(bl)
                 self.Bg.pop(i)
                 i = i-1

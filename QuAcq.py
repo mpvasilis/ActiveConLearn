@@ -23,7 +23,7 @@ class QuAcq(ConAcq):
             if self.debug_mode:
                 print("Size of CL: ", len(self.C_l.constraints))
                 print("Size of B: ", len(self.B))
-                print("n of Queries: ", self.queries_count)
+                print("n of Queries: ", self.metrics.queries_count)
 
             gen_start = time.time()
 
