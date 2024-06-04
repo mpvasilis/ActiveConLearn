@@ -163,10 +163,13 @@ def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
         constraints = []
         for con_type, var1, var2 in parsed_data:
             con_str = constraint_type_to_string(con_type)
-            constraint = eval(f"variables[var1] {con_str} variables[var2]")
-            constraints.append(constraint)
-            if model is not None:
-                model += constraint
+            try:
+                constraint = eval(f"variables[var1] {con_str} variables[var2]")
+                constraints.append(constraint)
+                if model is not None:
+                    model += constraint
+            except:
+                print(f"Error in {con_type} {var1} {var2}")
         return constraints
 
     model = Model()
@@ -545,13 +548,10 @@ if __name__ == "__main__":
             bias = []
             C_l = []
         else:
-            missing_constraints = C_T - set(bias) - set(C_l)
-            bias.extend(missing_constraints)
+            _bias = C_T - set(bias) - set(C_l)
+            bias.extend(_bias)
         print("-------------------")
         print("Size of bias: ", len(set(bias)))
-
-
-
         ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
                             time_limit=args.time_limit, findscope_version=fs_version,
                             findc_version=fc_version, X=X, B=bias, Bg=biasg, C_l=C_l)
@@ -573,8 +573,8 @@ if __name__ == "__main__":
             bias = []
             C_l = []
         else:
-            missing_constraints = C_T - set(bias) - set(C_l)
-            bias.extend(missing_constraints)
+            _bias = C_T - set(bias) - set(C_l)
+            bias.extend(_bias)
         print("Size of bias: ", len(bias))
         print(bias)
         ca_system = MQuAcq2(gamma, grid, C_T, qg=args.query_generation, obj=args.objective,
