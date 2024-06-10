@@ -69,7 +69,8 @@ def run_experiment(config, benchmark, jar_path, input_directory, output_director
         experiment_path,
         output_directory,
         str(use_constraints),
-        str(config["onlyActive"])
+        str(config["onlyActive"]),
+        str(config["emptyCL"])
     )
     print("Running command:", command)
     result = subprocess.run(command, shell=True)
@@ -106,13 +107,14 @@ if __name__ == "__main__":
 
     jar_path = './phD.jar'
 
-    base_command = "python main.py -a {} -b {} -qg pqgen -exp {} -i {} --output {} --useCon {} --onlyActive {}"
+    base_command = "python main.py -a {} -b {} -qg pqgen -exp {} -i {} --output {} --useCon {} --onlyActive {} --emptyCL {}"
 
     configs = [
-        {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": False},
-        {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": True},
-        {"algo": "mquacq2-a", "bench": "custom", "onlyActive": False},
-        {"algo": "mquacq2-a", "bench": "custom", "onlyActive": True},
+        {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": False, "emptyCL": False},
+        {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": False, "emptyCL": True},
+        {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": True, "emptyCL": False},
+        {"algo": "mquacq2-a", "bench": "custom", "onlyActive": False, "emptyCL": False},
+        {"algo": "mquacq2-a", "bench": "custom", "onlyActive": True, "emptyCL": False},
     ]
 
     if args.parallel:

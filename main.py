@@ -552,6 +552,9 @@ if __name__ == "__main__":
         else:
             _bias = C_T - set(bias) - set(C_l)
             bias.extend(_bias)
+
+        if args.emptyCL:
+            C_l = []
         print("-------------------")
         print("Size of bias: ", len(set(bias)))
         ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
@@ -577,6 +580,9 @@ if __name__ == "__main__":
         else:
             _bias = C_T - set(bias) - set(C_l)
             bias.extend(_bias)
+
+        if args.emptyCL:
+            C_l = []
         print("Size of bias: ", len(bias))
         print(bias)
         ca_system = MQuAcq2(gamma, grid, C_T, qg=args.query_generation, obj=args.objective,
