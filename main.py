@@ -74,6 +74,8 @@ def parse_args():
                         help="Use _con (fixed arity constraints) file as target model")
     parser.add_argument("-oa", "--onlyActive", type=str2bool, required=False,
                         help="Run a custom model with only active learning - don't use the Passive Learning CL and bias")
+    parser.add_argument("-ecl", "--emptyCL", type=str2bool, required=False,
+                        help="Run using empty CL")
     # Parsing specific to job-shop scheduling benchmark
     parser.add_argument("-nj", "--num-jobs", type=int, required=False,
                         help="Only relevant when the chosen benchmark is job-shop scheduling - the number of jobs")
