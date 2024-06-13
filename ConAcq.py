@@ -580,12 +580,36 @@ class ConAcq:
         return set()
 
     def get_patterns(self):
-        rows = [set(self.X[j:j + 4]) for j in range(0, 16, 4)]
-        columns = [set(self.X[j:16:4]) for j in range(4)]
-        blocks = [set(self.X[i] for i in [0, 1, 4, 5]),
-                  set(self.X[i] for i in [2, 3, 6, 7]),
-                  set(self.X[i] for i in [8, 9, 12, 13]),
-                  set(self.X[i] for i in [10, 11, 14, 15])]
+        if len(self.X) == 16:  # For 4x4 Sudoku
+            rows = [set(self.X[j:j + 4]) for j in range(0, 16, 4)]
+            columns = [set(self.X[j:16:4]) for j in range(4)]
+            blocks = [set(self.X[i] for i in [0, 1, 4, 5]),
+                      set(self.X[i] for i in [2, 3, 6, 7]),
+                      set(self.X[i] for i in [8, 9, 12, 13]),
+                      set(self.X[i] for i in [10, 11, 14, 15])]
+        elif len(self.X) == 81:  # For 9x9 Sudoku
+            rows = [set(self.X[j:j + 9]) for j in range(0, 81, 9)]
+            columns = [set(self.X[j:81:9]) for j in range(9)]
+            blocks = [set(self.X[i] for i in [
+                0, 1, 2, 9, 10, 11, 18, 19, 20]),
+                      set(self.X[i] for i in [
+                          3, 4, 5, 12, 13, 14, 21, 22, 23]),
+                      set(self.X[i] for i in [
+                          6, 7, 8, 15, 16, 17, 24, 25, 26]),
+                      set(self.X[i] for i in [
+                          27, 28, 29, 36, 37, 38, 45, 46, 47]),
+                      set(self.X[i] for i in [
+                          30, 31, 32, 39, 40, 41, 48, 49, 50]),
+                      set(self.X[i] for i in [
+                          33, 34, 35, 42, 43, 44, 51, 52, 53]),
+                      set(self.X[i] for i in [
+                          54, 55, 56, 63, 64, 65, 72, 73, 74]),
+                      set(self.X[i] for i in [
+                          57, 58, 59, 66, 67, 68, 75, 76, 77]),
+                      set(self.X[i] for i in [
+                          60, 61, 62, 69, 70, 71, 78, 79, 80])]
+        else:
+            raise ValueError("Unsupported grid size")
         return rows, columns, blocks
 
     def genacq(self, c, N_onTarget):
