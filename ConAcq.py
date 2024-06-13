@@ -3,7 +3,7 @@ import random
 import time
 from statistics import mean, stdev
 
-from cpmpy.expressions.core import Comparison
+from cpmpy.expressions.core import Comparison, Operator
 from cpmpy.expressions.variables import _IntVarImpl
 
 SOLVER = "ortools"
@@ -19,6 +19,7 @@ from ortools.sat.python import cp_model as ort
 from utils import find_suitable_vars_subset2
 
 partial = False
+
 
 class ConAcq:
 
@@ -118,14 +119,14 @@ class ConAcq:
     def flatten_blists(self, C):
         if not is_any_list(C):
             C = [C]
-        i=0
+        i = 0
         while i < len(self.Bg):
             bl = self.Bg[i]
             if any(c in frozenset(bl) for c in C):
                 self.B.extend(bl)
                 self.Bg.pop(i)
-                i = i-1
-            i +=1
+                i = i - 1
+            i += 1
 
         self.B = list(dict.fromkeys(self.B))
 
@@ -140,14 +141,15 @@ class ConAcq:
 
         if self.debug_mode:
             print(f"Removed from bias: {C}")
-#        if not (prev_B_length - len(C) == len(self.B)):
-#            print("B: ", self.B)
-#            print("C:", C)
-#            raise Exception(f'Something was not removed properly: {prev_B_length} - {len(C)} = {len(self.B)}')
 
-#        for bl in self.Bg:
-#            if any(c in bl for c in C):
-#                self.Bg -= bl
+    #        if not (prev_B_length - len(C) == len(self.B)):
+    #            print("B: ", self.B)
+    #            print("C:", C)
+    #            raise Exception(f'Something was not removed properly: {prev_B_length} - {len(C)} = {len(self.B)}')
+
+    #        for bl in self.Bg:
+    #            if any(c in bl for c in C):
+    #                self.Bg -= bl
 
     def add_to_cl(self, c):
 
@@ -156,8 +158,6 @@ class ConAcq:
             print(f"adding {c} to C_L")
         self.C_l += c
         self.genAcq(c)
-
-
 
     def remove(self, B, C):
 
@@ -180,7 +180,6 @@ class ConAcq:
         if lenB_init - len(B) != lenC:
             raise Exception("Removing constraints from Bias did not result in reducing its size")
 
-
     def remove_scope_from_bias(self, scope):
 
         # Remove all constraints with the given scope from B
@@ -192,14 +191,14 @@ class ConAcq:
                     and get_relation(c, self.gamma) != learned_con_rel]
         self.flatten_blists(removing)
 
-#        prev_B_length = len(self.B)
+        #        prev_B_length = len(self.B)
         self.B = [c for i, c in enumerate(self.B) if not (B_scopes_set[i] == scope_set)]
 
-#        if len(self.B) == prev_B_length:
-#            if self.debug_mode:
-#                print(self.B)
-#                print(scope)
-#            raise Exception("Removing constraints from Bias did not result in reducing its size")
+    #        if len(self.B) == prev_B_length:
+    #            if self.debug_mode:
+    #                print(self.B)
+    #                print(scope)
+    #            raise Exception("Removing constraints from Bias did not result in reducing its size")
 
     def set_cl(self, C_l):
 
@@ -229,7 +228,6 @@ class ConAcq:
             self.add_to_cl(c)
             self.remove_scope_from_bias(scope)
             self.genAcq(c)
-
 
     def call_findscope(self, Y, kappa):
 
@@ -400,7 +398,7 @@ class ConAcq:
         if self.obj == "max":
             objective = sum([~v for v in V])
 
-        else: # self.obj == "proba"
+        else:  # self.obj == "proba"
 
             # Use the counts to calculate the probability
             O_c = [1 if is_any_list(c) else 0 for c in hybridB]
@@ -481,7 +479,7 @@ class ConAcq:
             #print(f"Query: is this a solution?")
             #print(np.array([[v if v != 0 else -0 for v in row] for row in value]))
 
-            print("B:", get_con_subset(self.B + toplevel_list(self.Bg),Y))
+            print("B:", get_con_subset(self.B + toplevel_list(self.Bg), Y))
             print("violated from B: ", get_kappa(self.B + toplevel_list(self.Bg), Y))
             print("violated from C_T: ", get_kappa(self.C_T, Y))
             print("violated from C_L: ", get_kappa(self.C_l.constraints, Y))
@@ -575,21 +573,20 @@ class ConAcq:
                 return False
 
         return True
+
     def get_variables_from_constraint(constraint):
         if isinstance(constraint, Comparison):
             return set(get_scope(constraint))
         return set()
 
-
     def get_patterns(self):
-        rows = [{f'var{i}' for i in range(j, j + 4)} for j in range(0, 16, 4)]
-        columns = [{f'var{i}' for i in range(j, 16, 4)} for j in range(4)]
-        blocks = [{f'var{i}' for i in [0, 1, 4, 5]},
-                  {f'var{i}' for i in [2, 3, 6, 7]},
-                  {f'var{i}' for i in [8, 9, 12, 13]},
-                  {f'var{i}' for i in [10, 11, 14, 15]}]
+        rows = [set(self.X[j:j + 4]) for j in range(0, 16, 4)]
+        columns = [set(self.X[j:16:4]) for j in range(4)]
+        blocks = [set(self.X[i] for i in [0, 1, 4, 5]),
+                  set(self.X[i] for i in [2, 3, 6, 7]),
+                  set(self.X[i] for i in [8, 9, 12, 13]),
+                  set(self.X[i] for i in [10, 11, 14, 15])]
         return rows, columns, blocks
-
 
     def genacq(self, c, N_onTarget):
         T_able = [{var for var in self.var_names if var in get_scope(c)}]
@@ -615,34 +612,79 @@ class ConAcq:
 
         return G
 
+    def get_relation2(self, constraint):
+        if isinstance(constraint, Comparison):
+            return constraint.args[0], constraint.args[1]
+        else:
+            raise ValueError("Unsupported constraint type.")
+
+    def replace_vars(self, expr, var_map):
+        if isinstance(expr, _IntVarImpl):
+            return var_map.get(expr, expr)
+        elif isinstance(expr, Comparison):
+            left = self.replace_vars(expr.args[0], var_map)
+            right = self.replace_vars(expr.args[1], var_map)
+            return type(expr)(left, right, expr.name)
+        elif isinstance(expr, Operator):
+            args = [self.replace_vars(arg, var_map) for arg in expr.args]
+            return type(expr)(*args)
+        return expr
+
     def genAcq(self, con):
-            cl = []
-            i = 0
-            while i < len(self.Bg):
+        cl = []
+        i = 0
+        scope = get_scope(con)
+        variables = set(scope)
+        rows, columns, blocks = self.get_patterns()
+        relevant_patterns = []
+        for pattern in rows + columns + blocks:
+            if variables.issubset(pattern):
+                relevant_patterns.append(pattern)
+        for pattern in relevant_patterns:
+            if self.genAsk(con, pattern):
+                for var_combination in itertools.combinations(pattern, len(scope)):
+                    try:
+                        left_expr, right_expr = self.get_relation2(con)
 
-                bl = self.Bg[i]
+                        original_vars = get_scope(con)
+                        var_map = {orig: new for orig, new in zip(original_vars, var_combination)}
 
-                if con not in frozenset(bl):
-                    i += 1
-                    continue
+                        new_left_expr = self.replace_vars(left_expr, var_map)
+                        new_right_expr = self.replace_vars(right_expr, var_map)
 
-                self.Bg.pop(i)
+                        new_constraint = Comparison(con.name, new_left_expr, new_right_expr)
+                        if not new_constraint in set(self.C_l.constraints):
+                            self.C_l += new_constraint
+                            print(f"Added generalized constraint: {new_constraint}")
 
-                if self.genAsk(con, bl):
-                    cl += bl
-                    #                self.remove_from_bias(cl)
-                    for c in cl:
-                        self.remove_scope_from_bias(get_scope(c))
-                    # self.B = list(frozenset(self.B) - frozenset(cl)) # remove only from normal B
-                else:
-                    self.B += bl
+                    except Exception as e:
+                        print(f"Error adding generalized constraint: {e}")
 
-            [self.add_to_cl(c) for c in cl]
+        # while i < len(self.Bg):
+        #
+        #     bl = self.Bg[i]
+        #
+        #     if con not in frozenset(bl):
+        #         i += 1
+        #         continue
+        #
+        #     self.Bg.pop(i)
+        #
+        #     if self.genAsk(con, bl):
+        #         cl += bl
+        #         #                self.remove_from_bias(cl)
+        #         for c in cl:
+        #             self.remove_scope_from_bias(get_scope(c))
+        #         # self.B = list(frozenset(self.B) - frozenset(cl)) # remove only from normal B
+        #     else:
+        #         self.B += bl
+        #
+        # [self.add_to_cl(c) for c in cl]
 
     # This is the version of the FindScope function that was presented in "Constraint acquisition via Partial Queries", IJCAI 2013
     def findScope(self, e, R, Y, do_ask):
         #if self.debug_mode:
-            # print("\tDEBUG: findScope", e, R, Y, do_ask)
+        # print("\tDEBUG: findScope", e, R, Y, do_ask)
         if do_ask:
             # if ask(e_R) = yes: B \setminus K(e_R)
             # need to project 'e' down to vars in R,

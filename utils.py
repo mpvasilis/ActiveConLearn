@@ -2,6 +2,7 @@ import math
 import time
 
 from cpmpy import intvar, boolvar, Model, all, sum, SolverLookup
+from cpmpy.expressions.variables import _NumVarImpl
 from sklearn.utils import class_weight
 import numpy as np
 
@@ -247,20 +248,10 @@ def get_scopes(C):
 
 
 def get_scope(constraint):
-    # this code is much more dangerous/too few cases then get_variables()
-    if isinstance(constraint, cpmpy.expressions.variables._IntVarImpl):
-        return [constraint]
-    elif isinstance(constraint, cpmpy.expressions.core.Expression):
-        all_variables = []
-        for argument in constraint.args:
-            if isinstance(argument, cpmpy.expressions.variables._IntVarImpl):
-                # non-recursive shortcut
-                all_variables.append(argument)
-            else:
-                all_variables.extend(get_scope(argument))
-        return all_variables
-    else:
-        return []
+    """
+    Utility function to extract the scope of variables from a constraint.
+    """
+    return [var for var in constraint.args if isinstance(var, _NumVarImpl)]
 
 
 def get_arity(constraint):
@@ -463,6 +454,8 @@ class Metrics:
         self.generation_time = 0
 
         self.converged = 1
+        self.N_egativeQ = set()  # Initialize the N_egativeQ attribute
+        self.gen_no_answers = 0  # Initialize the gen_no_answers attribute
 
     def increase_gen_queries_count(self, amount=1):
         self.gen_queries_count += amount
@@ -551,6 +544,7 @@ def generate_findc_query(L, delta):
     tmp += objective > 0
 
     # Try first without objective
+
     s = SolverLookup.get(SOLVER, tmp)
     flag = s.solve()
 
