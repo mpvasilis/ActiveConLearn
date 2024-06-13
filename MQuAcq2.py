@@ -1,3 +1,4 @@
+import itertools
 import time
 
 import numpy as np
@@ -17,6 +18,12 @@ class MQuAcq2(ConAcq):
                     findc_version, tqgen_t, qgen_blimit)
         self.perform_analyzeAndLearn = perform_analyzeAndLearn
 
+    def add_generalized_constraints(self, generalized_scopes, constraint):
+        for scope in generalized_scopes:
+            for var_combination in itertools.combinations(scope, len(get_scope(constraint))):
+                new_constraint = type(constraint)(*var_combination, get_relation(constraint))
+                if new_constraint not in self.C_l.constraints:
+                    self.add_to_cl(new_constraint)
     def learn(self):
 
         answer = True
@@ -72,8 +79,7 @@ class MQuAcq2(ConAcq):
                     if new_constraint:
                         self.add_to_cl(new_constraint)
                         generalized_scopes = self.genacq(new_constraint, self.B)
-                        for s in generalized_scopes:
-                            self.C_l += [var for var in s if not any(var in cl_var for cl_var in self.C_l.constraints)]
+                        self.add_generalized_constraints(generalized_scopes, new_constraint)
 
 #                    NScopes = set()
 #                    NScopes.add(tuple(scope))
@@ -91,10 +97,7 @@ class MQuAcq2(ConAcq):
             if answer:
                 new_constraint = self.C_l.constraints[-1]
                 generalized_scopes = self.genacq(new_constraint, self.B)
-                for s in generalized_scopes:
-                    for var in s:
-                        if not any(var in get_scope(cl_var) for cl_var in self.C_l.constraints):
-                            self.C_l += [var]
+                self.add_generalized_constraints(generalized_scopes, new_constraint)
 
     def analyze_and_learn(self, Y):
 
