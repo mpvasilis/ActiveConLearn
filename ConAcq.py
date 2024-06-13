@@ -587,7 +587,7 @@ class ConAcq:
         blocks = [{f'var{i}' for i in [0, 1, 4, 5]},
                   {f'var{i}' for i in [2, 3, 6, 7]},
                   {f'var{i}' for i in [8, 9, 12, 13]},
-                  {f'var{i}' for i in [10, 11, 14, 15]},
+                  {f'var{i}' for i in [10, 11, 14, 15]}]
         return rows, columns, blocks
 
 
