@@ -56,6 +56,7 @@ class MQuAcq2(ConAcq):
                 self.metrics.increase_top_queries()
 
                 if self.ask_query(Yprime):
+                    answer = True
                     # it is a solution, so all candidates violated must go
                     # B <- B \setminus K_B(e)
                     self.remove_from_bias(kappaB)
@@ -66,7 +67,14 @@ class MQuAcq2(ConAcq):
                     answer = False
 
                     scope = self.call_findscope(Yprime, kappaB)
-                    self.call_findc(scope)
+                    new_constraint = self.call_findc(scope)
+
+                    if new_constraint:
+                        self.add_to_cl(new_constraint)
+                        generalized_scopes = self.genacq(new_constraint, self.B)
+                        for s in generalized_scopes:
+                            self.C_l += [var for var in s if not any(var in cl_var for cl_var in self.C_l.constraints)]
+
 #                    NScopes = set()
 #                    NScopes.add(tuple(scope))
 
@@ -80,6 +88,13 @@ class MQuAcq2(ConAcq):
                     Yprime = [y2 for y2 in Yprime if not any(y2 in set(nscope) for nscope in NScopes)]
 
                     kappaB = get_kappa(self.B + toplevel_list(self.Bg), Yprime)
+            if answer:
+                new_constraint = self.C_l.constraints[-1]
+                generalized_scopes = self.genacq(new_constraint, self.B)
+                for s in generalized_scopes:
+                    for var in s:
+                        if not any(var in get_scope(cl_var) for cl_var in self.C_l.constraints):
+                            self.C_l += [var]
 
     def analyze_and_learn(self, Y):
 

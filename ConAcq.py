@@ -1,5 +1,10 @@
+import itertools
+import random
 import time
 from statistics import mean, stdev
+
+from cpmpy.expressions.core import Comparison
+from cpmpy.expressions.variables import _IntVarImpl
 
 SOLVER = "ortools"
 
@@ -146,12 +151,11 @@ class ConAcq:
 
     def add_to_cl(self, c):
 
-        if c in set(self.C_l.constraints):
-            return
         # Add a constraint c to the learned network
         if self.debug_mode:
             print(f"adding {c} to C_L")
         self.C_l += c
+        self.genAcq(c)
 
 
 
@@ -506,42 +510,135 @@ class ConAcq:
 
         return ret
 
-    def genAsk(self, c, bl):
-
+    def genAsk(self, c, scope):
         self.metrics.increase_gen_queries_count()
-        print(f"Query({self.metrics.gen_queries_count}: Can I generalize constraint {c} to all {bl}?")
+        print(f"Query({self.metrics.gen_queries_count}): Can I generalize constraint {c} to all {scope}?")
+        generalized = True
+        for var_combination in itertools.combinations(scope, len(get_scope(c))):
+            if not self.check_generalization(c, var_combination):
+                generalized = False
+                break
 
-        ret = all(c in frozenset(self.C_T) for c in bl)
-        print("Answer: ", ("Yes" if ret else "No"))
+        print("Answer: ", ("Yes" if generalized else "No"))
+        return generalized
 
-        return ret
+    def check_constraint(self, constraint, example):
+        model = Model(constraint)
+        solver = SolverLookup.get(SOLVER, model)
+        return solver.solve()
+
+    def check_generalization(self, c, var_combination):
+        scope = get_scope(c)
+        left_vars = scope[:-1]
+        right_var = scope[-1]
+
+        if len(left_vars) != len(var_combination) - 1:
+            return False
+
+        new_left_vars = var_combination[:-1]
+        new_right_var = var_combination[-1]
+
+        if isinstance(c, Comparison):
+            op = c.name
+            left_expr = c.args[0]
+            right_expr = c.args[1]
+
+            if isinstance(left_expr, _IntVarImpl):
+                new_left_expr = new_left_vars[0]
+            else:
+                new_left_expr = left_expr
+
+            if isinstance(right_expr, _IntVarImpl):
+                new_right_expr = new_right_var
+            else:
+                new_right_expr = right_expr
+
+            if op == '==':
+                new_constraint = (new_left_expr == new_right_expr)
+            elif op == '!=':
+                new_constraint = (new_left_expr != new_right_expr)
+            elif op == '<':
+                new_constraint = (new_left_expr < new_right_expr)
+            elif op == '<=':
+                new_constraint = (new_left_expr <= new_right_expr)
+            elif op == '>':
+                new_constraint = (new_left_expr > new_right_expr)
+            elif op == '>=':
+                new_constraint = (new_left_expr >= new_right_expr)
+            else:
+                raise ValueError(f"Unsupported comparison operator: {op}")
+        else:
+            raise ValueError("Unsupported constraint type")
+
+        for example in self.C_T:
+            if not self.check_constraint(new_constraint, example):
+                return False
+
+        return True
+    def get_variables_from_constraint(constraint):
+        if isinstance(constraint, Comparison):
+            return set(get_scope(constraint))
+        return set()
+
+
+    def get_patterns(self):
+        rows = [{f'var{i}' for i in range(j, j + 4)} for j in range(0, 16, 4)]
+        columns = [{f'var{i}' for i in range(j, 16, 4)} for j in range(4)]
+        blocks = [{f'var{i}' for i in [0, 1, 4, 5]},
+                  {f'var{i}' for i in [2, 3, 6, 7]},
+                  {f'var{i}' for i in [8, 9, 12, 13]},
+                  {f'var{i}' for i in [10, 11, 14, 15]},
+                  {f'var{i}' for i in [0, 1,2,8,12,9,7,4, 5, 10, 15]}]
+        return rows, columns, blocks
+
+
+    def genacq(self, c, N_onTarget):
+        T_able = [{var for var in self.var_names if var in get_scope(c)}]
+        G = set()
+        cutoffNo = float('inf')
+        self.metrics.gen_no_answers = 0
+
+        rows, columns, blocks = self.get_patterns()
+
+        for pattern_type in [rows, columns, blocks]:
+            for pattern in pattern_type:
+                if self.genAsk(c, pattern):
+                    G.add(frozenset(pattern))
+                    for s in T_able:
+                        if s.issubset(pattern):
+                            T_able.remove(s)
+                else:
+                    for s in T_able:
+                        if pattern.issubset(s):
+                            T_able.remove(s)
+                    self.metrics.N_egativeQ.add((frozenset(pattern), get_relation(c, self.gamma)))
+                    self.metrics.gen_no_answers += 1
+
+        return G
 
     def genAcq(self, con):
+            cl = []
+            i = 0
+            while i < len(self.Bg):
 
-        cl = []
-        i = 0
-        while i < len(self.Bg):
+                bl = self.Bg[i]
 
-            bl = self.Bg[i]
+                if con not in frozenset(bl):
+                    i += 1
+                    continue
 
-            # skip the lists not including the constraint on hand
-            if con not in frozenset(bl):
-                i += 1
-                continue
+                self.Bg.pop(i)
 
-            # remove from Bg as we are going to ask a query for it!
-            self.Bg.pop(i)
+                if self.genAsk(con, bl):
+                    cl += bl
+                    #                self.remove_from_bias(cl)
+                    for c in cl:
+                        self.remove_scope_from_bias(get_scope(c))
+                    # self.B = list(frozenset(self.B) - frozenset(cl)) # remove only from normal B
+                else:
+                    self.B += bl
 
-            if self.genAsk(con, bl):
-                cl += bl
-#                self.remove_from_bias(cl)
-                for c in cl:
-                    self.remove_scope_from_bias(get_scope(c))
-                #self.B = list(frozenset(self.B) - frozenset(cl)) # remove only from normal B
-            else:
-                self.B += bl
-
-        [self.add_to_cl(c) for c in cl]
+            [self.add_to_cl(c) for c in cl]
 
     # This is the version of the FindScope function that was presented in "Constraint acquisition via Partial Queries", IJCAI 2013
     def findScope(self, e, R, Y, do_ask):

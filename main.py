@@ -537,6 +537,29 @@ if __name__ == "__main__":
     start = time.time()
     gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 <= var2", "var1 >= var2"]
 
+
+
+    benchmark_name = args.experiment
+    path = args.input
+    grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = verify_global_constraints(benchmark_name, path,
+                                                                                                 False)
+    print("Size of bias: ", len(set(bias)))
+    print("Size of biasg: ", len(toplevel_list(biasg)), len(biasg))
+    print("Size of C_l: ", len(C_l))
+    print("Size of C_T: ", len(C_T))
+    bias = []
+    biasg = []
+    C_l = []
+    print("-------------------")
+    print("Size of bias: ", len(set(bias)))
+    ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
+                        time_limit=args.time_limit, findscope_version=fs_version,
+                        findc_version=fc_version, X=X, B=bias, Bg=biasg, C_l=C_l)
+    ca_system.learn()
+
+    save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints)
+    exit()
+
     if args.benchmark == "vgc": #verify global constraints - genacq
         benchmark_name = args.experiment
         path = args.input
