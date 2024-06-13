@@ -2,7 +2,9 @@ import itertools
 import time
 
 import numpy as np
+from cpmpy.expressions.core import Comparison, Operator
 from cpmpy.expressions.utils import all_pairs
+from cpmpy.expressions.variables import _IntVarImpl
 from cpmpy.transformations.normalize import toplevel_list
 
 from ConAcq import ConAcq
@@ -18,12 +20,36 @@ class MQuAcq2(ConAcq):
                     findc_version, tqgen_t, qgen_blimit)
         self.perform_analyzeAndLearn = perform_analyzeAndLearn
 
+    def get_relation2(self, constraint):
+        if isinstance(constraint, Comparison):
+            return constraint.args[0], constraint.args[1]
+        else:
+            raise ValueError("Unsupported constraint type.")
+
     def add_generalized_constraints(self, generalized_scopes, constraint):
+        original_scope = get_scope(constraint)
         for scope in generalized_scopes:
-            for var_combination in itertools.combinations(scope, len(get_scope(constraint))):
-                new_constraint = type(constraint)(*var_combination, get_relation(constraint))
+            for var_combination in itertools.permutations(scope, len(original_scope)):
+                left_expr, right_expr = self.get_relation2(constraint)
+                mapping = {orig: new for orig, new in zip(original_scope, var_combination)}
+                new_left_expr = self.replace_vars(left_expr, mapping)
+                new_right_expr = self.replace_vars(right_expr, mapping)
+                new_constraint = Comparison(constraint.name, new_left_expr, new_right_expr)
                 if new_constraint not in self.C_l.constraints:
                     self.add_to_cl(new_constraint)
+
+    def replace_vars(self, expr, var_map):
+        if isinstance(expr, _IntVarImpl):
+            return var_map.get(expr, expr)
+        elif isinstance(expr, Comparison):
+            left = self.replace_vars(expr.args[0], var_map)
+            right = self.replace_vars(expr.args[1], var_map)
+            return type(expr)(left, right, expr.name)
+        elif isinstance(expr, Operator):
+            args = [self.replace_vars(arg, var_map) for arg in expr.args]
+            return type(expr)(*args)
+        return expr
+
     def learn(self):
 
         answer = True
