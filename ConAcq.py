@@ -520,56 +520,24 @@ class ConAcq:
         print("Answer: ", ("Yes" if generalized else "No"))
         return generalized
 
-    def check_constraint(self, constraint, example):
-        model = Model(constraint)
+    def check_constraint(self, constraint):
+        model = Model(self.C_l.constraints + [constraint])
         solver = SolverLookup.get(SOLVER, model)
         return solver.solve()
 
     def check_generalization(self, c, var_combination):
-        scope = get_scope(c)
-        left_vars = scope[:-1]
-        right_var = scope[-1]
+        left_expr, right_expr = self.get_relation2(c)
+        original_vars = get_scope(c)
 
-        if len(left_vars) != len(var_combination) - 1:
-            return False
+        for var_set in itertools.permutations(var_combination, len(original_vars)):
+            mapping = {orig: new for orig, new in zip(original_vars, var_set)}
 
-        new_left_vars = var_combination[:-1]
-        new_right_var = var_combination[-1]
+            new_left_expr = self.replace_vars(left_expr, mapping)
+            new_right_expr = self.replace_vars(right_expr, mapping)
 
-        if isinstance(c, Comparison):
-            op = c.name
-            left_expr = c.args[0]
-            right_expr = c.args[1]
+            generalized_constraint = Comparison(c.name, new_left_expr, new_right_expr)
 
-            if isinstance(left_expr, _IntVarImpl):
-                new_left_expr = new_left_vars[0]
-            else:
-                new_left_expr = left_expr
-
-            if isinstance(right_expr, _IntVarImpl):
-                new_right_expr = new_right_var
-            else:
-                new_right_expr = right_expr
-
-            if op == '==':
-                new_constraint = (new_left_expr == new_right_expr)
-            elif op == '!=':
-                new_constraint = (new_left_expr != new_right_expr)
-            elif op == '<':
-                new_constraint = (new_left_expr < new_right_expr)
-            elif op == '<=':
-                new_constraint = (new_left_expr <= new_right_expr)
-            elif op == '>':
-                new_constraint = (new_left_expr > new_right_expr)
-            elif op == '>=':
-                new_constraint = (new_left_expr >= new_right_expr)
-            else:
-                raise ValueError(f"Unsupported comparison operator: {op}")
-        else:
-            raise ValueError("Unsupported constraint type")
-
-        for example in self.C_T:
-            if not self.check_constraint(new_constraint, example):
+            if not self.check_constraint(generalized_constraint):
                 return False
 
         return True
