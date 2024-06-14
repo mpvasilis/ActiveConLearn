@@ -48,6 +48,8 @@ class ConAcq:
         self.qg = qg
         self.fs = findscope_version
         self.fc = findc_version
+        self.negativeQ = set()
+        self.constraints_to_generalize = set()
 
         # Objective
         self.obj = obj
@@ -580,29 +582,6 @@ class ConAcq:
             raise ValueError("Unsupported grid size")
         return rows, columns, blocks
 
-    def genacq(self, c, N_onTarget):
-        T_able = [{var for var in self.var_names if var in get_scope(c)}]
-        G = set()
-        cutoffNo = float('inf')
-        self.metrics.gen_no_answers = 0
-
-        rows, columns, blocks = self.get_patterns()
-
-        for pattern_type in [rows, columns, blocks]:
-            for pattern in pattern_type:
-                if self.genAsk(c, pattern):
-                    G.add(frozenset(pattern))
-                    for s in T_able:
-                        if s.issubset(pattern):
-                            T_able.remove(s)
-                else:
-                    for s in T_able:
-                        if pattern.issubset(s):
-                            T_able.remove(s)
-                    self.metrics.N_egativeQ.add((frozenset(pattern), get_relation(c, self.gamma)))
-                    self.metrics.gen_no_answers += 1
-
-        return G
 
     def get_relation2(self, constraint):
         if isinstance(constraint, Comparison):
@@ -622,56 +601,91 @@ class ConAcq:
             return type(expr)(*args)
         return expr
 
-    def genAcq(self, con):
-        cl = []
-        i = 0
-        scope = get_scope(con)
+    def get_scope(self, constraint):
+        return [var for var in constraint.args if isinstance(var, _IntVarImpl)]
+
+    def genAcq(self, c):
+        scope = get_scope(c)
         variables = set(scope)
         rows, columns, blocks = self.get_patterns()
-        relevant_patterns = []
-        for pattern in rows + columns + blocks:
-            if variables.issubset(pattern):
-                relevant_patterns.append(pattern)
-        for pattern in relevant_patterns:
-            if self.genAsk(con, pattern):
-                for var_combination in itertools.combinations(pattern, len(scope)):
-                    try:
-                        left_expr, right_expr = self.get_relation2(con)
+        relevant_patterns = [frozenset(pattern) for pattern in rows + columns + blocks if variables.issubset(pattern)]
 
-                        original_vars = get_scope(con)
-                        var_map = {orig: new for orig, new in zip(original_vars, var_combination)}
+        print(f"Scope of the constraint: {scope}")
+        print(f"Relevant patterns: {relevant_patterns}")
 
-                        new_left_expr = self.replace_vars(left_expr, var_map)
-                        new_right_expr = self.replace_vars(right_expr, var_map)
+        G = set()
+        T_able = set(relevant_patterns)
+        N_oAnswers = 0
+        cutoffNo = float('inf')
 
-                        new_constraint = Comparison(con.name, new_left_expr, new_right_expr)
-                        if not new_constraint in set(self.C_l.constraints):
-                            self.C_l += new_constraint
-                            print(f"Added generalized constraint: {new_constraint}")
+        print(f"Initial patterns: {T_able}")
 
-                    except Exception as e:
-                        print(f"Error adding generalized constraint: {e}")
+        T_able_copy = T_able.copy()
 
-        # while i < len(self.Bg):
-        #
-        #     bl = self.Bg[i]
-        #
-        #     if con not in frozenset(bl):
-        #         i += 1
-        #         continue
-        #
-        #     self.Bg.pop(i)
-        #
-        #     if self.genAsk(con, bl):
-        #         cl += bl
-        #         #                self.remove_from_bias(cl)
-        #         for c in cl:
-        #             self.remove_scope_from_bias(get_scope(c))
-        #         # self.B = list(frozenset(self.B) - frozenset(cl)) # remove only from normal B
-        #     else:
-        #         self.B += bl
-        #
-        # [self.add_to_cl(c) for c in cl]
+        # Step-by-step filtering process
+        to_remove = set()
+
+        for s in T_able_copy:
+            remove_s = False
+
+            # Check NegativeQ condition
+            for s_prime in T_able:
+                if frozenset(s_prime).issubset(frozenset(s)) and (frozenset(s_prime), c.name) in self.negativeQ:
+                    print(f"Removing {s} because {s_prime} in negativeQ")
+                    remove_s = True
+                    break
+
+            if not remove_s:
+                # Check C_l condition
+                for c_prime in self.C_l.constraints:
+                    if c_prime is not c:
+                        if get_relation(c_prime, self.gamma) == get_relation(c, self.gamma) and set(
+                                get_scope(c_prime)).issubset(s):
+                            print(f"Removing {s} because {c_prime} in C_l matches condition")
+                            remove_s = True
+                            break
+
+            if remove_s:
+                to_remove.add(s)
+
+        for s in to_remove:
+            print(f"Removing {s}")
+            T_able.remove(s)
+
+        print(f"Initial patterns after elimination: {T_able}")
+
+        while T_able and N_oAnswers < cutoffNo:
+            s = T_able.pop()
+            print(f"Generalization query for pattern: {s}")
+            if self.genAsk(c, s):
+                G.add(s)
+                print(f"Added pattern to generalizations: {s}")
+                T_able -= {s2 for s2 in T_able if s.issubset(s2)}
+                N_oAnswers = 0
+            else:
+                T_able -= {s2 for s2 in T_able if s2.issubset(s)}
+                self.negativeQ.add((frozenset(s), c.name))
+                N_oAnswers += 1
+
+        print(f"Generalizations: {G}")
+        for s in G:
+            for var_combination in itertools.combinations(s, len(scope)):
+                try:
+                    left_expr, right_expr = self.get_relation2(c)
+                    original_vars = get_scope(c)
+                    var_map = {orig: new for orig, new in zip(original_vars, var_combination)}
+                    new_left_expr = self.replace_vars(left_expr, var_map)
+                    new_right_expr = self.replace_vars(right_expr, var_map)
+                    new_constraint = Comparison(c.name, new_left_expr, new_right_expr)
+                    if not new_constraint in set(self.C_l.constraints):
+                        self.C_l += new_constraint
+                        print(f"Added generalized constraint: {new_constraint} to C_l")
+                    else:
+                        print(f"Generalized constraint {new_constraint} already exists")
+                except Exception as e:
+                    print(f"Error adding generalized constraint: {e}")
+
+        return G
 
     # This is the version of the FindScope function that was presented in "Constraint acquisition via Partial Queries", IJCAI 2013
     def findScope(self, e, R, Y, do_ask):

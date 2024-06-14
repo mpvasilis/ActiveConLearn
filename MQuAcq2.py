@@ -73,7 +73,9 @@ class MQuAcq2(ConAcq):
 
                     scope = self.call_findscope(Yprime, kappaB)
                     new_constraint = self.call_findc(scope)
-
+                    if new_constraint:
+                        self.add_to_cl(new_constraint)
+                        self.genAcq(new_constraint)
 
 #                    NScopes = set()
 #                    NScopes.add(tuple(scope))
