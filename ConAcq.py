@@ -17,8 +17,10 @@ import math
 from ortools.sat.python import cp_model as ort
 
 from utils import find_suitable_vars_subset2
+import random
 
 partial = False
+
 
 
 class ConAcq:
@@ -324,7 +326,7 @@ class ConAcq:
         m += objective < len(self.B + toplevel_list(self.Bg))
 
         s = SolverLookup.get(SOLVER, m)
-        flag = s.solve(time_limit=600)
+        flag = s.solve(time_limit=200)
 
         if not flag:
             # If a solution is found, then continue optimizing it
@@ -523,7 +525,10 @@ class ConAcq:
         return generalized
 
     def check_constraint(self, constraint):
-        model = Model(self.C_l.constraints + [constraint])
+        model = Model()
+        for c in self.C_T:
+            model += c
+        model += constraint
         solver = SolverLookup.get(SOLVER, model)
         return solver.solve()
 
@@ -582,7 +587,6 @@ class ConAcq:
             raise ValueError("Unsupported grid size")
         return rows, columns, blocks
 
-
     def get_relation2(self, constraint):
         if isinstance(constraint, Comparison):
             return constraint.args[0], constraint.args[1]
@@ -609,6 +613,8 @@ class ConAcq:
         variables = set(scope)
         rows, columns, blocks = self.get_patterns()
         relevant_patterns = [frozenset(pattern) for pattern in rows + columns + blocks if variables.issubset(pattern)]
+        #relevant_patterns = [frozenset(pattern) for pattern in rows + columns + blocks if
+        #                     any(var in pattern for var in variables)]
 
         print(f"Scope of the constraint: {scope}")
         print(f"Relevant patterns: {relevant_patterns}")
@@ -648,9 +654,9 @@ class ConAcq:
             if remove_s:
                 to_remove.add(s)
 
-        for s in to_remove:
-            print(f"Removing {s}")
-            T_able.remove(s)
+        # for s in to_remove:
+        #     print(f"Removing {s}")
+        #     T_able.remove(s)
 
         print(f"Initial patterns after elimination: {T_able}")
 
@@ -679,6 +685,7 @@ class ConAcq:
                     new_constraint = Comparison(c.name, new_left_expr, new_right_expr)
                     if not new_constraint in set(self.C_l.constraints):
                         self.C_l += new_constraint
+                        self.remove_from_bias([new_constraint])
                         print(f"Added generalized constraint: {new_constraint} to C_l")
                     else:
                         print(f"Generalized constraint {new_constraint} already exists")
