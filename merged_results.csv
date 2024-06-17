@@ -1,0 +1,63 @@
+benchmark,type,CL,Tot_q,genacq_q,init_bias,init_cl,pl_global_cstrs,top_lvl_q,gen_q,avg_t,max_t,tot_t
+4sudoku,pl + al,58,4,0,62,58,13,4,4,0.113,0.1601,0.4518
+4sudoku,al only,56,345,0,0,0,13,58,51,0.1438,1.4112,49.6081
+4sudoku,pl + al,58,3,0,62,58,13,3,3,0.2079,0.2356,0.6238
+4sudoku,pl + al + genacq,56,39,13,62,0,13,10,7,0.0368,0.3948,1.4355
+4sudoku,pl + al + genacq,56,63,13,0,0,13,14,10,0.1115,1.5067,7.0268
+9sudoku,pl + al,824,17,0,954,824,34,17,17,1.0526,1.3953,17.8941
+9sudoku,al only,810,7763,0,0,0,34,813,774,0.1563,3.1189,1213.0196
+9sudoku,pl + al,824,20,0,954,824,34,20,20,1.3031,1.4302,26.0629
+9sudoku,pl + al + genacq,810,174,29,954,0,34,38,28,0.2148,1.4496,37.376
+9sudoku,pl + al + genacq,810,203,27,0,0,34,40,32,1.0468,34.6081,212.5027
+examtt_advanced,pl + al,1431,2277,0,1319,828,16,603,603,0.3043,1.3236,692.8302
+examtt_advanced,al only,1431,9071,0,0,0,16,1431,1405,0.2282,3.3147,2069.9868
+examtt_advanced,pl + al,1431,2224,0,1319,828,16,603,603,0.3411,1.4523,758.6546
+examtt_advanced,pl + al + genacq,1431,6190,13,1319,0,16,1431,1405,0.2703,1.6738,1673.0344
+examtt_simple,pl + al,1431,2954,0,1764,828,16,604,604,0.2409,1.2927,711.5504
+examtt_simple,al only,1431,8999,0,0,0,16,1431,1405,0.2236,3.663,2011.8446
+examtt_simple,pl + al,1431,2781,0,1764,828,16,604,604,0.299,1.7862,831.552
+examtt_simple,pl + al + genacq,1431,6818,13,1764,0,16,1431,1405,0.2561,1.7521,1745.8449
+examtt_simple,pl + al + genacq,1429,9095,13,0,0,16,1429,1403,0.2236,13.0181,2033.7586
+greaterThansudoku_9x9_16b_diverse,pl + al,825,51,0,21,810,27,15,15,0.0375,0.1627,1.9145
+greaterThansudoku_9x9_16b_diverse,al only,810,7724,0,0,0,27,813,774,0.1608,3.4357,1242.3259
+greaterThansudoku_9x9_16b_diverse,pl + al,825,58,0,21,810,27,15,15,0.206,0.8601,11.9464
+greaterThansudoku_9x9_16b_diverse,pl + al + genacq,810,1908,12,21,0,27,405,374,0.2089,1.4563,398.5612
+greaterThansudoku_9x9_24b_diverse,pl + al,834,94,0,31,810,27,24,24,0.0361,0.1876,3.3976
+greaterThansudoku_9x9_24b_diverse,al only,810,7672,0,0,0,27,816,777,0.1636,3.3955,1255.1016
+greaterThansudoku_9x9_24b_diverse,pl + al,834,106,0,31,810,27,24,24,0.1751,0.8524,18.562
+greaterThansudoku_9x9_24b_diverse,pl + al + genacq,809,2978,5,31,0,27,634,597,0.227,1.5487,675.9468
+greaterThansudoku_9x9_8b_diverse,pl + al,818,21,0,11,810,27,8,8,0.0381,0.1069,0.7994
+greaterThansudoku_9x9_8b_diverse,al only,810,7658,0,0,0,27,813,774,0.168,3.3928,1286.4094
+greaterThansudoku_9x9_8b_diverse,pl + al,818,24,0,11,810,27,8,8,0.2715,0.8084,6.5167
+greaterThansudoku_9x9_8b_diverse,pl + al + genacq,810,1465,16,11,0,27,302,279,0.1993,1.5572,292.0096
+greaterThansudoku_9x9_8b_nodiverse,pl + al,832,113,0,3883,824,34,25,25,0.4266,6.222,48.2038
+greaterThansudoku_9x9_8b_nodiverse,al only,810,7662,0,0,0,34,813,774,0.1624,3.3613,1244.3051
+greaterThansudoku_9x9_8b_nodiverse,pl + al,832,126,0,3883,824,34,26,26,0.5591,6.1011,70.4465
+jsudoku,pl + al,836,526,0,1362,770,47,89,89,0.288,3.835,151.5044
+jsudoku,al only,811,7773,0,0,0,47,814,775,0.1642,3.4668,1276.1083
+jsudoku,pl + al,828,532,0,1362,770,47,101,101,1.5127,4.724,804.775
+jsudoku,pl + al + genacq,811,766,36,1362,0,47,113,104,0.2541,3.2539,194.6568
+jsudoku,pl + al + genacq,811,1142,35,0,0,47,137,129,0.5178,32.5883,591.3551
+murder_problem,pl + al,49,40,0,148,43,5,11,11,0.1243,1.2124,4.9712
+murder_problem,al only,46,363,0,0,0,5,48,39,0.1288,1.467,46.7365
+murder_problem,pl + al,49,54,0,148,43,5,11,11,0.1271,1.2332,6.8657
+murder_problem,pl + al + genacq,46,60,5,148,0,5,15,12,0.1236,1.2485,7.4147
+murder_problem,pl + al + genacq,46,81,5,0,0,5,15,12,0.1113,1.445,9.0138
+nurse_rostering,pl + al,27,35,0,54,21,7,7,7,0.0448,0.4677,1.567
+nurse_rostering,al only,27,224,0,0,0,7,31,22,0.1254,1.4901,28.0857
+nurse_rostering,pl + al,27,32,0,54,21,7,9,9,0.0537,0.3779,1.7179
+nurse_rostering,pl + al + genacq,27,60,7,54,0,7,14,8,0.0241,0.2878,1.4455
+nurse_rostering,pl + al + genacq,27,122,7,0,0,7,19,12,0.0977,1.5132,11.9146
+sudoku_9x9_nodiverse,pl + al,840,19,0,3854,840,42,19,19,1.3449,3.0236,25.5531
+sudoku_9x9_nodiverse,al only,810,7713,0,0,0,42,814,775,0.163,3.4583,1256.9511
+sudoku_9x9_nodiverse,pl + al,840,23,0,3854,840,42,23,23,2.0374,7.0132,46.8592
+sudoku_9x9_nodiverse,pl + al + genacq,810,190,27,3854,0,42,41,33,0.4328,4.0475,82.2234
+sudoku_9x9_nodiverse,pl + al + genacq,810,199,30,0,0,42,41,33,1.2093,36.8822,240.655
+4sudoku,al + genacq,49,63,16,0,0,13,12,11,0.4562,3.6895,28.7383
+9sudoku,al + genacq,677,287,42,0,0,34,86,83,5.7462,87.5895,1649.1593
+greaterThansudoku_9x9_16b_diverse,al + genacq,751,492,104,0,0,27,79,75,6.6022,595.8211,3248.2792
+greaterThansudoku_9x9_24b_diverse,al + genacq,752,574,136,0,0,27,86,83,5.6704,420.3594,3254.7813
+greaterThansudoku_9x9_8b_diverse,al + genacq,693,383,72,0,0,27,91,87,6.7731,297.5866,2594.0839
+greaterThansudoku_9x9_8b_nodiverse,al + genacq,702,415,72,0,0,34,87,81,5.7279,462.0257,2377.086
+sudoku_9x9_nodiverse,al + genacq,688,290,42,0,0,42,82,78,5.6854,88.1438,1648.7675
+
