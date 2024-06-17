@@ -86,7 +86,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     benchmarks = [
-        #"4sudoku_solution.json",
+        "4sudoku_solution.json",
         "9sudoku_solution.json",
         "greaterThansudoku_9x9_16b_diverse.json",
         "greaterThansudoku_9x9_24b_diverse.json",

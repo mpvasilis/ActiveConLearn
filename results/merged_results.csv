@@ -1,0 +1,8 @@
+benchmark,type,CL,Tot_q,genacq_q,init_bias,init_cl,pl_global_cstrs,top_lvl_q,gen_q,avg_t,max_t,tot_t
+4sudoku_vgc,pl + al + genacq,49,63,16,0,0,13,12,11,0.4562,3.6895,28.7383
+9sudoku_vgc,pl + al + genacq,677,287,42,0,0,34,86,83,5.7462,87.5895,1649.1593
+greaterThansudoku_9x9_16b_diverse_vgc,pl + al + genacq,751,492,104,0,0,27,79,75,6.6022,595.8211,3248.2792
+greaterThansudoku_9x9_24b_diverse_vgc,pl + al + genacq,752,574,136,0,0,27,86,83,5.6704,420.3594,3254.7813
+greaterThansudoku_9x9_8b_diverse_vgc,pl + al + genacq,693,383,72,0,0,27,91,87,6.7731,297.5866,2594.0839
+greaterThansudoku_9x9_8b_nodiverse_vgc,pl + al + genacq,702,415,72,0,0,34,87,81,5.7279,462.0257,2377.086
+sudoku_9x9_nodiverse_vgc,pl + al + genacq,688,290,42,0,0,42,82,78,5.6854,88.1438,1648.7675
