@@ -20,7 +20,9 @@ from utils import find_suitable_vars_subset2
 import random
 
 partial = False
-
+import itertools
+from collections import defaultdict
+import networkx as nx  # For graph operations
 
 
 class ConAcq:
@@ -120,6 +122,177 @@ class ConAcq:
 
         self.metrics = Metrics()
 
+    def is_clique(self, graph, nodes):
+        """
+        Check if the nodes in the subgraph form a clique.
+        """
+        for u, v in itertools.combinations(nodes, 2):
+            if not graph.has_edge(u, v):
+                return False
+        return True
+
+    def mine_and_ask(self, relation, mine_strategy='modularity', GQmax=100):
+        """
+        Perform the MINE&ASK algorithm to find generalization queries.
+        """
+        learned_constraints = set()
+        GQ_count = 0
+
+        X_prime = set(
+            var for c in self.C_l.constraints if get_relation(c, self.gamma) == relation for var in get_scope(c))
+        GC = nx.Graph()
+        GC.add_nodes_from(X_prime)
+        GC.add_edges_from((var1, var2) for c in self.C_l.constraints if get_relation(c, self.gamma) == relation
+                          for var1, var2 in itertools.combinations(get_scope(c), 2))
+
+        if mine_strategy == 'modularity':
+            communities = optimize_modularity(GC)
+        elif mine_strategy == 'betweenness':
+            pass
+        elif mine_strategy == 'gamma-clique':
+            pass
+        else:
+            raise ValueError("Unknown mining strategy")
+
+        print(f"Detected communities: {communities}")  # Debugging statement
+
+        candidate_types = [set(comm) for comm in communities if not self.is_clique(GC, comm)]
+        print(f"Candidate types (non-cliques): {candidate_types}")  # Debugging statement
+
+        while candidate_types and GQ_count <= GQmax:
+            Y = candidate_types.pop()
+            if not self.is_negative_query(Y, relation):
+                constraints_to_check = {(var,) + (relation,) for var in
+                                        itertools.permutations(Y, len(get_scope(next(iter(self.C_l.constraints)))))}
+                if self.ask_generalization_query(Y, relation):
+                    learned_constraints.update(constraints_to_check)
+                    for constraint_tuple in constraints_to_check:
+                        var_indices, rel = constraint_tuple[:-1], constraint_tuple[-1]
+                        if rel == 1:
+                            var1 = var_indices[0][0]
+                            var2 = var_indices[0][1]
+                            print(var1, type(var1))
+                            print(var2, type(var2))
+                            if isinstance(var1, int) and isinstance(var2, int):
+                                constraint = self.X[var1] == self.X[var2]
+                            else:
+                                constraint = var1 != var2
+                        else:
+                            raise ValueError(f"Unknown relation code: {rel}")
+                        if not constraint in self.C_l.constraints:
+                            print(f"Adding constraint {constraint} to C_L.")
+                            self.C_l += constraint
+                            self.remove_from_bias([constraint])
+                        else:
+                            print(f"Constraint {constraint} already exists in C_L.")
+                    GQ_count += 1
+                else:
+                    self.negativeQ.add((frozenset(Y), relation))  # Convert Y to frozenset
+
+        return learned_constraints
+
+    def is_negative_query(self, Y, relation):
+        """
+        Check if a generalization query on Y and relation is known to be negative.
+        """
+        for neg_Y, neg_rel in self.negativeQ:
+            if neg_rel == relation and set(neg_Y).issubset(Y):
+                return True
+        return False
+
+    def ask_generalization_query(self, Y, relation):
+        """
+        Automatically determine if the relation can be generalized to all variables in Y using C_T.
+        """
+        # increase the number of generalization query
+        self.metrics.increase_gen_queries_count()
+        can_generalize = self.check_generalization(Y, relation)
+        answer = "yes" if can_generalize else "no"
+        relation_str = self.gamma[relation]  # Get the actual relation string
+        print(f"Query: Can the relation '{relation_str}' be generalized to all variables in {Y}? Answer: {answer}")
+        return can_generalize
+
+    def check_generalization(self, Y, relation):
+        relation_scope = get_scope(next(iter(self.C_l.constraints)))
+        print(f"Checking generalization for relation {relation} with scope {relation_scope} and variables {Y}")
+        for combination in itertools.permutations(Y, len(relation_scope)):
+            print(f"Checking combination: {combination}")
+            if all(self.check_constraint_with_mapping(c, combination) for c in self.C_T if
+                   get_relation(c, self.gamma) == relation):
+                print(f"Combination {combination} satisfies the generalization")
+                return True
+            else:
+                print(f"Combination {combination} does not satisfy the generalization")
+        return False
+
+    def check_constraint_with_mapping(self, constraint, var_map):
+        """
+        Check if the constraint holds with the given variable mapping.
+        """
+
+        if isinstance(var_map, tuple):
+            # Create a mapping from the scope variables to the new variables from self.X
+            scope_vars = get_scope(constraint)
+            exact_vars = {}
+            for idx, scope_var in enumerate(scope_vars):
+                exact_var = self.X[int(str(var_map[idx]).replace("var", ""))]
+                exact_vars[scope_var] = exact_var
+            print(f"Scope variables: {scope_vars}")
+            print(f"Variable mapping (from var_map to self.X): {exact_vars}")
+            var_map = exact_vars
+        if isinstance(constraint, Comparison):
+            left_expr, right_expr = constraint.args
+            new_left_expr = self.replace_vars(left_expr, var_map)
+            new_right_expr = self.replace_vars(right_expr, var_map)
+            return self.check_constraint(Comparison(constraint.name, new_left_expr, new_right_expr))
+        elif isinstance(constraint, Operator):
+            new_args = [self.replace_vars(arg, var_map) for arg in constraint.args]
+            return self.check_constraint(Operator(constraint.name, *new_args))
+        return False
+
+    def check_constraint(self, constraint):
+        model = Model(self.C_T)
+        model += constraint
+        solver = SolverLookup.get(SOLVER)
+        for c in self.C_T:
+            solver += c
+        solver += constraint
+        result = solver.solve()
+        print(f"Constraint check result for {constraint}: {result}")
+        return result
+
+    def replace_vars(self, expr, var_map):
+        """
+        Replace variables in an expression according to the given variable mapping.
+        """
+        if isinstance(expr, _IntVarImpl):
+            if isinstance(var_map, dict):
+                return var_map.get(expr, expr)
+            else:
+                # Handle the case where var_map is not a dictionary
+                raise ValueError("var_map must be a dictionary.")
+        elif isinstance(expr, Comparison):
+            left = self.replace_vars(expr.args[0], var_map)
+            right = self.replace_vars(expr.args[1], var_map)
+            return Comparison(expr.name, left, right)
+        elif isinstance(expr, Operator):
+            args = [self.replace_vars(arg, var_map) for arg in expr.args]
+            return Operator(expr.name, *args)
+        return expr
+
+    def find_quasi_cliques(self, graph, gamma):
+        """
+        Detect quasi-cliques in the graph.
+        """
+        quasi_cliques = []
+        for clique in nx.find_cliques(graph):
+            if len(clique) > 1:
+                subgraph = graph.subgraph(clique)
+                density = nx.density(subgraph)
+                if density >= gamma:
+                    quasi_cliques.append(clique)
+        return quasi_cliques
+
     def flatten_blists(self, C):
         if not is_any_list(C):
             C = [C]
@@ -156,12 +329,13 @@ class ConAcq:
     #                self.Bg -= bl
 
     def add_to_cl(self, c):
-
-        # Add a constraint c to the learned network
+        """
+        Add a constraint c to the learned network.
+        """
         if self.debug_mode:
             print(f"adding {c} to C_L")
         self.C_l += c
-        self.genAcq(c)
+        self.mine_and_ask(relation=get_relation(c, self.gamma), mine_strategy='modularity')
 
     def remove(self, B, C):
 
@@ -231,7 +405,6 @@ class ConAcq:
         else:
             self.add_to_cl(c)
             self.remove_scope_from_bias(scope)
-            self.genAcq(c)
 
     def call_findscope(self, Y, kappa):
 
@@ -512,187 +685,14 @@ class ConAcq:
 
         return ret
 
-    def genAsk(self, c, scope):
-        self.metrics.increase_gen_queries_count()
-        print(f"Query({self.metrics.gen_queries_count}): Can I generalize constraint {c} to all {scope}?")
-        generalized = True
-        for var_combination in itertools.combinations(scope, len(get_scope(c))):
-            if not self.check_generalization(c, var_combination):
-                generalized = False
-                break
-
-        print("Answer: ", ("Yes" if generalized else "No"))
-        return generalized
-
-    def check_constraint(self, constraint):
-        model = Model()
-        for c in self.C_T:
-            model += c
-        model += constraint
-        solver = SolverLookup.get(SOLVER, model)
-        return solver.solve()
-
-    def check_generalization(self, c, var_combination):
-        left_expr, right_expr = self.get_relation2(c)
-        original_vars = get_scope(c)
-
-        for var_set in itertools.permutations(var_combination, len(original_vars)):
-            mapping = {orig: new for orig, new in zip(original_vars, var_set)}
-
-            new_left_expr = self.replace_vars(left_expr, mapping)
-            new_right_expr = self.replace_vars(right_expr, mapping)
-
-            generalized_constraint = Comparison(c.name, new_left_expr, new_right_expr)
-
-            if not self.check_constraint(generalized_constraint):
-                return False
-
-        return True
-
-    def get_variables_from_constraint(constraint):
-        if isinstance(constraint, Comparison):
-            return set(get_scope(constraint))
-        return set()
-
-    def get_patterns(self):
-        if len(self.X) == 16:  # For 4x4 Sudoku
-            rows = [set(self.X[j:j + 4]) for j in range(0, 16, 4)]
-            columns = [set(self.X[j:16:4]) for j in range(4)]
-            blocks = [set(self.X[i] for i in [0, 1, 4, 5]),
-                      set(self.X[i] for i in [2, 3, 6, 7]),
-                      set(self.X[i] for i in [8, 9, 12, 13]),
-                      set(self.X[i] for i in [10, 11, 14, 15])]
-        elif len(self.X) == 81:  # For 9x9 Sudoku
-            rows = [set(self.X[j:j + 9]) for j in range(0, 81, 9)]
-            columns = [set(self.X[j:81:9]) for j in range(9)]
-            blocks = [set(self.X[i] for i in [
-                0, 1, 2, 9, 10, 11, 18, 19, 20]),
-                      set(self.X[i] for i in [
-                          3, 4, 5, 12, 13, 14, 21, 22, 23]),
-                      set(self.X[i] for i in [
-                          6, 7, 8, 15, 16, 17, 24, 25, 26]),
-                      set(self.X[i] for i in [
-                          27, 28, 29, 36, 37, 38, 45, 46, 47]),
-                      set(self.X[i] for i in [
-                          30, 31, 32, 39, 40, 41, 48, 49, 50]),
-                      set(self.X[i] for i in [
-                          33, 34, 35, 42, 43, 44, 51, 52, 53]),
-                      set(self.X[i] for i in [
-                          54, 55, 56, 63, 64, 65, 72, 73, 74]),
-                      set(self.X[i] for i in [
-                          57, 58, 59, 66, 67, 68, 75, 76, 77]),
-                      set(self.X[i] for i in [
-                          60, 61, 62, 69, 70, 71, 78, 79, 80])]
-        else:
-            raise ValueError("Unsupported grid size")
-        return rows, columns, blocks
-
     def get_relation2(self, constraint):
         if isinstance(constraint, Comparison):
             return constraint.args[0], constraint.args[1]
         else:
             raise ValueError("Unsupported constraint type.")
 
-    def replace_vars(self, expr, var_map):
-        if isinstance(expr, _IntVarImpl):
-            return var_map.get(expr, expr)
-        elif isinstance(expr, Comparison):
-            left = self.replace_vars(expr.args[0], var_map)
-            right = self.replace_vars(expr.args[1], var_map)
-            return type(expr)(left, right, expr.name)
-        elif isinstance(expr, Operator):
-            args = [self.replace_vars(arg, var_map) for arg in expr.args]
-            return type(expr)(*args)
-        return expr
-
     def get_scope(self, constraint):
         return [var for var in constraint.args if isinstance(var, _IntVarImpl)]
-
-    def genAcq(self, c):
-        scope = get_scope(c)
-        variables = set(scope)
-        rows, columns, blocks = self.get_patterns()
-        relevant_patterns = [frozenset(pattern) for pattern in rows + columns + blocks if variables.issubset(pattern)]
-        #relevant_patterns = [frozenset(pattern) for pattern in rows + columns + blocks if
-        #                     any(var in pattern for var in variables)]
-
-        print(f"Scope of the constraint: {scope}")
-        print(f"Relevant patterns: {relevant_patterns}")
-
-        G = set()
-        T_able = set(relevant_patterns)
-        N_oAnswers = 0
-        cutoffNo = float('inf')
-
-        print(f"Initial patterns: {T_able}")
-
-        T_able_copy = T_able.copy()
-
-        # Step-by-step filtering process
-        to_remove = set()
-
-        for s in T_able_copy:
-            remove_s = False
-
-            # Check NegativeQ condition
-            for s_prime in T_able:
-                if frozenset(s_prime).issubset(frozenset(s)) and (frozenset(s_prime), c.name) in self.negativeQ:
-                    print(f"Removing {s} because {s_prime} in negativeQ")
-                    remove_s = True
-                    break
-
-            if not remove_s:
-                # Check C_l condition
-                for c_prime in self.C_l.constraints:
-                    if c_prime is not c:
-                        if get_relation(c_prime, self.gamma) == get_relation(c, self.gamma) and set(
-                                get_scope(c_prime)).issubset(s):
-                            print(f"Removing {s} because {c_prime} in C_l matches condition")
-                            remove_s = True
-                            break
-
-            if remove_s:
-                to_remove.add(s)
-
-        # for s in to_remove:
-        #     print(f"Removing {s}")
-        #     T_able.remove(s)
-
-        print(f"Initial patterns after elimination: {T_able}")
-
-        while T_able and N_oAnswers < cutoffNo:
-            s = T_able.pop()
-            print(f"Generalization query for pattern: {s}")
-            if self.genAsk(c, s):
-                G.add(s)
-                print(f"Added pattern to generalizations: {s}")
-                T_able -= {s2 for s2 in T_able if s.issubset(s2)}
-                N_oAnswers = 0
-            else:
-                T_able -= {s2 for s2 in T_able if s2.issubset(s)}
-                self.negativeQ.add((frozenset(s), c.name))
-                N_oAnswers += 1
-
-        print(f"Generalizations: {G}")
-        for s in G:
-            for var_combination in itertools.combinations(s, len(scope)):
-                try:
-                    left_expr, right_expr = self.get_relation2(c)
-                    original_vars = get_scope(c)
-                    var_map = {orig: new for orig, new in zip(original_vars, var_combination)}
-                    new_left_expr = self.replace_vars(left_expr, var_map)
-                    new_right_expr = self.replace_vars(right_expr, var_map)
-                    new_constraint = Comparison(c.name, new_left_expr, new_right_expr)
-                    if not new_constraint in set(self.C_l.constraints):
-                        self.C_l += new_constraint
-                        self.remove_from_bias([new_constraint])
-                        print(f"Added generalized constraint: {new_constraint} to C_l")
-                    else:
-                        print(f"Generalized constraint {new_constraint} already exists")
-                except Exception as e:
-                    print(f"Error adding generalized constraint: {e}")
-
-        return G
 
     # This is the version of the FindScope function that was presented in "Constraint acquisition via Partial Queries", IJCAI 2013
     def findScope(self, e, R, Y, do_ask):

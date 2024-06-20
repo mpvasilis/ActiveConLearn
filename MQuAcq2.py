@@ -20,12 +20,10 @@ class MQuAcq2(ConAcq):
                     findc_version, tqgen_t, qgen_blimit)
         self.perform_analyzeAndLearn = perform_analyzeAndLearn
 
-
     def learn(self):
-
         answer = True
 
-        if len(self.B) == 0: #+ toplevel_list(self.Bg)
+        if len(self.B) == 0:  # + toplevel_list(self.Bg)
             self.B = construct_bias(self.X, self.gamma)
             self.B = [c for c in self.B if c not in frozenset(toplevel_list(self.Bg))]
 
@@ -56,54 +54,32 @@ class MQuAcq2(ConAcq):
             self.metrics.increase_generated_queries()
 
             while len(kappaB) > 0:
-
                 self.metrics.increase_top_queries()
 
                 if self.ask_query(Yprime):
                     answer = True
-                    # it is a solution, so all candidates violated must go
-                    # B <- B \setminus K_B(e)
                     self.remove_from_bias(kappaB)
                     kappaB = set()
-
-
-                else:  # user says UNSAT
-
+                else:
                     answer = False
-
                     scope = self.call_findscope(Yprime, kappaB)
                     new_constraint = self.call_findc(scope)
                     if new_constraint:
                         self.add_to_cl(new_constraint)
-                        self.genAcq(new_constraint)
+                        self.mine_and_ask(relation=get_relation(new_constraint, self.gamma), mine_strategy='modularity')
 
-#                    NScopes = set()
-#                    NScopes.add(tuple(scope))
-
-#                    if self.perform_analyzeAndLearn:
-#                        NScopes = NScopes.union(self.analyze_and_learn(Y))
-
-                    if self.perform_analyzeAndLearn:
-                        NScopes = NScopes.union(self.analyze_and_learn(Y))
-                    NScopes = [get_scope(c) for c in self.C_l.constraints]
-
-                    Yprime = [y2 for y2 in Yprime if not any(y2 in set(nscope) for nscope in NScopes)]
-
+                    Yprime = [y2 for y2 in Yprime if not any(y2 in set(get_scope(scope)) for scope in self.C_l.constraints)]
                     kappaB = get_kappa(self.B + toplevel_list(self.Bg), Yprime)
 
-
     def analyze_and_learn(self, Y):
-
         NScopes = set()
         QCliques = set()
 
         # Find all neighbours (not just a specific type)
         self.cl_neighbours = self.get_neighbours(self.C_l.constraints)
 
-        # Gamma precentage in FindQCliques is set to 0.8
+        # Gamma percentage in FindQCliques is set to 0.8
         self.find_QCliques(self.X.copy(), set(), set(), QCliques, 0.8, 0)
-
-        # [self.isQClique(clique, 0.8) for clique in QCliques]
 
         cliques_relations = self.QCliques_relations(QCliques)
 
@@ -118,18 +94,11 @@ class MQuAcq2(ConAcq):
         PScopes = {tuple(get_scope(c)) for c in Cq}
 
         for pscope in PScopes:
-
             if self.ask_query(pscope):
-                # It is a solution, so all candidates violated must go
-                # B <- B \setminus K_B(e)
                 kappaB = get_kappa(self.B + toplevel_list(self.Bg), pscope)
                 self.remove_from_bias(kappaB)
-
-            else:  # User says UNSAT
-
-                # c <- findC(e, findScope(e, {}, grid, false))
+            else:
                 c = self.call_findc(pscope)
-
                 NScopes.add(tuple(pscope))
 
         if len(NScopes) > 0:
@@ -138,15 +107,12 @@ class MQuAcq2(ConAcq):
         return NScopes
 
     def get_neighbours(self, C, type=None):
-
-        # In case a model is given in the function instead of a list of constraints
         if not (isinstance(C, list) or isinstance(C, set)):
             C = C.constraints
 
         neighbours = np.zeros((len(self.X), len(self.X)), dtype=bool)
 
         for c in C:
-
             flag = False
 
             if type is not None:
@@ -157,7 +123,6 @@ class MQuAcq2(ConAcq):
 
             if flag:
                 scope = get_scope(c)
-
                 i = self.hashX.index(hash(scope[0]))
                 j = self.hashX.index(hash(scope[1]))
 
@@ -167,41 +132,29 @@ class MQuAcq2(ConAcq):
         return neighbours
 
     def QCliques_relations(self, QCliques):
-
         cl_relations = [get_relation(c, self.gamma) for c in self.C_l.constraints]
         cliques_relations = [[rel for i, rel in enumerate(cl_relations)
                               if set(get_scope(self.C_l.constraints[i])).issubset(clique)] for clique in QCliques]
-
         return cliques_relations
 
-    # For debugging
     def is_QClique(self, clique, gammaPerc):
-
         edges = 0
-
         q = len(clique)
-        q = gammaPerc * (q * (q - 1) / 2)  # number of edges needed to be considered a quasi-clique
+        q = gammaPerc * (q * (q - 1) / 2)
 
         for var1, var2 in all_pairs(clique):
             k = self.hashX.index(hash(var1))
             l = self.hashX.index(hash(var2))
 
             if self.cl_neighbours[k, l]:
-                edges = edges + 1
+                edges += 1
 
         if edges < q:
             raise Exception(
-                f'findQCliques returned a clique that is not a quasi clique!!!! -> {clique} \nedges = {edges}\nq = {q}')
-
+                f'findQCliques returned a clique that is not a quasi clique!!!! -> {clique} \nedges = {edges}\nq = {q}'
+            )
 
     def find_QCliques(self, A, B, K, QCliques, gammaPerc, t):
-        """
-            Find quasi cliques
-
-            A: a mutable list of all variables (nodes in the graph)
-            gammaPerc: percentage of neighbors to be considered a quasi clique
-            t: total time counter
-        """
         global cliques_cutoff
 
         start = time.time()
@@ -211,51 +164,43 @@ class MQuAcq2(ConAcq):
                 QCliques.add(tuple(K))
 
         while len(A) > 0:
-
             end = time.time()
-            t = t + end - start
+            t += end - start
             start = time.time()
 
             if t > cliques_cutoff:
                 return
 
             x = A.pop()
-
             K2 = K.copy()
             K2.add(x)
 
             A2 = set(self.X) - K2 - B
             A3 = set()
 
-            # calculate the number of existing edges on K2
             edges = 0
             for var1, var2 in all_pairs(K2):
                 k = self.hashX.index(hash(var1))
                 l = self.hashX.index(hash(var2))
 
                 if self.cl_neighbours[k, l]:
-                    edges = edges + 1
+                    edges += 1
 
             q = len(K2) + 1
-            q = gammaPerc * (q * (q - 1) / 2)  # number of edges needed to be considered a quasi-clique
+            q = gammaPerc * (q * (q - 1) / 2)
 
-            # for every y in A2, check if K2 U y is a gamma-clique (if so, store in A3)
-            for y in list(A2):  # take (yet another) copy
-
+            for y in list(A2):
                 edges_with_y = edges
 
-                # calculate the number of from y to K2
                 for var in K2:
-
                     k = self.hashX.index(hash(var))
                     l = self.hashX.index(hash(y))
 
                     if self.cl_neighbours[k, l]:
-                        edges_with_y = edges_with_y + 1
+                        edges_with_y += 1
 
                 if edges_with_y >= q:
                     A3.add(y)
 
             self.find_QCliques(A3, B.copy(), K2.copy(), QCliques, gammaPerc, t)
-
             B.add(x)
