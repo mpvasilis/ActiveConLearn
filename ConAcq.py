@@ -179,7 +179,7 @@ class ConAcq:
                                 constraint = var1 != var2
                         else:
                             raise ValueError(f"Unknown relation code: {rel}")
-                        if not constraint in self.C_l.constraints:
+                        if not constraint in set(self.C_l.constraints):
                             print(f"Adding constraint {constraint} to C_L.")
                             self.C_l += constraint
                             self.remove_from_bias([constraint])
