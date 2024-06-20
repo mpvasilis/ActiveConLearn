@@ -232,7 +232,7 @@ class ConAcq:
         relation_scope = get_scope(next(iter(self.C_l.constraints)))
         print(f"Checking generalization for relation {relation} with scope {relation_scope} and variables {Y}")
 
-        for combination in itertools.permutations(Y, len(relation_scope)):
+        for combination in itertools.combinations(Y, len(relation_scope)):
             if not self.is_combination_in_constraints(combination, relation):
                 print(f"Combination {combination} does not satisfy the generalization")
                 return False
