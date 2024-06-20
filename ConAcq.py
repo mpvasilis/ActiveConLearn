@@ -122,19 +122,13 @@ class ConAcq:
 
         self.metrics = Metrics()
 
-    def is_clique(self, graph, nodes):
-        """
-        Check if the nodes in the subgraph form a clique.
-        """
+    def is_clique(self, graph, nodes): # check if the nodes in the subgraph form a clique.
         for u, v in itertools.combinations(nodes, 2):
             if not graph.has_edge(u, v):
                 return False
         return True
 
     def mine_and_ask(self, relation, mine_strategy='modularity', GQmax=100):
-        """
-        Perform the MINE&ASK algorithm to find generalization queries.
-        """
         learned_constraints = set()
         GQ_count = 0
 
@@ -154,10 +148,10 @@ class ConAcq:
         else:
             raise ValueError("Unknown mining strategy")
 
-        print(f"Detected communities: {communities}")  # Debugging statement
+        print(f"Detected communities: {communities}")
 
         candidate_types = [set(comm) for comm in communities if not self.is_clique(GC, comm)]
-        print(f"Candidate types (non-cliques): {candidate_types}")  # Debugging statement
+        print(f"Candidate types (non-cliques): {candidate_types}")
 
         while candidate_types and GQ_count <= GQmax:
             Y = candidate_types.pop()
@@ -187,28 +181,21 @@ class ConAcq:
                             print(f"Constraint {constraint} already exists in C_L.")
                     GQ_count += 1
                 else:
-                    self.negativeQ.add((frozenset(Y), relation))  # Convert Y to frozenset
-
+                    self.negativeQ.add((frozenset(Y), relation))
         return learned_constraints
 
-    def is_negative_query(self, Y, relation):
-        """
-        Check if a generalization query on Y and relation is known to be negative.
-        """
+    def is_negative_query(self, Y, relation):# check if a generalization query on Y and relation is known to be negative.
         for neg_Y, neg_rel in self.negativeQ:
             if neg_rel == relation and set(neg_Y).issubset(Y):
                 return True
         return False
 
     def ask_generalization_query(self, Y, relation):
-        """
-        Automatically determine if the relation can be generalized to all variables in Y using C_T.
-        """
-        # increase the number of generalization query
+
         self.metrics.increase_gen_queries_count()
         can_generalize = self.check_generalization(Y, relation)
         answer = "yes" if can_generalize else "no"
-        relation_str = self.gamma[relation]  # Get the actual relation string
+        relation_str = self.gamma[relation]
         print(f"Query: Can the relation '{relation_str}' be generalized to all variables in {Y}? Answer: {answer}")
         return can_generalize
 
@@ -226,12 +213,7 @@ class ConAcq:
         return False
 
     def check_constraint_with_mapping(self, constraint, var_map):
-        """
-        Check if the constraint holds with the given variable mapping.
-        """
-
         if isinstance(var_map, tuple):
-            # Create a mapping from the scope variables to the new variables from self.X
             scope_vars = get_scope(constraint)
             exact_vars = {}
             for idx, scope_var in enumerate(scope_vars):
@@ -262,14 +244,10 @@ class ConAcq:
         return result
 
     def replace_vars(self, expr, var_map):
-        """
-        Replace variables in an expression according to the given variable mapping.
-        """
         if isinstance(expr, _IntVarImpl):
             if isinstance(var_map, dict):
                 return var_map.get(expr, expr)
             else:
-                # Handle the case where var_map is not a dictionary
                 raise ValueError("var_map must be a dictionary.")
         elif isinstance(expr, Comparison):
             left = self.replace_vars(expr.args[0], var_map)
@@ -280,10 +258,7 @@ class ConAcq:
             return Operator(expr.name, *args)
         return expr
 
-    def find_quasi_cliques(self, graph, gamma):
-        """
-        Detect quasi-cliques in the graph.
-        """
+    def find_quasi_cliques(self, graph, gamma):# detect quasi-cliques in the graph
         quasi_cliques = []
         for clique in nx.find_cliques(graph):
             if len(clique) > 1:

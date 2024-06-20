@@ -294,7 +294,7 @@ def get_communities(partition):
     return list(communities.values())
 
 
-def optimize_modularity(G, max_iterations=100, min_modularity_improvement=0.0001):
+def optimize_modularity(G, max_iterations=1000, min_modularity_improvement=0.0001):
     partition = {node: i for i, node in enumerate(G.nodes())}
     best_modularity = -1
     best_partition = partition.copy()
@@ -310,7 +310,7 @@ def optimize_modularity(G, max_iterations=100, min_modularity_improvement=0.0001
             best_increase = 0
             current_community = partition[node]
 
-            # Remove node from its current community
+            # remove node from its current community
             partition[node] = -1
 
             for neighbor in G.neighbors(node):
@@ -337,7 +337,7 @@ def optimize_modularity(G, max_iterations=100, min_modularity_improvement=0.0001
             best_modularity = new_modularity
             best_partition = partition.copy()
 
-        # Aggregate the graph
+        # aggregate the graph
         communities = get_communities(partition)
         new_G = nx.Graph()
 
