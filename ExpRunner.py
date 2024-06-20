@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
     jar_path = './phD.jar'
 
-    base_command = "python main.py -a {} -b {} -qg baseline -exp {} -i {} --output {} --useCon {} --onlyActive {} --emptyCL {}"
+    base_command = "python main.py -a {} -b {} -qg pqgen -exp {} -i {} --output {} --useCon {} --onlyActive {} --emptyCL {}"
 
     configs = [
         {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": True, "emptyCL": True}
