@@ -34,7 +34,7 @@ class ConAcq:
                  qgen_blimit=5000):
 
         self.debug_mode = True
-        self.use_llm_oracle = True
+        self.use_llm_oracle = False
 
         # Target network
         self.C_T = ct
@@ -172,11 +172,13 @@ class ConAcq:
                             print(var2, type(var2))
                             if isinstance(var1, int) and isinstance(var2, int):
                                 constraint = self.X[var1] != self.X[var2]
+                                constraint2 = self.X[var2] != self.X[var1]
                             else:
                                 constraint = var1 != var2
+                                constraint2 = var2 != var1
                         else:
                             raise ValueError(f"Unknown relation code: {rel}")
-                        if not constraint in set(self.C_l.constraints):
+                        if not constraint in set(self.C_l.constraints) and not constraint2 in set(self.C_l.constraints):
                             print(f"Adding constraint {constraint} to C_L.")
                             self.C_l += constraint
                             self.remove_from_bias([constraint])
@@ -202,9 +204,11 @@ class ConAcq:
         if self.use_llm_oracle:
             relation_str = self.gamma[relation]
             variables_info = ", ".join(str(var) for var in self.X)
-            system_message = (f"This query pertains to a 4x4 Sudoku puzzle with variables ranging from var0 to var15. "
+            system_message = (f"This query pertains to a 4x4 Sudoku puzzle with variables ranging from var0 (not from var1) to var15. The onstraints are: "
+                               f"{self.C_T}. "
                               f"The variables involved are: {variables_info}. "
-                              "Please analyze the relation and reply only with 'yes' or 'no'.")
+                              f"Formulate in your mind all binary constraints between the variables. "
+                              "Please analyze the relation and reply only with 'yes' or 'no'. Be very careful.")
             llm_query = f"{system_message}\nCan the relation '{relation_str}' be generalized to all variables in {Y}?"
             query = f"Can the relation '{relation_str}' be generalized to all variables in {Y}?"
             llm_response = get_llm_response(llm_query)
@@ -227,61 +231,22 @@ class ConAcq:
     def check_generalization(self, Y, relation):
         relation_scope = get_scope(next(iter(self.C_l.constraints)))
         print(f"Checking generalization for relation {relation} with scope {relation_scope} and variables {Y}")
+
         for combination in itertools.permutations(Y, len(relation_scope)):
-            print(f"Checking combination: {combination}")
-            if all(self.check_constraint_with_mapping(c, combination) for c in self.C_T if
-                   get_relation(c, self.gamma) == relation):
-                print(f"Combination {combination} satisfies the generalization")
-                return True
-            else:
+            if not self.is_combination_in_constraints(combination, relation):
                 print(f"Combination {combination} does not satisfy the generalization")
-        return False
-
-    def check_constraint_with_mapping(self, constraint, var_map):
-        if isinstance(var_map, tuple):
-            scope_vars = get_scope(constraint)
-            exact_vars = {}
-            for idx, scope_var in enumerate(scope_vars):
-                exact_var = self.X[int(str(var_map[idx]).replace("var", ""))]
-                exact_vars[scope_var] = exact_var
-            print(f"Scope variables: {scope_vars}")
-            print(f"Variable mapping (from var_map to self.X): {exact_vars}")
-            var_map = exact_vars
-        if isinstance(constraint, Comparison):
-            left_expr, right_expr = constraint.args
-            new_left_expr = self.replace_vars(left_expr, var_map)
-            new_right_expr = self.replace_vars(right_expr, var_map)
-            return self.check_constraint(Comparison(constraint.name, new_left_expr, new_right_expr))
-        elif isinstance(constraint, Operator):
-            new_args = [self.replace_vars(arg, var_map) for arg in constraint.args]
-            return self.check_constraint(Operator(constraint.name, *new_args))
-        return False
-
-    def check_constraint(self, constraint):
-        model = Model(self.C_T)
-        model += constraint
-        solver = SolverLookup.get(SOLVER)
-        for c in self.C_T:
-            solver += c
-        solver += constraint
-        result = solver.solve()
-        print(f"Constraint check result for {constraint}: {result}")
-        return result
-
-    def replace_vars(self, expr, var_map):
-        if isinstance(expr, _IntVarImpl):
-            if isinstance(var_map, dict):
-                return var_map.get(expr, expr)
+                return False
             else:
-                raise ValueError("var_map must be a dictionary.")
-        elif isinstance(expr, Comparison):
-            left = self.replace_vars(expr.args[0], var_map)
-            right = self.replace_vars(expr.args[1], var_map)
-            return Comparison(expr.name, left, right)
-        elif isinstance(expr, Operator):
-            args = [self.replace_vars(arg, var_map) for arg in expr.args]
-            return Operator(expr.name, *args)
-        return expr
+                print(f"Combination {combination} satisfies the generalization")
+        return True
+
+    def is_combination_in_constraints(self, combination, relation):
+        for c in self.C_T:
+            if get_relation(c, self.gamma) == relation:
+                scope_vars = get_scope(c)
+                if tuple(scope_vars) == combination or tuple(scope_vars) == combination[::-1]:
+                    return True
+        return False
 
     def find_quasi_cliques(self, graph, gamma):# detect quasi-cliques in the graph
         quasi_cliques = []
