@@ -6,6 +6,8 @@ from statistics import mean, stdev
 from cpmpy.expressions.core import Comparison, Operator
 from cpmpy.expressions.variables import _IntVarImpl
 
+from LLMOracle import get_llm_response
+
 SOLVER = "ortools"
 
 from cpmpy import *
@@ -32,6 +34,7 @@ class ConAcq:
                  qgen_blimit=5000):
 
         self.debug_mode = True
+        self.use_llm_oracle = True
 
         # Target network
         self.C_T = ct
@@ -191,12 +194,34 @@ class ConAcq:
         return False
 
     def ask_generalization_query(self, Y, relation):
-
+        """
+        Automatically determine if the relation can be generalized to all variables in Y using C_T.
+        """
         self.metrics.increase_gen_queries_count()
-        can_generalize = self.check_generalization(Y, relation)
-        answer = "yes" if can_generalize else "no"
-        relation_str = self.gamma[relation]
-        print(f"Query: Can the relation '{relation_str}' be generalized to all variables in {Y}? Answer: {answer}")
+
+        if self.use_llm_oracle:
+            relation_str = self.gamma[relation]
+            variables_info = ", ".join(str(var) for var in self.X)
+            system_message = (f"This query pertains to a 4x4 Sudoku puzzle with variables ranging from var0 to var15. "
+                              f"The variables involved are: {variables_info}. "
+                              "Please analyze the relation and reply only with 'yes' or 'no'.")
+            llm_query = f"{system_message}\nCan the relation '{relation_str}' be generalized to all variables in {Y}?"
+            query = f"Can the relation '{relation_str}' be generalized to all variables in {Y}?"
+            llm_response = get_llm_response(llm_query)
+            if llm_response:
+                answer = "yes" if "yes" in llm_response['choices'][0]['model_extra']['message']['model_extra']['content'].lower() else "no"
+                print(f"Query: {query} Answer: {answer}")
+                can_generalize = answer == "yes"
+            else:
+                can_generalize = self.check_generalization(Y, relation)
+                answer = "yes" if can_generalize else "no"
+                print(f"Query: {query} Answer: {answer}")
+        else:
+            can_generalize = self.check_generalization(Y, relation)
+            answer = "yes" if can_generalize else "no"
+            relation_str = self.gamma[relation]
+            print(f"Query: Can the relation '{relation_str}' be generalized to all variables in {Y}? Answer: {answer}")
+
         return can_generalize
 
     def check_generalization(self, Y, relation):
