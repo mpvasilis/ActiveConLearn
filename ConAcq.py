@@ -168,7 +168,7 @@ class ConAcq:
                             print(var1, type(var1))
                             print(var2, type(var2))
                             if isinstance(var1, int) and isinstance(var2, int):
-                                constraint = self.X[var1] == self.X[var2]
+                                constraint = self.X[var1] != self.X[var2]
                             else:
                                 constraint = var1 != var2
                         else:
