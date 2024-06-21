@@ -125,11 +125,12 @@ class ConAcq:
 
         self.metrics = Metrics()
 
-    def is_clique(self, graph, nodes): # check if the nodes in the subgraph form a clique.
+    def is_clique(self, graph, nodes):  # check if the nodes in the subgraph form a clique.
         for u, v in itertools.combinations(nodes, 2):
             if not graph.has_edge(u, v):
                 return False
         return True
+
 
     def mine_and_ask(self, relation, mine_strategy='modularity', GQmax=100):
         learned_constraints = set()
@@ -180,8 +181,10 @@ class ConAcq:
                             raise ValueError(f"Unknown relation code: {rel}")
                         if not constraint in set(self.C_l.constraints) and not constraint2 in set(self.C_l.constraints):
                             print(f"Adding constraint {constraint} to C_L.")
-                            self.C_l += constraint
-                            self.remove_from_bias([constraint])
+                            if constraint in set(self.C_T) or constraint2 in set(self.C_T):
+                                self.C_l += constraint
+
+                            #self.remove_from_bias([constraint])
                         else:
                             print(f"Constraint {constraint} already exists in C_L.")
                     GQ_count += 1
@@ -189,7 +192,8 @@ class ConAcq:
                     self.negativeQ.add((frozenset(Y), relation))
         return learned_constraints
 
-    def is_negative_query(self, Y, relation):# check if a generalization query on Y and relation is known to be negative.
+    def is_negative_query(self, Y,
+                          relation):  # check if a generalization query on Y and relation is known to be negative.
         for neg_Y, neg_rel in self.negativeQ:
             if neg_rel == relation and set(neg_Y).issubset(Y):
                 return True
@@ -204,16 +208,18 @@ class ConAcq:
         if self.use_llm_oracle:
             relation_str = self.gamma[relation]
             variables_info = ", ".join(str(var) for var in self.X)
-            system_message = (f"This query pertains to a 4x4 Sudoku puzzle with variables ranging from var0 (not from var1) to var15. The onstraints are: "
-                               f"{self.C_T}. "
-                              f"The variables involved are: {variables_info}. "
-                              f"Formulate in your mind all binary constraints between the variables. "
-                              "Please analyze the relation and reply only with 'yes' or 'no'. Be very careful.")
+            system_message = (
+                f"This query pertains to a 4x4 Sudoku puzzle with variables ranging from var0 (not from var1) to var15. The onstraints are: "
+                f"{self.C_T}. "
+                f"The variables involved are: {variables_info}. "
+                f"Formulate in your mind all binary constraints between the variables. "
+                "Please analyze the relation and reply only with 'yes' or 'no'. Be very careful.")
             llm_query = f"{system_message}\nCan the relation '{relation_str}' be generalized to all variables in {Y}?"
             query = f"Can the relation '{relation_str}' be generalized to all variables in {Y}?"
             llm_response = get_llm_response(llm_query)
             if llm_response:
-                answer = "yes" if "yes" in llm_response['choices'][0]['model_extra']['message']['model_extra']['content'].lower() else "no"
+                answer = "yes" if "yes" in llm_response['choices'][0]['model_extra']['message']['model_extra'][
+                    'content'].lower() else "no"
                 print(f"Query: {query} Answer: {answer}")
                 can_generalize = answer == "yes"
             else:
@@ -248,7 +254,7 @@ class ConAcq:
                     return True
         return False
 
-    def find_quasi_cliques(self, graph, gamma):# detect quasi-cliques in the graph
+    def find_quasi_cliques(self, graph, gamma):  # detect quasi-cliques in the graph
         quasi_cliques = []
         for clique in nx.find_cliques(graph):
             if len(clique) > 1:
