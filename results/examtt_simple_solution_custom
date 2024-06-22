@@ -1,3 +1,0 @@
-CL,Tot_q,top_lvl_q,genacq_q,gen_q,fs_q,fc_q,avg|q|,gen_time,avg_t,max_t,tot_t,conv,init_bias,init_cl,learned_global_cstrs
-1431,2798,604,0,604,2154,40,1.0,0.0,0.2535,1.3208,709.3915,1,1764,828,16
-1431,9014,1431,0,1405,6728,855,1.0,0.0,0.2197,3.0932,1980.3202,1,0,0,16
