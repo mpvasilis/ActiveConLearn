@@ -110,11 +110,11 @@ if __name__ == "__main__":
     base_command = "python main.py -a {} -b {} -qg pqgen -exp {} -i {} --output {} --useCon {} --onlyActive {} --emptyCL {}"
 
     configs = [
-        {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": False, "emptyCL": False},
+        # {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": False, "emptyCL": False},
         {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": False, "emptyCL": True},
-        {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": True, "emptyCL": False},
-        {"algo": "mquacq2-a", "bench": "custom", "onlyActive": False, "emptyCL": False},
-        {"algo": "mquacq2-a", "bench": "custom", "onlyActive": True, "emptyCL": False},
+        # {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": True, "emptyCL": False},
+        # {"algo": "mquacq2-a", "bench": "custom", "onlyActive": False, "emptyCL": False},
+        # {"algo": "mquacq2-a", "bench": "custom", "onlyActive": True, "emptyCL": False},
     ]
 
     if args.parallel:
