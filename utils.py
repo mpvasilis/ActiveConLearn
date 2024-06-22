@@ -567,8 +567,9 @@ class Metrics:
         self.generation_time = 0
 
         self.converged = 1
-        self.N_egativeQ = set()  # Initialize the N_egativeQ attribute
-        self.gen_no_answers = 0  # Initialize the gen_no_answers attribute
+        self.N_egativeQ = set()
+        self.gen_no_answers = 0
+        self.gen_yes_answers = 0
 
     def increase_gen_queries_count(self, amount=1):
         self.gen_queries_count += amount

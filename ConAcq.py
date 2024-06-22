@@ -233,6 +233,11 @@ class ConAcq:
             relation_str = self.gamma[relation]
             print(f"Query: Can the relation '{relation_str}' be generalized to all variables in {Y}? Answer: {answer}")
 
+            if can_generalize:
+                self.metrics.gen_yes_answers += 1
+            else:
+                self.metrics.gen_no_answers += 1
+
         return can_generalize
 
     def check_generalization(self, Y, relation):

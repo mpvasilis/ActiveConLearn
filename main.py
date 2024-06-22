@@ -447,8 +447,7 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
 
     file_exists = os.path.isfile(results_file)
 
-    # Create a DataFrame to store results
-    results_df = pd.DataFrame(columns=["CL", "Tot_q", "top_lvl_q", "genacq_q", "gen_q", "fs_q", "fc_q", "avg|q|", "gen_time", "avg_t", "max_t", "tot_t", "conv", "init_bias", "init_cl", "learned_global_cstrs"])
+    results_df = pd.DataFrame(columns=["CL", "Tot_q", "top_lvl_q", "genacq_q", "gen_yes", "gen_no", "gen_q", "fs_q", "fc_q", "avg|q|", "gen_time", "avg_t", "max_t", "tot_t", "conv", "init_bias", "init_cl", "learned_global_cstrs"])
 
     if file_exists:
         results_df = pd.read_csv(results_file)
@@ -458,6 +457,8 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
         "Tot_q": conacq.metrics.queries_count,
         "top_lvl_q": conacq.metrics.top_lvl_queries,
         "genacq_q":  conacq.metrics.gen_queries_count,
+        "gen_yes": conacq.metrics.gen_yes_answers,
+        "gen_no": conacq.metrics.gen_no_answers,
         "gen_q": conacq.metrics.generated_queries,
         "fs_q": conacq.metrics.findscope_queries,
         "fc_q": conacq.metrics.findc_queries,
