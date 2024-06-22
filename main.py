@@ -405,7 +405,10 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
     print("Maximum waiting time for a query: ", conacq.metrics.max_waiting_time)
     print("Size of B: ", len(conacq.B)+len(toplevel_list(conacq.Bg)))
     print("C_L size: ", len(toplevel_list(conacq.C_l.constraints)))
+    print("C_L: ")
     print((toplevel_list(conacq.C_l.constraints)))
+    print("Bias: ")
+    print(conacq.B)
     res_name = ["results"]
     res_name.append(alg)
 
