@@ -169,8 +169,8 @@ class ConAcq:
                         if rel == 1:
                             var1 = var_indices[0][0]
                             var2 = var_indices[0][1]
-                            print(var1, type(var1))
-                            print(var2, type(var2))
+                            # print(var1, type(var1))
+                            # print(var2, type(var2))
                             if isinstance(var1, int) and isinstance(var2, int):
                                 constraint = self.X[var1] != self.X[var2]
                                 constraint2 = self.X[var2] != self.X[var1]
@@ -184,7 +184,8 @@ class ConAcq:
                             if constraint in set(self.C_T) or constraint2 in set(self.C_T):
                                 self.C_l += constraint
 
-                            #self.remove_from_bias([constraint])
+                            self.remove_from_bias([constraint])
+                            self.remove_from_bias([constraint2])
                         else:
                             print(f"Constraint {constraint} already exists in C_L.")
                     GQ_count += 1
