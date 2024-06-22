@@ -256,7 +256,13 @@ class ConAcq:
         for c in self.C_T:
             if get_relation(c, self.gamma) == relation:
                 scope_vars = get_scope(c)
-                if tuple(scope_vars) == combination or tuple(scope_vars) == combination[::-1]:
+                if isinstance(combination[0], int) and isinstance(combination[1], int):
+                    constraint = self.X[combination[0]] != self.X[combination[1]]
+                    constraint2 = self.X[combination[1]] != self.X[combination[0]]
+                else:
+                    constraint = combination[0] != combination[1]
+                    constraint2 = combination[1] != combination[0]
+                if constraint in set(self.C_T) or constraint2 in set(self.C_T):
                     return True
         return False
 
