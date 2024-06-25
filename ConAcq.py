@@ -492,8 +492,43 @@ class ConAcq:
             self.genAcq(c)
         elif self.benchmark == "mineask":
             self.mine_and_ask(relation=get_relation(c, self.gamma), mine_strategy='modularity')
+        elif self.benchmark == "vgc":
+            self.genAcqGlobal(c)
 
+    def genAskGlobal(self, c, bl):
 
+        self.metrics.increase_gen_queries_count()
+        print(f"Query({self.metrics.gen_queries_count}: Can I generalize constraint {c} to all {bl}?")
+
+        ret = all(c in frozenset(self.C_T) for c in bl)
+        print("Answer: ", ("Yes" if ret else "No"))
+
+        return ret
+    def genAcqGlobal(self, con):
+            cl = []
+            i = 0
+            while i < len(self.Bg):
+
+                bl = self.Bg[i]
+
+                # skip the lists not including the constraint on hand
+                if con not in frozenset(bl):
+                    i += 1
+                    continue
+
+                # remove from Bg as we are going to ask a query for it!
+                self.Bg.pop(i)
+
+                if self.genAskGlobal(con, bl):
+                    cl += bl
+                    #                self.remove_from_bias(cl)
+                    for c in cl:
+                        self.remove_scope_from_bias(get_scope(c))
+                    # self.B = list(frozenset(self.B) - frozenset(cl)) # remove only from normal B
+                else:
+                    self.B += bl
+
+            [self.add_to_cl(c) for c in cl]
 
     def remove(self, B, C):
 

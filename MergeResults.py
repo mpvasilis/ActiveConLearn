@@ -12,7 +12,6 @@ for filename in os.listdir(directory):
             df = pd.read_csv(filepath)
             problem_name = filename.split('_solution')[0]
             df.insert(0, 'benchmark', problem_name)
-            df['isOnlyActive'] = df['init_bias'] == 0
             dfs.append(df)
         except Exception as e:
             print(f"Error reading file {filename}: {e}")

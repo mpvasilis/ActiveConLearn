@@ -478,8 +478,7 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
 
     new_result_df = pd.DataFrame([new_result])
     results_df = pd.concat([results_df, new_result_df], ignore_index=True)
-    results_df.to_csv("results/results.csv", index=False)
-    results_df.to_html("results/results.html")
+    results_df.to_csv(results_file, index=False)
 
     constraints = toplevel_list(conacq.C_l.constraints)
     with open(constraints_file, 'w') as f:
@@ -612,7 +611,7 @@ if __name__ == "__main__":
         print("Size of bias: ", len(set(bias)))
         ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
                             time_limit=args.time_limit, findscope_version=fs_version,
-                            findc_version=fc_version, X=X, B=bias, Bg=biasg, C_l=C_l)
+                            findc_version=fc_version, X=X, B=bias, Bg=biasg, C_l=C_l, benchmark=args.benchmark)
         ca_system.learn()
 
         save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints)

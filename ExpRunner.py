@@ -119,7 +119,7 @@ if __name__ == "__main__":
     ]
 
     if args.parallel:
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=8) as executor:
             futures = []
             for benchmark in benchmarks:
                 for config in configs:
