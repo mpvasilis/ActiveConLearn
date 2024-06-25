@@ -12,9 +12,9 @@ cliques_cutoff = 0.5
 class MQuAcq2(ConAcq):
     def __init__(self, gamma, grid, ct=list(), B=list(), Bg=list(), X=set(), C_l=set(), qg="pqgen", obj="proba",
                  time_limit=None, findscope_version=4, findc_version=1, tqgen_t=None,
-                 qgen_blimit=5000, perform_analyzeAndLearn=False):
+                 qgen_blimit=5000, perform_analyzeAndLearn=False, benchmark=None):
         super().__init__(gamma, grid, ct, B, Bg, X, C_l, qg, obj, time_limit, findscope_version,
-                    findc_version, tqgen_t, qgen_blimit)
+                    findc_version, tqgen_t, qgen_blimit, benchmark)
         self.perform_analyzeAndLearn = perform_analyzeAndLearn
 
     def learn(self):
@@ -66,7 +66,10 @@ class MQuAcq2(ConAcq):
                     answer = False
 
                     scope = self.call_findscope(Yprime, kappaB)
-                    self.call_findc(scope)
+                    new_constraint = self.call_findc(scope)
+                    if new_constraint:
+                        self.add_to_cl(new_constraint)
+                        self.mine_and_ask(relation=get_relation(new_constraint, self.gamma), mine_strategy='modularity')
 #                    NScopes = set()
 #                    NScopes.add(tuple(scope))
 

@@ -463,6 +463,9 @@ class Metrics:
         self.generation_time = 0
 
         self.converged = 1
+        self.N_egativeQ = set()
+        self.gen_no_answers = 0
+        self.gen_yes_answers = 0
 
     def increase_gen_queries_count(self, amount=1):
         self.gen_queries_count += amount
@@ -627,6 +630,111 @@ def generate_findc2_query(L, delta):
     #        print("OPT solve", s.status())
 
     return flag
+
+import networkx as nx
+from collections import defaultdict
+
+
+def calculate_modularity(G, communities):
+    """
+    Calculate the modularity of a given partition.
+    """
+    m = G.size(weight='weight')
+    degrees = dict(G.degree(weight='weight'))
+    Q = 0
+    for community in communities:
+        Lc = 0
+        Dc = 0
+        for u in community:
+            Dc += degrees[u]
+            for v in community:
+                if G.has_edge(u, v):
+                    Lc += G[u][v].get('weight', 1)
+        Q += (Lc / (2 * m)) - (Dc / (2 * m)) ** 2
+    return Q
+
+
+def get_communities(partition):
+    """
+    Get the communities from the partition.
+    """
+    communities = defaultdict(list)
+    for node, comm in partition.items():
+        communities[comm].append(node)
+    return list(communities.values())
+
+
+def optimize_modularity(G, max_iterations=1000, min_modularity_improvement=0.0001):
+    partition = {node: i for i, node in enumerate(G.nodes())}
+    best_modularity = -1
+    best_partition = partition.copy()
+    improvement = True
+    iteration = 0
+
+    while improvement and iteration < max_iterations:
+        improvement = False
+        current_modularity = calculate_modularity(G, get_communities(partition))
+
+        for node in G.nodes():
+            best_community = partition[node]
+            best_increase = 0
+            current_community = partition[node]
+
+            # remove node from its current community
+            partition[node] = -1
+
+            for neighbor in G.neighbors(node):
+                if partition[neighbor] != -1:
+                    community = partition[neighbor]
+                    partition[node] = community
+                    new_modularity = calculate_modularity(G, get_communities(partition))
+                    increase = new_modularity - current_modularity
+
+                    if increase > best_increase:
+                        best_increase = increase
+                        best_community = community
+
+                    partition[node] = -1
+
+            partition[node] = best_community
+
+            if best_increase > min_modularity_improvement:
+                improvement = True
+
+        new_modularity = calculate_modularity(G, get_communities(partition))
+
+        if new_modularity > best_modularity:
+            best_modularity = new_modularity
+            best_partition = partition.copy()
+
+        # aggregate the graph
+        communities = get_communities(partition)
+        new_G = nx.Graph()
+
+        for i, community in enumerate(communities):
+            new_node = i
+            new_G.add_node(new_node)
+
+            for node in community:
+                for neighbor in G.neighbors(node):
+                    if partition[neighbor] == partition[node]:
+                        if new_G.has_edge(new_node, new_node):
+                            new_G[new_node][new_node]['weight'] += G[node][neighbor].get('weight', 1)
+                        else:
+                            new_G.add_edge(new_node, new_node, weight=G[node][neighbor].get('weight', 1))
+                    else:
+                        neighbor_comm = partition[neighbor]
+
+                        if new_G.has_edge(new_node, neighbor_comm):
+                            new_G[new_node][neighbor_comm]['weight'] += G[node][neighbor].get('weight', 1)
+                        else:
+                            new_G.add_edge(new_node, neighbor_comm, weight=G[node][neighbor].get('weight', 1))
+
+        G = new_G
+        partition = {node: i for i, node in enumerate(G.nodes())}
+        iteration += 1
+
+    return get_communities(best_partition)
 
 
 def write_solutions_to_json(instance, size, format_template, solutions, non_solutions, problem_type, output_file):

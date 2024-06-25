@@ -29,7 +29,7 @@ def parse_args():
             raise argparse.ArgumentTypeError('Boolean value expected.')
 
     # Parsing algorithm
-    parser.add_argument("-a", "--algorithm", type=str, choices=["quacq", "mquacq", "mquacq2", "mquacq2-a", "growacq"],
+    parser.add_argument("-a", "--algorithm", type=str, choices=["quacq", "mquacq", "mquacq2", "mquacq2-a", "growacq", "genacq", "mineask"],
                         required=True,
                         help="The name of the algorithm to use")
     # Parsing specific to GrowAcq
@@ -37,6 +37,10 @@ def parse_args():
                         required=False,
                         help="Only relevant when the chosen algorithm is GrowAcq - "
                              "the name of the inner algorithm to use")
+
+    parser.add_argument( "--type", type=str,
+                        required=False, default="",
+                        help="Type of the experiment")
 
     # Parsing query generation method
     parser.add_argument("-qg", "--query-generation", type=str, choices=["baseline", "base", "tqgen", "pqgen"],
@@ -59,7 +63,7 @@ def parse_args():
                                  "golomb8", "murder", "job_shop_scheduling",
                                  "exam_timetabling", "exam_timetabling_simple", "exam_timetabling_adv",
                                  "exam_timetabling_advanced", "nurse_rostering", "nurse_rostering_simple",
-                                 "nurse_rostering_advanced", "nurse_rostering_adv", "custom", "vgc"],
+                                 "nurse_rostering_advanced", "nurse_rostering_adv", "custom", "vgc", "genacq", "mineask"],
                         help="The name of the benchmark to use")
 
     parser.add_argument("-exp", "--experiment", type=str, required=False,
@@ -436,7 +440,7 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
         res_name.append("custom")
 
     if args.output:
-        results_file = args.output+"/"+args.experiment+"_"+args.benchmark
+        results_file = args.output+"/"+args.experiment+"_"+args.benchmark+"_"+args.type
     else:
         results_file = "_".join(res_name)
 
@@ -445,12 +449,16 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
     file_exists = os.path.isfile(results_file)
 
     # Create a DataFrame to store results
-    results_df = pd.DataFrame(columns=["CL", "Tot_q", "top_lvl_q", "genacq_q", "gen_q", "fs_q", "fc_q", "avg|q|", "gen_time", "avg_t", "max_t", "tot_t", "conv", "init_bias", "init_cl", "learned_global_cstrs"])
+    results_df = pd.DataFrame(columns=["CL", "Tot_q", "top_lvl_q", "genacq_q", "gen_q", "fs_q", "fc_q", "avg|q|", "avg_t", "max_t", "tot_t", "conv", "init_bias", "init_cl", "learned_global_cstrs"])
 
     if file_exists:
         results_df = pd.read_csv(results_file)
 
+    if len(init_bias) == 0 and len(init_cl) == 0:
+        learned_global_cstrs = "-"
+
     new_result = {
+        "type": args.type,
         "CL": len(toplevel_list(conacq.C_l.constraints)),
         "Tot_q": conacq.metrics.queries_count,
         "top_lvl_q": conacq.metrics.top_lvl_queries,
@@ -459,7 +467,6 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
         "fs_q": conacq.metrics.findscope_queries,
         "fc_q": conacq.metrics.findc_queries,
         "avg|q|": round(conacq.metrics.average_size_queries / conacq.metrics.queries_count, 4) if conacq.metrics.queries_count > 0 else 0,
-        "gen_time": round(conacq.metrics.generation_time / conacq.metrics.generated_queries, 4) if conacq.metrics.generated_queries > 0 else 0,
         "avg_t": round(average_waiting_time, 4),
         "max_t": round(conacq.metrics.max_waiting_time, 4),
         "tot_t": round(total_time, 4),
@@ -471,7 +478,8 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
 
     new_result_df = pd.DataFrame([new_result])
     results_df = pd.concat([results_df, new_result_df], ignore_index=True)
-    results_df.to_csv(results_file, index=False)
+    results_df.to_csv("results/results.csv", index=False)
+    results_df.to_html("results/results.html")
 
     constraints = toplevel_list(conacq.C_l.constraints)
     with open(constraints_file, 'w') as f:
@@ -536,6 +544,51 @@ if __name__ == "__main__":
         fc_version = args.findc
     start = time.time()
     gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 <= var2", "var1 >= var2"]
+
+    if args.benchmark == "mineask":
+        print("Running Mine&Ask")
+        benchmark_name = args.experiment
+        path = args.input
+        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = verify_global_constraints(benchmark_name,
+                                                                                                     path,
+                                                                                         False)
+        print("Size of bias: ", len(set(bias)))
+        print("Size of biasg: ", len(toplevel_list(biasg)), len(biasg))
+        print("Size of C_l: ", len(C_l))
+        print("Size of C_T: ", len(C_T))
+        bias = []
+        biasg = []
+        C_l = []
+        ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
+                            time_limit=args.time_limit, findscope_version=fs_version,
+                            findc_version=fc_version, X=X, B=bias, Bg=biasg, C_l=C_l, benchmark=args.benchmark)
+        ca_system.learn()
+
+        save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints)
+        exit()
+
+    if args.benchmark == "genacq":
+        print("Running GenAcq")
+
+        benchmark_name = args.experiment
+        path = args.input
+        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = verify_global_constraints(benchmark_name,
+                                                                                                     path,
+                                                                                                     False)
+        print("Size of bias: ", len(set(bias)))
+        print("Size of biasg: ", len(toplevel_list(biasg)), len(biasg))
+        print("Size of C_l: ", len(C_l))
+        print("Size of C_T: ", len(C_T))
+        bias = []
+        biasg = []
+        C_l = []
+        ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
+                            time_limit=args.time_limit, findscope_version=fs_version,
+                            findc_version=fc_version, X=X, B=bias, Bg=biasg, C_l=C_l, benchmark=args.benchmark)
+        ca_system.learn()
+
+        save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints)
+        exit()
 
     if args.benchmark == "vgc": #verify global constraints - genacq
         benchmark_name = args.experiment
