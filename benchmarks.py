@@ -275,342 +275,6 @@ def construct_jsudoku():
 
     return grid, C_T, model
 
-def construct_new_random():
-
-    model = Model()
-    grid = intvar(1, 5, shape=(1, 100), name="grid")
-
-    constraints = grid[0, 12] <= grid[0, 74], grid[0, 18] != grid[0, 82], grid[0, 55] >= grid[0, 79], grid[0, 43] > \
-                  grid[0, 87], grid[0, 39] < grid[0, 62], grid[0, 68] != grid[0, 78], grid[0, 21] > grid[0, 83], grid[
-                      0, 89] > grid[0, 95], grid[0, 21] != grid[0, 88], grid[0, 12] < grid[0, 41], grid[0, 13] != grid[
-                      0, 90], grid[0, 64] < grid[0, 79], grid[0, 22] < grid[0, 86], grid[0, 42] <= grid[0, 62], grid[
-                      0, 8] == grid[0, 53], grid[0, 68] >= grid[0, 99], grid[0, 21] == grid[0, 45], grid[0, 68] <= grid[
-                      0, 86], grid[0, 26] != grid[0, 80], grid[0, 5] != grid[0, 93], grid[0, 49] == grid[0, 83], grid[
-                      0, 33] <= grid[0, 58], grid[0, 35] != grid[0, 48], grid[0, 37] > grid[0, 95], grid[0, 37] != grid[
-                      0, 89], grid[0, 2] < grid[0, 10], grid[0, 57] > grid[0, 71], grid[0, 8] <= grid[0, 83], grid[
-                      0, 41] != grid[0, 85], grid[0, 86] != grid[0, 88], grid[0, 65] > grid[0, 91], grid[0, 74] >= grid[
-                      0, 89], grid[0, 10] != grid[0, 81], grid[0, 47] != grid[0, 59], grid[0, 14] <= grid[0, 63], grid[
-                      0, 61] > grid[0, 65], grid[0, 42] > grid[0, 98], grid[0, 75] > grid[0, 94], grid[0, 4] <= grid[
-                      0, 41], grid[0, 50] != grid[0, 59], grid[0, 89] != grid[0, 97], grid[0, 57] >= grid[0, 97], grid[
-                      0, 81] == grid[0, 90], grid[0, 37] <= grid[0, 70], grid[0, 25] > grid[0, 42], grid[0, 38] >= grid[
-                      0, 90], grid[0, 34] <= grid[0, 94], grid[0, 38] != grid[0, 79], grid[0, 2] != grid[0, 54], grid[
-                      0, 59] < grid[0, 86], grid[0, 4] < grid[0, 39], grid[0, 9] > grid[0, 93], grid[0, 34] <= grid[
-                      0, 65], grid[0, 45] < grid[0, 48], grid[0, 21] <= grid[0, 37], grid[0, 34] == grid[0, 97], grid[
-                      0, 12] == grid[0, 28], grid[0, 18] > grid[0, 43], grid[0, 6] >= grid[0, 58], grid[0, 6] == grid[
-                      0, 31], grid[0, 31] < grid[0, 41], grid[0, 4] < grid[0, 34], grid[0, 31] >= grid[0, 37], grid[
-                      0, 7] > grid[0, 8], grid[0, 68] == grid[0, 81], grid[0, 7] < grid[0, 48], grid[0, 47] != grid[
-                      0, 56], grid[0, 41] <= grid[0, 77], grid[0, 3] > grid[0, 95], grid[0, 0] <= grid[0, 77], grid[
-                      0, 43] == grid[0, 97], grid[0, 31] < grid[0, 75], grid[0, 35] > grid[0, 97], grid[0, 46] < grid[
-                      0, 95], grid[0, 11] < grid[0, 78], grid[0, 16] != grid[0, 40], grid[0, 1] > grid[0, 45], grid[
-                      0, 26] > grid[0, 69], grid[0, 9] != grid[0, 16], grid[0, 33] > grid[0, 72], grid[0, 28] < grid[
-                      0, 36], grid[0, 50] < grid[0, 54], grid[0, 23] >= grid[0, 58], grid[0, 70] > grid[0, 88], grid[
-                      0, 52] < grid[0, 70], grid[0, 51] < grid[0, 60], grid[0, 26] != grid[0, 46], grid[0, 3] != grid[
-                      0, 99], grid[0, 55] >= grid[0, 72], grid[0, 3] == grid[0, 97], grid[0, 14] == grid[0, 69], grid[
-                      0, 16] > grid[0, 76], grid[0, 53] < grid[0, 62], grid[0, 2] < grid[0, 67], grid[0, 53] > grid[
-                      0, 68], grid[0, 40] < grid[0, 72], grid[0, 25] <= grid[0, 41], grid[0, 11] > grid[0, 95], grid[
-                      0, 50] > grid[0, 65], grid[0, 3] == grid[0, 44], grid[0, 63] < grid[0, 88], grid[0, 29] < grid[
-                      0, 70], grid[0, 85] == grid[0, 86], grid[0, 21] < grid[0, 85], grid[0, 5] >= grid[0, 68], grid[
-                      0, 22] <= grid[0, 43], grid[0, 6] != grid[0, 55], grid[0, 22] <= grid[0, 41], grid[0, 67] >= grid[
-                      0, 73], grid[0, 20] > grid[0, 78], grid[0, 27] == grid[0, 59], grid[0, 12] < grid[0, 92], grid[
-                      0, 48] >= grid[0, 65], grid[0, 15] > grid[0, 58], grid[0, 2] > grid[0, 91], grid[0, 34] != grid[
-                      0, 58], grid[0, 21] != grid[0, 57], grid[0, 24] == grid[0, 37], grid[0, 6] > grid[0, 24], grid[
-                      0, 4] < grid[0, 42], grid[0, 25] <= grid[0, 96], grid[0, 22] <= grid[0, 60], grid[0, 5] < grid[
-                      0, 11], grid[0, 12] <= grid[0, 94], grid[0, 27] <= grid[0, 58], grid[0, 25] != grid[0, 92], grid[
-                      0, 32] >= grid[0, 59], grid[0, 24] <= grid[0, 25], grid[0, 42] <= grid[0, 67], grid[0, 55] != \
-                  grid[0, 97], grid[0, 65] < grid[0, 96], grid[0, 6] != grid[0, 52], grid[0, 22] > grid[0, 71], grid[
-                      0, 32] == grid[0, 86], grid[0, 29] > grid[0, 37], grid[0, 27] <= grid[0, 98], grid[0, 19] != grid[
-                      0, 64], grid[0, 14] != grid[0, 43], grid[0, 43] != grid[0, 72], grid[0, 2] >= grid[0, 21], grid[
-                      0, 9] >= grid[0, 10], grid[0, 28] <= grid[0, 70], grid[0, 1] <= grid[0, 93], grid[0, 39] >= grid[
-                      0, 76], grid[0, 23] >= grid[0, 68], grid[0, 34] >= grid[0, 49], grid[0, 16] > grid[0, 98], grid[
-                      0, 3] != grid[0, 42], grid[0, 67] < grid[0, 92], grid[0, 57] != grid[0, 89], grid[0, 39] >= grid[
-                      0, 74], grid[0, 69] != grid[0, 93], grid[0, 57] >= grid[0, 65], grid[0, 53] <= grid[0, 96], grid[
-                      0, 45] <= grid[0, 93], grid[0, 40] != grid[0, 60], grid[0, 38] >= grid[0, 58], grid[0, 1] > grid[
-                      0, 51], grid[0, 29] <= grid[0, 31], grid[0, 74] != grid[0, 81], grid[0, 21] != grid[0, 72], grid[
-                      0, 5] <= grid[0, 13], grid[0, 15] <= grid[0, 36], grid[0, 24] < grid[0, 35], grid[0, 48] > grid[
-                      0, 73], grid[0, 54] != grid[0, 67], grid[0, 73] != grid[0, 98], grid[0, 13] >= grid[0, 30], grid[
-                      0, 82] != grid[0, 93], grid[0, 60] <= grid[0, 70], grid[0, 27] < grid[0, 62], grid[0, 9] >= grid[
-                      0, 84], grid[0, 36] <= grid[0, 66], grid[0, 47] >= grid[0, 90], grid[0, 35] < grid[0, 92], grid[
-                      0, 20] >= grid[0, 80], grid[0, 44] < grid[0, 62], grid[0, 46] != grid[0, 93], grid[0, 0] >= grid[
-                      0, 66], grid[0, 72] != grid[0, 87], grid[0, 41] > grid[0, 78], grid[0, 26] != grid[0, 40], grid[
-                      0, 66] != grid[0, 78], grid[0, 18] > grid[0, 61], grid[0, 13] == grid[0, 95], grid[0, 90] <= grid[
-                      0, 96], grid[0, 16] <= grid[0, 75], grid[0, 46] != grid[0, 51], grid[0, 25] > grid[0, 45], grid[
-                      0, 21] > grid[0, 30], grid[0, 37] <= grid[0, 58], grid[0, 4] < grid[0, 36], grid[0, 15] >= grid[
-                      0, 53], grid[0, 1] >= grid[0, 5], grid[0, 2] >= grid[0, 69], grid[0, 6] > grid[0, 40], grid[
-                      0, 17] != grid[0, 25], grid[0, 26] > grid[0, 94], grid[0, 23] == grid[0, 35], grid[0, 2] >= grid[
-                      0, 84]
-
-
-    model += constraints
-    C = list(model.constraints)
-
-    # it is needed to be able to make the "suboracle" in ask_query
-    temp = []
-    [temp.extend(c) for c in C]
-    C_T = set(temp)
-
-    return grid, C_T, model
-
-def construct_random122():
-    # Variables
-    grid = intvar(1, 10, shape=(1, 50), name="grid")
-
-    model = Model()
-
-    # 122 constraints randomly generated
-    constraints = [{grid[0, 11], grid[0, 23]}, {grid[0, 4], grid[0, 35]}, {grid[0, 15], grid[0, 23]},
-                   {grid[0, 18], grid[0, 29]},
-                   {grid[0, 22], grid[0, 32]}, {grid[0, 16], grid[0, 32]}, {grid[0, 22], grid[0, 43]},
-                   {grid[0, 24], grid[0, 37]},
-                   {grid[0, 20], grid[0, 43]}, {grid[0, 26], grid[0, 31]}, {grid[0, 36], grid[0, 48]},
-                   {grid[0, 12], grid[0, 18]},
-                   {grid[0, 3], grid[0, 12]}, {grid[0, 14], grid[0, 34]}, {grid[0, 24], grid[0, 41]},
-                   {grid[0, 16], grid[0, 49]},
-                   {grid[0, 43], grid[0, 49]}, {grid[0, 22], grid[0, 42]}, {grid[0, 6], grid[0, 30]},
-                   {grid[0, 20], grid[0, 36]},
-                   {grid[0, 32], grid[0, 40]}, {grid[0, 7], grid[0, 11]}, {grid[0, 5], grid[0, 45]},
-                   {grid[0, 24], grid[0, 48]},
-                   {grid[0, 26], grid[0, 49]}, {grid[0, 3], grid[0, 21]}, {grid[0, 11], grid[0, 39]},
-                   {grid[0, 7], grid[0, 41]},
-                   {grid[0, 3], grid[0, 49]}, {grid[0, 23], grid[0, 43]}, {grid[0, 39], grid[0, 42]},
-                   {grid[0, 28], grid[0, 39]},
-                   {grid[0, 2], grid[0, 6]}, {grid[0, 31], grid[0, 38]}, {grid[0, 20], grid[0, 38]},
-                   {grid[0, 3], grid[0, 36]},
-                   {grid[0, 11], grid[0, 45]}, {grid[0, 13], grid[0, 35]}, {grid[0, 2], grid[0, 27]},
-                   {grid[0, 41], grid[0, 43]},
-                   {grid[0, 31], grid[0, 36]}, {grid[0, 7], grid[0, 35]}, {grid[0, 32], grid[0, 48]},
-                   {grid[0, 7], grid[0, 43]},
-                   {grid[0, 1], grid[0, 14]}, {grid[0, 20], grid[0, 22]}, {grid[0, 12], grid[0, 34]},
-                   {grid[0, 3], grid[0, 10]},
-                   {grid[0, 30], grid[0, 49]}, {grid[0, 18], grid[0, 47]}, {grid[0, 15], grid[0, 18]},
-                   {grid[0, 10], grid[0, 21]},
-                   {grid[0, 7], grid[0, 49]}, {grid[0, 28], grid[0, 41]}, {grid[0, 2], grid[0, 35]},
-                   {grid[0, 31], grid[0, 40]},
-                   {grid[0, 38], grid[0, 49]}, {grid[0, 9], grid[0, 28]}, {grid[0, 2], grid[0, 15]},
-                   {grid[0, 38], grid[0, 42]},
-                   {grid[0, 29], grid[0, 30]}, {grid[0, 30], grid[0, 33]}, {grid[0, 16], grid[0, 38]},
-                   {grid[0, 16], grid[0, 41]},
-                   {grid[0, 37], grid[0, 38]}, {grid[0, 17], grid[0, 19]}, {grid[0, 3], grid[0, 46]},
-                   {grid[0, 0], grid[0, 44]},
-                   {grid[0, 21], grid[0, 48]}, {grid[0, 10], grid[0, 41]}, {grid[0, 45], grid[0, 47]},
-                   {grid[0, 16], grid[0, 23]},
-                   {grid[0, 8], grid[0, 18]}, {grid[0, 42], grid[0, 44]}, {grid[0, 2], grid[0, 20]},
-                   {grid[0, 14], grid[0, 19]},
-                   {grid[0, 2], grid[0, 23]}, {grid[0, 8], grid[0, 19]}, {grid[0, 19], grid[0, 33]},
-                   {grid[0, 8], grid[0, 11]},
-                   {grid[0, 9], grid[0, 24]}, {grid[0, 0], grid[0, 26]}, {grid[0, 17], grid[0, 29]},
-                   {grid[0, 10], grid[0, 30]},
-                   {grid[0, 11], grid[0, 49]}, {grid[0, 30], grid[0, 42]}, {grid[0, 10], grid[0, 22]},
-                   {grid[0, 29], grid[0, 34]},
-                   {grid[0, 25], grid[0, 36]}, {grid[0, 24], grid[0, 42]}, {grid[0, 5], grid[0, 48]},
-                   {grid[0, 29], grid[0, 45]},
-                   {grid[0, 5], grid[0, 26]}, {grid[0, 14], grid[0, 33]}, {grid[0, 35], grid[0, 46]},
-                   {grid[0, 4], grid[0, 13]},
-                   {grid[0, 18], grid[0, 45]}, {grid[0, 8], grid[0, 25]}, {grid[0, 3], grid[0, 40]},
-                   {grid[0, 26], grid[0, 44]},
-                   {grid[0, 34], grid[0, 39]}, {grid[0, 16], grid[0, 34]}, {grid[0, 5], grid[0, 20]},
-                   {grid[0, 2], grid[0, 37]},
-                   {grid[0, 14], grid[0, 25]}, {grid[0, 27], grid[0, 38]}, {grid[0, 4], grid[0, 26]},
-                   {grid[0, 17], grid[0, 22]},
-                   {grid[0, 27], grid[0, 28]}, {grid[0, 4], grid[0, 47]}, {grid[0, 9], grid[0, 10]},
-                   {grid[0, 25], grid[0, 39]},
-                   {grid[0, 30], grid[0, 48]}, {grid[0, 30], grid[0, 39]}, {grid[0, 12], grid[0, 47]},
-                   {grid[0, 28], grid[0, 48]},
-                   {grid[0, 41], grid[0, 44]}, {grid[0, 48], grid[0, 49]}, {grid[0, 18], grid[0, 41]},
-                   {grid[0, 3], grid[0, 4]},
-                   {grid[0, 7], grid[0, 45]}, {grid[0, 29], grid[0, 38]}]
-
-    for i, j in constraints:
-        model += i != j
-
-    C_T = list(model.constraints)
-
-    print(len(C_T))
-
-    return grid, C_T, model
-
-
-def construct_random495():
-    # Variables
-    grid = intvar(1, 5, shape=(1, 100), name="grid")
-
-    model = Model()
-
-    # 495 constraints randomly generated
-    scopes = [{grid[0, 68], grid[0, 97]}, {grid[0, 67], grid[0, 99]}, {grid[0, 84], grid[0, 94]},
-              {grid[0, 15], grid[0, 92]}, {grid[0, 2], grid[0, 40]}, {grid[0, 27], grid[0, 39]},
-              {grid[0, 53], grid[0, 61]}, {grid[0, 29], grid[0, 85]}, {grid[0, 14], grid[0, 33]},
-              {grid[0, 31], grid[0, 36]}, {grid[0, 22], grid[0, 69]}, {grid[0, 21], grid[0, 25]},
-              {grid[0, 36], grid[0, 76]}, {grid[0, 1], grid[0, 98]}, {grid[0, 52], grid[0, 91]},
-              {grid[0, 44], grid[0, 97]}, {grid[0, 43], grid[0, 48]}, {grid[0, 12], grid[0, 32]},
-              {grid[0, 1], grid[0, 13]}, {grid[0, 85], grid[0, 96]}, {grid[0, 15], grid[0, 40]},
-              {grid[0, 27], grid[0, 85]}, {grid[0, 45], grid[0, 51]}, {grid[0, 58], grid[0, 90]},
-              {grid[0, 23], grid[0, 57]}, {grid[0, 23], grid[0, 78]}, {grid[0, 88], grid[0, 94]},
-              {grid[0, 73], grid[0, 81]}, {grid[0, 9], grid[0, 34]}, {grid[0, 60], grid[0, 87]},
-              {grid[0, 64], grid[0, 76]}, {grid[0, 14], grid[0, 63]}, {grid[0, 15], grid[0, 84]},
-              {grid[0, 2], grid[0, 37]}, {grid[0, 7], grid[0, 52]}, {grid[0, 11], grid[0, 69]},
-              {grid[0, 0], grid[0, 71]}, {grid[0, 21], grid[0, 27]}, {grid[0, 38], grid[0, 89]},
-              {grid[0, 40], grid[0, 91]}, {grid[0, 12], grid[0, 99]}, {grid[0, 85], grid[0, 87]},
-              {grid[0, 5], grid[0, 29]}, {grid[0, 3], grid[0, 64]}, {grid[0, 42], grid[0, 94]},
-              {grid[0, 21], grid[0, 34]}, {grid[0, 37], grid[0, 57]}, {grid[0, 59], grid[0, 81]},
-              {grid[0, 58], grid[0, 77]}, {grid[0, 24], grid[0, 66]}, {grid[0, 2], grid[0, 17]},
-              {grid[0, 3], grid[0, 20]}, {grid[0, 76], grid[0, 96]}, {grid[0, 54], grid[0, 85]},
-              {grid[0, 51], grid[0, 68]}, {grid[0, 8], grid[0, 94]}, {grid[0, 10], grid[0, 61]},
-              {grid[0, 2], grid[0, 21]}, {grid[0, 24], grid[0, 42]}, {grid[0, 8], grid[0, 48]},
-              {grid[0, 45], grid[0, 94]}, {grid[0, 7], grid[0, 48]}, {grid[0, 37], grid[0, 42]},
-              {grid[0, 34], grid[0, 72]}, {grid[0, 20], grid[0, 36]}, {grid[0, 97], grid[0, 98]},
-              {grid[0, 42], grid[0, 55]}, {grid[0, 91], grid[0, 99]}, {grid[0, 9], grid[0, 31]},
-              {grid[0, 28], grid[0, 95]}, {grid[0, 4], grid[0, 45]}, {grid[0, 22], grid[0, 88]},
-              {grid[0, 15], grid[0, 25]}, {grid[0, 17], grid[0, 22]}, {grid[0, 49], grid[0, 51]},
-              {grid[0, 26], grid[0, 35]}, {grid[0, 26], grid[0, 42]}, {grid[0, 72], grid[0, 96]},
-              {grid[0, 42], grid[0, 91]}, {grid[0, 72], grid[0, 81]}, {grid[0, 36], grid[0, 85]},
-              {grid[0, 60], grid[0, 91]}, {grid[0, 28], grid[0, 52]}, {grid[0, 40], grid[0, 70]},
-              {grid[0, 57], grid[0, 75]}, {grid[0, 27], grid[0, 87]}, {grid[0, 73], grid[0, 75]},
-              {grid[0, 73], grid[0, 95]}, {grid[0, 16], grid[0, 70]}, {grid[0, 94], grid[0, 95]},
-              {grid[0, 46], grid[0, 80]}, {grid[0, 73], grid[0, 94]}, {grid[0, 30], grid[0, 91]},
-              {grid[0, 25], grid[0, 53]}, {grid[0, 24], grid[0, 75]}, {grid[0, 30], grid[0, 56]},
-              {grid[0, 63], grid[0, 64]}, {grid[0, 53], grid[0, 56]}, {grid[0, 44], grid[0, 49]},
-              {grid[0, 85], grid[0, 90]}, {grid[0, 36], grid[0, 73]}, {grid[0, 63], grid[0, 95]},
-              {grid[0, 9], grid[0, 47]}, {grid[0, 2], grid[0, 5]}, {grid[0, 75], grid[0, 91]},
-              {grid[0, 72], grid[0, 82]}, {grid[0, 8], grid[0, 42]}, {grid[0, 3], grid[0, 75]},
-              {grid[0, 11], grid[0, 79]}, {grid[0, 25], grid[0, 26]}, {grid[0, 66], grid[0, 74]},
-              {grid[0, 14], grid[0, 90]}, {grid[0, 16], grid[0, 26]}, {grid[0, 26], grid[0, 84]},
-              {grid[0, 41], grid[0, 84]}, {grid[0, 18], grid[0, 32]}, {grid[0, 7], grid[0, 82]},
-              {grid[0, 0], grid[0, 35]}, {grid[0, 3], grid[0, 60]}, {grid[0, 27], grid[0, 90]},
-              {grid[0, 64], grid[0, 78]}, {grid[0, 50], grid[0, 93]}, {grid[0, 65], grid[0, 74]},
-              {grid[0, 66], grid[0, 99]}, {grid[0, 50], grid[0, 68]}, {grid[0, 34], grid[0, 76]},
-              {grid[0, 2], grid[0, 46]}, {grid[0, 6], grid[0, 44]}, {grid[0, 34], grid[0, 98]},
-              {grid[0, 24], grid[0, 30]}, {grid[0, 15], grid[0, 51]}, {grid[0, 22], grid[0, 44]},
-              {grid[0, 58], grid[0, 93]}, {grid[0, 66], grid[0, 77]}, {grid[0, 57], grid[0, 92]},
-              {grid[0, 2], grid[0, 74]}, {grid[0, 36], grid[0, 62]}, {grid[0, 49], grid[0, 89]},
-              {grid[0, 26], grid[0, 96]}, {grid[0, 36], grid[0, 64]}, {grid[0, 5], grid[0, 7]},
-              {grid[0, 55], grid[0, 87]}, {grid[0, 60], grid[0, 76]}, {grid[0, 14], grid[0, 66]},
-              {grid[0, 64], grid[0, 94]}, {grid[0, 25], grid[0, 51]}, {grid[0, 60], grid[0, 70]},
-              {grid[0, 16], grid[0, 34]}, {grid[0, 29], grid[0, 94]}, {grid[0, 2], grid[0, 56]},
-              {grid[0, 67], grid[0, 89]}, {grid[0, 17], grid[0, 89]}, {grid[0, 32], grid[0, 38]},
-              {grid[0, 88], grid[0, 89]}, {grid[0, 29], grid[0, 48]}, {grid[0, 6], grid[0, 40]},
-              {grid[0, 92], grid[0, 96]}, {grid[0, 45], grid[0, 74]}, {grid[0, 20], grid[0, 89]},
-              {grid[0, 27], grid[0, 72]}, {grid[0, 18], grid[0, 62]}, {grid[0, 85], grid[0, 94]},
-              {grid[0, 23], grid[0, 64]}, {grid[0, 39], grid[0, 49]}, {grid[0, 14], grid[0, 24]},
-              {grid[0, 50], grid[0, 56]}, {grid[0, 13], grid[0, 38]}, {grid[0, 15], grid[0, 86]},
-              {grid[0, 61], grid[0, 88]}, {grid[0, 28], grid[0, 79]}, {grid[0, 31], grid[0, 62]},
-              {grid[0, 33], grid[0, 68]}, {grid[0, 5], grid[0, 85]}, {grid[0, 38], grid[0, 39]},
-              {grid[0, 6], grid[0, 75]}, {grid[0, 1], grid[0, 33]}, {grid[0, 0], grid[0, 13]},
-              {grid[0, 45], grid[0, 53]}, {grid[0, 48], grid[0, 94]}, {grid[0, 20], grid[0, 93]},
-              {grid[0, 57], grid[0, 68]}, {grid[0, 49], grid[0, 75]}, {grid[0, 38], grid[0, 93]},
-              {grid[0, 34], grid[0, 54]}, {grid[0, 72], grid[0, 89]}, {grid[0, 34], grid[0, 61]},
-              {grid[0, 70], grid[0, 88]}, {grid[0, 78], grid[0, 82]}, {grid[0, 81], grid[0, 84]},
-              {grid[0, 39], grid[0, 76]}, {grid[0, 17], grid[0, 50]}, {grid[0, 16], grid[0, 58]},
-              {grid[0, 24], grid[0, 96]}, {grid[0, 28], grid[0, 44]}, {grid[0, 74], grid[0, 83]},
-              {grid[0, 75], grid[0, 83]}, {grid[0, 18], grid[0, 72]}, {grid[0, 6], grid[0, 45]},
-              {grid[0, 69], grid[0, 89]}, {grid[0, 1], grid[0, 73]}, {grid[0, 21], grid[0, 87]},
-              {grid[0, 39], grid[0, 73]}, {grid[0, 65], grid[0, 66]}, {grid[0, 8], grid[0, 78]},
-              {grid[0, 12], grid[0, 78]}, {grid[0, 48], grid[0, 64]}, {grid[0, 11], grid[0, 73]},
-              {grid[0, 7], grid[0, 74]}, {grid[0, 43], grid[0, 75]}, {grid[0, 1], grid[0, 54]},
-              {grid[0, 10], grid[0, 83]}, {grid[0, 22], grid[0, 99]}, {grid[0, 15], grid[0, 98]},
-              {grid[0, 33], grid[0, 94]}, {grid[0, 41], grid[0, 71]}, {grid[0, 47], grid[0, 81]},
-              {grid[0, 22], grid[0, 86]}, {grid[0, 18], grid[0, 27]}, {grid[0, 19], grid[0, 30]},
-              {grid[0, 6], grid[0, 70]}, {grid[0, 54], grid[0, 77]}, {grid[0, 31], grid[0, 96]},
-              {grid[0, 43], grid[0, 46]}, {grid[0, 48], grid[0, 68]}, {grid[0, 96], grid[0, 99]},
-              {grid[0, 78], grid[0, 99]}, {grid[0, 93], grid[0, 98]}, {grid[0, 39], grid[0, 89]},
-              {grid[0, 5], grid[0, 49]}, {grid[0, 2], grid[0, 95]}, {grid[0, 37], grid[0, 68]},
-              {grid[0, 34], grid[0, 35]}, {grid[0, 1], grid[0, 15]}, {grid[0, 13], grid[0, 23]},
-              {grid[0, 63], grid[0, 77]}, {grid[0, 62], grid[0, 82]}, {grid[0, 2], grid[0, 19]},
-              {grid[0, 4], grid[0, 69]}, {grid[0, 30], grid[0, 41]}, {grid[0, 28], grid[0, 39]},
-              {grid[0, 24], grid[0, 46]}, {grid[0, 1], grid[0, 25]}, {grid[0, 74], grid[0, 89]},
-              {grid[0, 17], grid[0, 84]}, {grid[0, 0], grid[0, 65]}, {grid[0, 35], grid[0, 84]},
-              {grid[0, 66], grid[0, 80]}, {grid[0, 14], grid[0, 88]}, {grid[0, 8], grid[0, 93]},
-              {grid[0, 6], grid[0, 47]}, {grid[0, 42], grid[0, 64]}, {grid[0, 0], grid[0, 80]},
-              {grid[0, 76], grid[0, 92]}, {grid[0, 25], grid[0, 33]}, {grid[0, 73], grid[0, 80]},
-              {grid[0, 69], grid[0, 98]}, {grid[0, 17], grid[0, 74]}, {grid[0, 36], grid[0, 72]},
-              {grid[0, 9], grid[0, 41]}, {grid[0, 33], grid[0, 82]}, {grid[0, 25], grid[0, 43]},
-              {grid[0, 45], grid[0, 71]}, {grid[0, 17], grid[0, 48]}, {grid[0, 42], grid[0, 92]},
-              {grid[0, 8], grid[0, 15]}, {grid[0, 11], grid[0, 91]}, {grid[0, 36], grid[0, 53]},
-              {grid[0, 34], grid[0, 43]}, {grid[0, 44], grid[0, 68]}, {grid[0, 64], grid[0, 96]},
-              {grid[0, 0], grid[0, 57]}, {grid[0, 25], grid[0, 28]}, {grid[0, 9], grid[0, 49]},
-              {grid[0, 23], grid[0, 36]}, {grid[0, 1], grid[0, 68]}, {grid[0, 12], grid[0, 50]},
-              {grid[0, 51], grid[0, 84]}, {grid[0, 0], grid[0, 91]}, {grid[0, 7], grid[0, 80]},
-              {grid[0, 10], grid[0, 90]}, {grid[0, 11], grid[0, 53]}, {grid[0, 3], grid[0, 52]},
-              {grid[0, 19], grid[0, 75]}, {grid[0, 27], grid[0, 56]}, {grid[0, 4], grid[0, 51]},
-              {grid[0, 72], grid[0, 90]}, {grid[0, 40], grid[0, 82]}, {grid[0, 25], grid[0, 75]},
-              {grid[0, 64], grid[0, 71]}, {grid[0, 8], grid[0, 80]}, {grid[0, 46], grid[0, 63]},
-              {grid[0, 19], grid[0, 81]}, {grid[0, 80], grid[0, 84]}, {grid[0, 47], grid[0, 50]},
-              {grid[0, 41], grid[0, 62]}, {grid[0, 61], grid[0, 93]}, {grid[0, 47], grid[0, 54]},
-              {grid[0, 60], grid[0, 83]}, {grid[0, 78], grid[0, 93]}, {grid[0, 95], grid[0, 96]},
-              {grid[0, 20], grid[0, 71]}, {grid[0, 48], grid[0, 82]}, {grid[0, 3], grid[0, 45]},
-              {grid[0, 83], grid[0, 95]}, {grid[0, 10], grid[0, 22]}, {grid[0, 38], grid[0, 40]},
-              {grid[0, 31], grid[0, 50]}, {grid[0, 32], grid[0, 82]}, {grid[0, 56], grid[0, 90]},
-              {grid[0, 40], grid[0, 64]}, {grid[0, 46], grid[0, 95]}, {grid[0, 1], grid[0, 83]},
-              {grid[0, 2], grid[0, 43]}, {grid[0, 18], grid[0, 28]}, {grid[0, 31], grid[0, 60]},
-              {grid[0, 43], grid[0, 79]}, {grid[0, 17], grid[0, 68]}, {grid[0, 19], grid[0, 93]},
-              {grid[0, 36], grid[0, 43]}, {grid[0, 13], grid[0, 67]}, {grid[0, 98], grid[0, 99]},
-              {grid[0, 15], grid[0, 37]}, {grid[0, 0], grid[0, 25]}, {grid[0, 45], grid[0, 47]},
-              {grid[0, 40], grid[0, 94]}, {grid[0, 61], grid[0, 97]}, {grid[0, 0], grid[0, 97]},
-              {grid[0, 40], grid[0, 66]}, {grid[0, 90], grid[0, 94]}, {grid[0, 67], grid[0, 69]},
-              {grid[0, 5], grid[0, 96]}, {grid[0, 5], grid[0, 17]}, {grid[0, 19], grid[0, 97]},
-              {grid[0, 25], grid[0, 85]}, {grid[0, 19], grid[0, 41]}, {grid[0, 23], grid[0, 76]},
-              {grid[0, 76], grid[0, 98]}, {grid[0, 50], grid[0, 69]}, {grid[0, 0], grid[0, 67]},
-              {grid[0, 5], grid[0, 34]}, {grid[0, 42], grid[0, 76]}, {grid[0, 21], grid[0, 37]},
-              {grid[0, 3], grid[0, 18]}, {grid[0, 25], grid[0, 56]}, {grid[0, 20], grid[0, 82]},
-              {grid[0, 65], grid[0, 94]}, {grid[0, 40], grid[0, 45]}, {grid[0, 0], grid[0, 23]},
-              {grid[0, 69], grid[0, 85]}, {grid[0, 31], grid[0, 49]}, {grid[0, 76], grid[0, 78]},
-              {grid[0, 29], grid[0, 98]}, {grid[0, 31], grid[0, 72]}, {grid[0, 22], grid[0, 68]},
-              {grid[0, 55], grid[0, 69]}, {grid[0, 14], grid[0, 38]}, {grid[0, 12], grid[0, 22]},
-              {grid[0, 28], grid[0, 71]}, {grid[0, 57], grid[0, 58]}, {grid[0, 35], grid[0, 82]},
-              {grid[0, 12], grid[0, 83]}, {grid[0, 17], grid[0, 34]}, {grid[0, 41], grid[0, 51]},
-              {grid[0, 4], grid[0, 91]}, {grid[0, 75], grid[0, 84]}, {grid[0, 1], grid[0, 87]},
-              {grid[0, 23], grid[0, 77]}, {grid[0, 69], grid[0, 71]}, {grid[0, 25], grid[0, 65]},
-              {grid[0, 44], grid[0, 58]}, {grid[0, 16], grid[0, 59]}, {grid[0, 54], grid[0, 82]},
-              {grid[0, 0], grid[0, 4]}, {grid[0, 31], grid[0, 80]}, {grid[0, 28], grid[0, 74]},
-              {grid[0, 62], grid[0, 90]}, {grid[0, 77], grid[0, 84]}, {grid[0, 24], grid[0, 29]},
-              {grid[0, 10], grid[0, 88]}, {grid[0, 34], grid[0, 44]}, {grid[0, 52], grid[0, 73]},
-              {grid[0, 47], grid[0, 62]}, {grid[0, 1], grid[0, 91]}, {grid[0, 27], grid[0, 38]},
-              {grid[0, 57], grid[0, 85]}, {grid[0, 58], grid[0, 73]}, {grid[0, 55], grid[0, 97]},
-              {grid[0, 71], grid[0, 95]}, {grid[0, 49], grid[0, 50]}, {grid[0, 52], grid[0, 85]},
-              {grid[0, 16], grid[0, 32]}, {grid[0, 17], grid[0, 20]}, {grid[0, 67], grid[0, 79]},
-              {grid[0, 37], grid[0, 81]}, {grid[0, 27], grid[0, 76]}, {grid[0, 61], grid[0, 79]},
-              {grid[0, 42], grid[0, 71]}, {grid[0, 7], grid[0, 69]}, {grid[0, 53], grid[0, 84]},
-              {grid[0, 17], grid[0, 31]}, {grid[0, 24], grid[0, 56]}, {grid[0, 43], grid[0, 66]},
-              {grid[0, 72], grid[0, 87]}, {grid[0, 10], grid[0, 30]}, {grid[0, 30], grid[0, 64]},
-              {grid[0, 60], grid[0, 78]}, {grid[0, 36], grid[0, 52]}, {grid[0, 12], grid[0, 23]},
-              {grid[0, 23], grid[0, 66]}, {grid[0, 16], grid[0, 53]}, {grid[0, 24], grid[0, 25]},
-              {grid[0, 58], grid[0, 87]}, {grid[0, 41], grid[0, 79]}, {grid[0, 19], grid[0, 52]},
-              {grid[0, 14], grid[0, 73]}, {grid[0, 16], grid[0, 68]}, {grid[0, 9], grid[0, 63]},
-              {grid[0, 12], grid[0, 38]}, {grid[0, 51], grid[0, 85]}, {grid[0, 35], grid[0, 70]},
-              {grid[0, 36], grid[0, 87]}, {grid[0, 27], grid[0, 84]}, {grid[0, 18], grid[0, 23]},
-              {grid[0, 14], grid[0, 49]}, {grid[0, 5], grid[0, 47]}, {grid[0, 19], grid[0, 32]},
-              {grid[0, 5], grid[0, 16]}, {grid[0, 30], grid[0, 39]}, {grid[0, 56], grid[0, 71]},
-              {grid[0, 40], grid[0, 59]}, {grid[0, 6], grid[0, 32]}, {grid[0, 69], grid[0, 97]},
-              {grid[0, 38], grid[0, 43]}, {grid[0, 9], grid[0, 22]}, {grid[0, 46], grid[0, 89]},
-              {grid[0, 54], grid[0, 92]}, {grid[0, 37], grid[0, 71]}, {grid[0, 39], grid[0, 74]},
-              {grid[0, 68], grid[0, 86]}, {grid[0, 37], grid[0, 89]}, {grid[0, 82], grid[0, 98]},
-              {grid[0, 51], grid[0, 76]}, {grid[0, 60], grid[0, 62]}, {grid[0, 19], grid[0, 73]},
-              {grid[0, 52], grid[0, 84]}, {grid[0, 44], grid[0, 95]}, {grid[0, 39], grid[0, 91]},
-              {grid[0, 1], grid[0, 81]}, {grid[0, 15], grid[0, 97]}, {grid[0, 9], grid[0, 38]},
-              {grid[0, 29], grid[0, 36]}, {grid[0, 41], grid[0, 52]}, {grid[0, 59], grid[0, 69]},
-              {grid[0, 68], grid[0, 90]}, {grid[0, 30], grid[0, 42]}, {grid[0, 6], grid[0, 79]},
-              {grid[0, 21], grid[0, 65]}, {grid[0, 45], grid[0, 59]}, {grid[0, 17], grid[0, 33]},
-              {grid[0, 8], grid[0, 69]}, {grid[0, 40], grid[0, 96]}, {grid[0, 55], grid[0, 73]},
-              {grid[0, 31], grid[0, 99]}, {grid[0, 18], grid[0, 35]}, {grid[0, 45], grid[0, 55]},
-              {grid[0, 76], grid[0, 95]}, {grid[0, 58], grid[0, 86]}, {grid[0, 42], grid[0, 90]},
-              {grid[0, 10], grid[0, 34]}, {grid[0, 8], grid[0, 38]}, {grid[0, 22], grid[0, 74]},
-              {grid[0, 11], grid[0, 75]}, {grid[0, 24], grid[0, 69]}, {grid[0, 24], grid[0, 53]},
-              {grid[0, 2], grid[0, 53]}, {grid[0, 18], grid[0, 98]}, {grid[0, 26], grid[0, 83]},
-              {grid[0, 10], grid[0, 69]}, {grid[0, 9], grid[0, 40]}, {grid[0, 64], grid[0, 85]},
-              {grid[0, 13], grid[0, 52]}, {grid[0, 57], grid[0, 81]}, {grid[0, 16], grid[0, 23]},
-              {grid[0, 8], grid[0, 59]}, {grid[0, 83], grid[0, 99]}, {grid[0, 17], grid[0, 95]},
-              {grid[0, 54], grid[0, 56]}, {grid[0, 16], grid[0, 79]}, {grid[0, 1], grid[0, 89]},
-              {grid[0, 46], grid[0, 58]}, {grid[0, 15], grid[0, 89]}, {grid[0, 49], grid[0, 70]},
-              {grid[0, 49], grid[0, 91]}, {grid[0, 70], grid[0, 77]}, {grid[0, 1], grid[0, 86]}, ]
-
-    for i, j in scopes:
-        model += i != j
-
-    C_T = list(model.constraints)
-
-    print(len(C_T))
-
-    return grid, C_T, model
-
 def construct_golomb8():
     # Variables
     grid = intvar(1, 35, shape=(1, 8), name="grid")
@@ -725,3 +389,141 @@ def construct_job_shop_scheduling_problem(n_jobs, machines, horizon, seed=0):
 
     max_duration = max(duration)
     return grid, C_T, model, max_duration
+
+
+def construct_job_shop_scheduling_with_precedence(n_jobs, machines, horizon, seed=0):
+    random.seed(seed)
+    max_time = horizon // n_jobs
+
+    duration = [[0] * machines for i in range(n_jobs)]
+    for i in range(n_jobs):
+        for j in range(machines):
+            duration[i][j] = random.randint(1, max_time)
+
+    task_to_mach = [list(range(machines)) for i in range(n_jobs)]
+    for i in range(n_jobs):
+        random.shuffle(task_to_mach[i])
+
+    precedence = [[(i, j) for j in task_to_mach[i]] for i in range(n_jobs)]
+
+    # Convert to numpy
+    task_to_mach = np.array(task_to_mach)
+    duration = np.array(duration)
+    precedence = np.array(precedence)
+
+    machines_set = set(task_to_mach.flatten().tolist())
+
+    model = cp.Model()
+
+    # Decision variables
+    start = cp.intvar(0, horizon, shape=task_to_mach.shape, name="start")
+    end = cp.intvar(0, horizon, shape=task_to_mach.shape, name="end")
+    demand = [1] * task_to_mach.size  # All tasks demand 1 unit of resource (machine)
+    capacity = 1  # Each machine can handle 1 task at a time
+
+    # Precedence constraints
+    for chain in precedence:
+        for (j1, t1), (j2, t2) in zip(chain[:-1], chain[1:]):
+            model += end[j1, t1] <= start[j2, t2]
+
+    # Duration constraints
+    model += (start + duration == end)
+
+    # Non-overlap constraints per machine
+    for m in machines_set:
+        tasks_on_mach = np.where(task_to_mach == m)
+        model += Cumulative(start[tasks_on_mach], duration[tasks_on_mach], end[tasks_on_mach], demand[tasks_on_mach], capacity).decompose()
+
+    C = list(model.constraints)
+    C_T = set(toplevel_list(C))
+
+    max_duration = max(duration.flatten())
+    return start, end, C_T, model, max_duration
+
+def construct_rcpsp(num_tasks, num_resources, max_duration, max_demand, horizon):
+    random.seed(0)
+    durations = [random.randint(1, max_duration) for _ in range(num_tasks)]
+    demands = [[random.randint(1, max_demand) for _ in range(num_resources)] for _ in range(num_tasks)]
+    total_resources = [random.randint(max_demand, max_demand * 2) for _ in range(num_resources)]
+
+    precedence = [(random.randint(0, num_tasks-1), random.randint(0, num_tasks-1)) for _ in range(num_tasks // 2)]
+    precedence = [(i, j) for i, j in precedence if i != j]
+
+    model = cp.Model()
+
+    # Decision variables
+    start = cp.intvar(0, horizon, shape=num_tasks, name="start")
+    end = cp.intvar(0, horizon, shape=num_tasks, name="end")
+
+    # Duration constraints
+    model += (start + durations == end)
+
+    # Precedence constraints
+    for i, j in precedence:
+        model += end[i] <= start[j]
+
+    # Resource constraints
+    for r in range(num_resources):
+        model += Cumulative(start, durations, end, [demands[i][r] for i in range(num_tasks)], total_resources[r]).decompose()
+
+    C = list(model.constraints)
+    C_T = set(toplevel_list(C))
+
+    return start, end, C_T, model
+
+
+def construct_balanced_assignment(num_tasks, num_workers):
+    tasks = intvar(0, num_workers-1, shape=num_tasks, name="tasks")
+    occurrences = [num_tasks // num_workers] * num_workers
+
+    model = cp.Model()
+    model += GlobalCardinalityCount(tasks, list(range(num_workers)), occurrences).decompose()
+
+    C = list(model.constraints)
+    C_T = set(toplevel_list(C))
+
+    return tasks, C_T, model
+
+
+def construct_tsp(num_cities, seed=0):
+    random.seed(seed)
+    np.random.seed(seed)
+
+    # Generate random distances between cities
+    distances = np.random.randint(1, 100, size=(num_cities, num_cities))
+    np.fill_diagonal(distances, 0)  # Distance from a city to itself is 0
+
+    # Variables
+    path = intvar(0, num_cities-1, shape=num_cities, name="path")
+
+    model = Model()
+
+    # Ensure all cities are visited exactly once forming a valid circuit
+    model += Circuit(path).decompose()
+
+    # Define the cost variable
+    cost = intvar(0, np.sum(distances), name="cost")
+
+    # Constraint to calculate the total distance traveled
+    model += (cost == sum(distances[path[i], path[(i+1) % num_cities]] for i in range(num_cities)))
+
+    model.minimize(cost)
+
+    if model.solve():
+        print("Optimal path:", path.value())
+        print("Minimum cost:", cost.value())
+    else:
+        print("No solution found")
+
+    C = list(model.constraints)
+    C_T = set(toplevel_list(C))
+
+    return path, cost, C_T, model
+
+# Example usage
+num_cities = 5
+path, cost, constraints, model = construct_tsp(num_cities)
+
+print("Constraints:")
+for constraint in constraints:
+    print(constraint)
