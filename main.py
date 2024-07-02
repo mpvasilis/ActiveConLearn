@@ -311,18 +311,6 @@ def construct_benchmark():
         grid, C_T, oracle = construct_jsudoku()
         gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"]
 
-    elif args.benchmark == "random122":
-        grid, C_T, oracle = construct_random122()
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"]
-
-    elif args.benchmark == "new_random":
-        grid, C_T, oracle = construct_new_random()
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"]
-
-    elif args.benchmark == "random495":
-        grid, C_T, oracle = construct_random495()
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"]
-
     elif args.benchmark == "golomb8":
         grid, C_T, oracle = construct_golomb8()
         gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2",
