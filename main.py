@@ -324,9 +324,7 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
             constraints_by_partition[partition_key].append(constraint)
         return constraints_by_partition
 
-    constraints_lines = read_constraints_file(f"{data_dir}/{args.not_equal_constraints_file}")
-    constraints_by_partition = parse_constraints_by_partition(constraints_lines)
-    print(constraints_by_partition)
+
     def parse_and_apply_constraints(file_path, variables, model=None):
         parsed_data = parse_con_file(file_path)
         constraints = []
@@ -350,6 +348,22 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
     grid = intvar(domain_constraints[0][0], domain_constraints[0][1], shape=(1, len(variables)), name="grid")
     for i, var in enumerate(variables):
         grid[1:i] = var
+    constraints_lines = read_constraints_file(f"{data_dir}/{args.not_equal_constraints_file}")
+    constraints_by_partition = parse_constraints_by_partition(constraints_lines)
+    print(constraints_by_partition)
+    # append constraints_by_partition to biasg
+    for partition_key, constraints in constraints_by_partition.items():
+        temp_biasg = []
+        for constraint in constraints:
+            var1 = variables[constraint["var1_index"]]
+            var2 = variables[constraint["var2_index"]]
+            constraint_type = constraint["constraint_type"]
+            if constraint_type == 1:
+                temp_biasg.append(var1 != var2)
+            else:
+                temp_biasg.append(var1 == var2)
+        biasg.append(temp_biasg)
+
 
     if args.useCon:
         con_file = f"{data_dir}/_con"
