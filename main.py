@@ -2,6 +2,10 @@ import json
 import os
 import argparse
 import subprocess
+import random
+import cpmpy as cp
+from cpmpy import *
+from cpmpy.transformations.normalize import toplevel_list
 
 import pandas as pd
 import yaml
@@ -10,7 +14,6 @@ from QuAcq import QuAcq
 from MQuAcq import MQuAcq
 from MQuAcq2 import MQuAcq2
 from GrowAcq import GrowAcq
-from benchmarks import *
 from utils import *
 
 jar_path = './phD.jar'
@@ -63,7 +66,7 @@ def parse_args():
                                  "golomb8", "murder", "job_shop_scheduling",
                                  "exam_timetabling", "exam_timetabling_simple", "exam_timetabling_adv",
                                  "exam_timetabling_advanced", "nurse_rostering", "nurse_rostering_simple",
-                                 "nurse_rostering_advanced", "nurse_rostering_adv", "custom", "vgc", "genacq", "mineask"],
+                                 "nurse_rostering_advanced", "nurse_rostering_adv", "custom", "vgc", "genacq", "mineask", "countcp"],
                         help="The name of the benchmark to use")
 
     parser.add_argument("-exp", "--experiment", type=str, required=False,
@@ -122,6 +125,7 @@ def parse_args():
                              "the number of professors")
     parser.add_argument("-pl", "--run-passive-learning", required=False,type=bool,  help="Run passive learning")
     parser.add_argument("-sols", "--solution-set-path", type=str, required=False, help="Path to the solution set JSON file")
+    parser.add_argument("-necf", "--not_equal_constraints_file", type=str, required=False, help="Not equal constraints fielr for COUNT-CP")
 
 
     args = parser.parse_args()
@@ -298,73 +302,85 @@ def verify_global_constraints(experiment, data_dir="data/exp", use_learned_model
     return grid, C_T, model, variables, biases, biasg, cls, total_global_constraints
 
 
-def construct_benchmark():
-    if args.benchmark == "9sudoku":
-        grid, C_T, oracle = construct_9sudoku()
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"]
+def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
+    biasg = []
+    def read_constraints_file(filepath):
+        with open(filepath, 'r') as file:
+            lines = file.readlines()
+        return lines
+    def parse_constraints_by_partition(lines):
+        constraints_by_partition = defaultdict(list)
+        for line in lines:
+            parts = line.strip().split()
+            constraint = {
+                "constraint_type": int(parts[0]),
+                "var1_index": int(parts[1]),
+                "var2_index": int(parts[2]),
+                "partition_type": parts[3],
+                "partition_number": parts[4],
+                "sequence": parts[5]
+            }
+            partition_key = (constraint["partition_type"], constraint["partition_number"])
+            constraints_by_partition[partition_key].append(constraint)
+        return constraints_by_partition
 
-    elif args.benchmark == "4sudoku":
-        grid, C_T, oracle = construct_4sudoku()
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"]
+    constraints_lines = read_constraints_file(f"{data_dir}/{args.not_equal_constraints_file}")
+    constraints_by_partition = parse_constraints_by_partition(constraints_lines)
+    print(constraints_by_partition)
+    def parse_and_apply_constraints(file_path, variables, model=None):
+        parsed_data = parse_con_file(file_path)
+        constraints = []
+        for con_type, var1, var2 in parsed_data:
+            con_str = constraint_type_to_string(con_type)
+            try:
+                constraint = eval(f"variables[var1] {con_str} variables[var2]")
+                constraints.append(constraint)
+                if model is not None:
+                    model += constraint
+            except:
+                print(f"Error in {con_type} {var1} {var2}")
+        return constraints
 
-    elif args.benchmark == "jsudoku":
-        grid, C_T, oracle = construct_jsudoku()
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"]
+    model = Model()
+    vars_file = f"{data_dir}/output_vars.txt"
+    vars = parse_vars_file(vars_file)
+    dom_file = f"{data_dir}/output_dom.txt"
+    domain_constraints = parse_dom_file(dom_file)
+    variables = [intvar(domain_constraints[0][0], domain_constraints[0][1], name=f"var{var}") for var in vars]
+    grid = intvar(domain_constraints[0][0], domain_constraints[0][1], shape=(1, len(variables)), name="grid")
+    for i, var in enumerate(variables):
+        grid[1:i] = var
 
-    elif args.benchmark == "golomb8":
-        grid, C_T, oracle = construct_golomb8()
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2",
-                 "abs(var1 - var2) != abs(var3 - var4)"]
-    #            "abs(var1 - var2) == abs(var3 - var4)"]
+    if args.useCon:
+        con_file = f"{data_dir}/_con"
+        fixed_arity_ct = parse_and_apply_constraints(con_file, variables, model)
 
-    elif args.benchmark == "murder":
-        grid, C_T, oracle = construct_murder_problem()
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"]
-
-    elif args.benchmark == "job_shop_scheduling":
-        grid, C_T, oracle, max_duration = construct_job_shop_scheduling_problem(args.num_jobs, args.num_machines,
-                                                                                args.horizon, args.seed)
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"] + \
-                [f"var1 + {i} == var2" for i in range(1, max_duration + 1)] + \
-                [f"var2 + {i} == var1" for i in range(1, max_duration + 1)]
-
-    elif args.benchmark == "exam_timetabling" or args.benchmark == "exam_timetabling_simple":
-        slots_per_day = args.num_rooms * args.num_timeslots_per_day
-
-        grid, C_T, oracle = construct_examtt_simple(args.num_semesters, args.num_courses_per_semester, args.num_rooms,
-                                                    args.num_timeslots_per_day, args.num_days_for_exams)
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"] + \
-                [f"(var1 // {slots_per_day}) != (var2 // {slots_per_day})",
-                 f"(var1 // {slots_per_day}) == (var2 // {slots_per_day})"]
-
-    elif args.benchmark == "exam_timetabling_adv" or args.benchmark == "exam_timetabling_advanced":
-        slots_per_day = args.num_rooms * args.num_timeslots_per_day
-
-        grid, C_T, oracle = construct_examtt_advanced(args.num_semesters, args.num_courses_per_semester, args.num_rooms,
-                                                      args.num_timeslots_per_day, args.num_days_for_exams,
-                                                      args.num_professors)
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"] + \
-                [f"abs(var1 - var2) // {slots_per_day} <= 2"] + \
-                [f"(var1 // {slots_per_day}) != (var2 // {slots_per_day})"]
-        # [f"var1 // {slots_per_day} != {d}" for d in range(num_days_for_exams)]
-    elif args.benchmark == "nurse_rostering":
-
-        grid, C_T, oracle = construct_nurse_rostering(args.num_nurses, args.num_shifts_per_day,
-                                                      args.num_days_for_schedule)
-
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"]
-
-    elif args.benchmark == "nurse_rostering_adv" or args.benchmark == "nurse_rostering_advanced":
-
-        grid, C_T, oracle = construct_nurse_rostering_advanced(args.num_nurses, args.num_shifts_per_day,
-                                                               args.nurses_per_shift, args.num_days_for_schedule)
-
-        gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 >= var2", "var1 <= var2"]
-
+    if args.onlyActive:
+        biases = []
+        cls = []
     else:
-        raise NotImplementedError(f'Benchmark {args.benchmark} not implemented yet')
+        bias_file = f"{data_dir}/bc.txt"
+        if os.path.isfile(bias_file):
+            biases = parse_and_apply_constraints(bias_file, variables)
+        else:
+            biases = []
 
-    return args.benchmark, grid, C_T, oracle, gamma
+        cl_file = f"{data_dir}/{experiment}_cl"
+        cls = parse_and_apply_constraints(cl_file, variables)
+
+
+    grid = cp.cpm_array(np.expand_dims(variables, 0))
+
+    if use_learned_model:
+        C = list(model.constraints)
+        C_T = set(toplevel_list(C))
+        print(len(C_T))
+    else:
+        C_T = set(fixed_arity_ct)
+
+    return grid, C_T, model, variables, biases, biasg, cls, len(biasg)
+
+
 
 def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None, fs=None, fc=None, bench=None, start_time=None, conacq=None, init_bias=None, init_cl=None, learned_global_cstrs=None):
 
@@ -581,6 +597,34 @@ if __name__ == "__main__":
         benchmark_name = args.experiment
         path = args.input
         grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = verify_global_constraints(benchmark_name, path, False)
+        print("Size of bias: ", len(set(bias)))
+        print("Size of biasg: ",len(toplevel_list(biasg)), len(biasg))
+        print("Size of C_l: ", len(C_l))
+        print("Size of C_T: ", len(C_T))
+        #C_l = [constraint for constraint in C_l if constraint not in biasg]
+        if args.onlyActive:
+            bias = []
+            C_l = []
+        else:
+            _bias = C_T - set(bias) - set(C_l)
+            bias.extend(_bias)
+
+        if args.emptyCL:
+            C_l = []
+        print("-------------------")
+        print("Size of bias: ", len(set(bias)))
+        ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
+                            time_limit=args.time_limit, findscope_version=fs_version,
+                            findc_version=fc_version, X=X, B=bias, Bg=biasg, C_l=C_l, benchmark=args.benchmark)
+        ca_system.learn()
+
+        save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints)
+        exit()
+
+    if args.benchmark == "countcp": #count cp
+        benchmark_name = args.experiment
+        path = args.input
+        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = count_cp(benchmark_name, path, False)
         print("Size of bias: ", len(set(bias)))
         print("Size of biasg: ",len(toplevel_list(biasg)), len(biasg))
         print("Size of C_l: ", len(C_l))

@@ -15,7 +15,6 @@ from utils import *
 import math
 from ortools.sat.python import cp_model as ort
 import networkx as nx
-from utils import find_suitable_vars_subset2
 
 partial = False
 
