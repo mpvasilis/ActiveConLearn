@@ -364,7 +364,6 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
                 temp_biasg.append(var1 == var2)
         biasg.append(temp_biasg)
 
-
     if args.useCon:
         con_file = f"{data_dir}/_con"
         fixed_arity_ct = parse_and_apply_constraints(con_file, variables, model)
@@ -379,8 +378,6 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
         else:
             biases = []
 
-        cl_file = f"{data_dir}/{experiment}_cl"
-        cls = parse_and_apply_constraints(cl_file, variables)
 
 
     grid = cp.cpm_array(np.expand_dims(variables, 0))
@@ -392,7 +389,7 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
     else:
         C_T = set(fixed_arity_ct)
 
-    return grid, C_T, model, variables, biases, biasg, cls, len(biasg)
+    return grid, C_T, model, variables, biases, biasg, [], len(biasg)
 
 
 
