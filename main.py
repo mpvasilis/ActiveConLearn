@@ -125,7 +125,6 @@ def parse_args():
                              "the number of professors")
     parser.add_argument("-pl", "--run-passive-learning", required=False,type=bool,  help="Run passive learning")
     parser.add_argument("-sols", "--solution-set-path", type=str, required=False, help="Path to the solution set JSON file")
-    parser.add_argument("-necf", "--not_equal_constraints_file", type=str, required=False, help="Not equal constraints fielr for COUNT-CP")
 
 
     args = parser.parse_args()
@@ -364,7 +363,7 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
     grid = intvar(domain_constraints[0][0], domain_constraints[0][1], shape=(1, len(variables)), name="grid")
     for i, var in enumerate(variables):
         grid[1:i] = var
-    constraints_lines = read_constraints_file(f"{data_dir}/{args.not_equal_constraints_file}")
+    constraints_lines = read_constraints_file(f"{data_dir}/output_necf.txt")
     constraints_by_partition = parse_constraints_by_partition(constraints_lines)
     for partition_key, constraints in constraints_by_partition.items():
         print(partition_key)

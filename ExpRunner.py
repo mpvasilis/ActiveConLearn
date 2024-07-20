@@ -1,19 +1,21 @@
 import os
+import shutil
 import subprocess
 import yaml
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
-def run_count_cp_and_get_results(exp, training_size, output, name, input_file):
+def run_count_cp_and_get_results(exp, output, name, input_file):
     # Set Count-CP directory
-    os.chdir("count-cp")
-
+    input_file = os.path.abspath(os.path.join(input_directory, benchmark))
+    #os.chdir(r"C:\Users\Balafas\Documents\GitHub\COUNT-CP")
+    if not os.path.exists(os.path.join(output, name)):
+        os.makedirs(os.path.join(output, name))
+    results_dir = os.path.join(output, name)
     count_cp_command = [
-        'python', 'count-cp.py',
-        '-exp', exp,
-        '--training_size', ' '.join(map(str, training_size)),
-        '--output', output,
+        'C:/Users/Balafas/Documents/GitHub/cp-diverse-solutions/venv/Scripts/python.exe', r'C:\Users\Balafas\Documents\GitHub\COUNT-CP\cp2022_experiments.py',
+        '--output', results_dir,
         '--name', name,
         '--input', input_file
     ]
@@ -22,12 +24,14 @@ def run_count_cp_and_get_results(exp, training_size, output, name, input_file):
         print(f"Error running count-cp with command: {' '.join(count_cp_command)}\n{result.stderr}")
     else:
         print(f"Successfully ran count-cp with command: {' '.join(count_cp_command)}\nOutput:\n{result.stdout}")
-    return result.stdout
+        source_con_file = os.path.join('modules', 'benchmarks', name, name+'_con')
+        if os.path.exists(source_con_file):
+            shutil.copy(source_con_file, results_dir+'/_con')
+            print(f"Successfully copied {source_con_file} to {results_dir}")
+        else:
+            print(f"Source _con file does not exist: {source_con_file}")
+    return results_dir
 
-def run_experiment_with_count_cp(config, benchmark, exp, training_size, output, name, input_directory):
-    input_file = os.path.join(input_directory, benchmark)
-    result = run_count_cp_and_get_results(exp, training_size, output, name, input_file)
-    print("Count-CP results:", result)
 
 def run_jar_with_config(jar_path, config_path):
     java_command = ['java', '-Xmx30g', '-jar', jar_path, config_path]
@@ -75,16 +79,19 @@ def run_passive_learning_with_jar(jar_path, solution_set_path, output_directory)
     return basename
 
 
-def run_experiment(config, benchmark, jar_path, input_directory, output_directory, use_constraints):
+def run_experiment(config, benchmark, jar_path, input_directory, output_directory, use_constraints, use_count_cp):
     solution_set_path = os.path.join(input_directory, benchmark)
     experiment_name = os.path.normpath(os.path.basename(solution_set_path).replace('.json', ''))
 
-    if os.path.exists(f"./modules/benchmarks/{experiment_name}"):
-        print(f"Skipping {experiment_name} as it has already been run")
-    else:
-        experiment_name = run_passive_learning_with_jar(jar_path, solution_set_path, output_directory)
+    if use_count_cp:
 
-    experiment_path = "./modules/benchmarks/" + experiment_name
+        experiment_path = run_count_cp_and_get_results(experiment_name, output_directory, experiment_name, solution_set_path)
+    else:
+        if os.path.exists(f"./modules/benchmarks/{experiment_name}"):
+            print(f"Skipping {experiment_name} as it has already been run")
+        else:
+            experiment_name = run_passive_learning_with_jar(jar_path, solution_set_path, output_directory)
+            experiment_path = "./modules/benchmarks/" + experiment_name
 
     command = base_command.format(
         config["algo"],
@@ -136,7 +143,8 @@ if __name__ == "__main__":
     base_command = "python main.py -a {} -b {} -qg pqgen -exp {} -i {} --output {} --useCon {} --onlyActive {} --emptyCL {} --type {}"
 
     configs = [
-        {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": False, "emptyCL": True, "type": "pl_al_genacq"},# pl + al + genacq
+        {"algo": "mquacq2-a", "bench": "countcp", "onlyActive": False, "emptyCL": True, "type": "countcp_al_genacq"},# countcp + al + genacq
+        #{"algo": "mquacq2-a", "bench": "vgc", "onlyActive": False, "emptyCL": True, "type": "pl_al_genacq"},# pl + al + genacq
          #{"algo": "mquacq2-a", "bench": "custom", "onlyActive": False, "emptyCL": False, "type": "pl_al"},#pl + al
         # {"algo": "mquacq2-a", "bench": "custom", "onlyActive": True, "emptyCL": False, "type": "al"},# al
        # {"algo": "mquacq2-a", "bench": "genacq", "onlyActive": True, "emptyCL": False, "type": "genacq"}, #genacq
@@ -150,11 +158,11 @@ if __name__ == "__main__":
                 for config in configs:
                     futures.append(
                         executor.submit(run_experiment, config, benchmark, jar_path, input_directory, output_directory,
-                                        use_constraints))
+                                        use_constraints, args.use_count_cp))
 
             for future in as_completed(futures):
                 future.result()
     else:
         for benchmark in benchmarks:
             for config in configs:
-                run_experiment(config, benchmark, jar_path, input_directory, output_directory, use_constraints)
+                run_experiment(config, benchmark, jar_path, input_directory, output_directory, use_constraints, args.use_count_cp)
