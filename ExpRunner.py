@@ -5,6 +5,30 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
+def run_count_cp_and_get_results(exp, training_size, output, name, input_file):
+    # Set Count-CP directory
+    os.chdir("count-cp")
+
+    count_cp_command = [
+        'python', 'count-cp.py',
+        '-exp', exp,
+        '--training_size', ' '.join(map(str, training_size)),
+        '--output', output,
+        '--name', name,
+        '--input', input_file
+    ]
+    result = subprocess.run(count_cp_command, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"Error running count-cp with command: {' '.join(count_cp_command)}\n{result.stderr}")
+    else:
+        print(f"Successfully ran count-cp with command: {' '.join(count_cp_command)}\nOutput:\n{result.stdout}")
+    return result.stdout
+
+def run_experiment_with_count_cp(config, benchmark, exp, training_size, output, name, input_directory):
+    input_file = os.path.join(input_directory, benchmark)
+    result = run_count_cp_and_get_results(exp, training_size, output, name, input_file)
+    print("Count-CP results:", result)
+
 def run_jar_with_config(jar_path, config_path):
     java_command = ['java', '-Xmx30g', '-jar', jar_path, config_path]
     result = subprocess.run(java_command, capture_output=True, text=True)
@@ -84,6 +108,7 @@ def run_experiment(config, benchmark, jar_path, input_directory, output_director
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run experiments in parallel or serial mode")
     parser.add_argument("--parallel", action="store_true", help="Run experiments in parallel mode")
+    parser.add_argument("--use_count_cp", action="store_true", help="Use count-cp instead of the JAR")
     args = parser.parse_args()
 
     benchmarks = [

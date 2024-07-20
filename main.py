@@ -301,13 +301,29 @@ def verify_global_constraints(experiment, data_dir="data/exp", use_learned_model
 
     return grid, C_T, model, variables, biases, biasg, cls, total_global_constraints
 
+def simplify_partition_type(partition_description):
+    """
+    Simplify the partition description by keeping only the partition type.
 
+    Args:
+    partition_description (str): The partition description string.
+
+    Returns:
+    str: Simplified partition description string.
+    """
+    prefix = 'Partition('
+    if partition_description.startswith(prefix):
+        parts = partition_description[len(prefix):].split(',')
+        if len(parts) > 1:
+            return parts[1].strip(' )')
+    return partition_description
 def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
     biasg = []
     def read_constraints_file(filepath):
         with open(filepath, 'r') as file:
             lines = file.readlines()
         return lines
+
     def parse_constraints_by_partition(lines):
         constraints_by_partition = defaultdict(list)
         for line in lines:
@@ -316,11 +332,11 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
                 "constraint_type": int(parts[0]),
                 "var1_index": int(parts[1]),
                 "var2_index": int(parts[2]),
-                "partition_type": parts[3],
+                "partition_type": parts[3],  # Simplify partition type
                 "partition_number": parts[4],
                 "sequence": parts[5]
             }
-            partition_key = (constraint["partition_type"], constraint["partition_number"])
+            partition_key = constraint["partition_type"] + "_" + str(constraint["partition_number"])
             constraints_by_partition[partition_key].append(constraint)
         return constraints_by_partition
 
@@ -350,7 +366,8 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
         grid[1:i] = var
     constraints_lines = read_constraints_file(f"{data_dir}/{args.not_equal_constraints_file}")
     constraints_by_partition = parse_constraints_by_partition(constraints_lines)
-    print(constraints_by_partition)
+    for partition_key, constraints in constraints_by_partition.items():
+        print(partition_key)
     # append constraints_by_partition to biasg
     for partition_key, constraints in constraints_by_partition.items():
         temp_biasg = []
@@ -359,9 +376,9 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
             var2 = variables[constraint["var2_index"]]
             constraint_type = constraint["constraint_type"]
             if constraint_type == 1:
-                temp_biasg.append(var1 != var2)
-            else:
                 temp_biasg.append(var1 == var2)
+            else:
+                temp_biasg.append(var1 != var2)
         biasg.append(temp_biasg)
 
     if args.useCon:
@@ -378,7 +395,8 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
         else:
             biases = []
 
-
+    for b in biasg:
+        print(b)
 
     grid = cp.cpm_array(np.expand_dims(variables, 0))
 
@@ -641,15 +659,10 @@ if __name__ == "__main__":
         print("Size of C_l: ", len(C_l))
         print("Size of C_T: ", len(C_T))
         #C_l = [constraint for constraint in C_l if constraint not in biasg]
-        if args.onlyActive:
-            bias = []
-            C_l = []
-        else:
-            _bias = C_T - set(bias) - set(C_l)
-            bias.extend(_bias)
 
-        if args.emptyCL:
-            C_l = []
+        _bias = C_T - set(bias) - set(C_l)
+        bias.extend(_bias)
+        C_l = []
         print("-------------------")
         print("Size of bias: ", len(set(bias)))
         ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,

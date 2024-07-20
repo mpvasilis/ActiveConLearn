@@ -491,7 +491,7 @@ class ConAcq:
             self.genAcq(c)
         elif self.benchmark == "mineask":
             self.mine_and_ask(relation=get_relation(c, self.gamma), mine_strategy='modularity')
-        elif self.benchmark == "vgc":
+        elif self.benchmark == "vgc" or self.benchmark == "countcp":
             self.genAcqGlobal(c)
 
     def genAskGlobal(self, c, bl):
@@ -922,8 +922,8 @@ class ConAcq:
     # This is the version of the FindScope function that was presented in "Constraint acquisition through Partial Queries", AIJ 2023
     def findScope2(self, e, R, Y, kappaB):
 
-        if not frozenset(kappaB).issubset(self.B + toplevel_list(self.Bg)):
-            raise Exception(f"kappaB given in findscope is not part of B: \nkappaB: {kappaB}, \nB: {self.B}")
+        # if not frozenset(kappaB).issubset(self.B + toplevel_list(self.Bg)):
+        #     raise Exception(f"kappaB given in findscope is not part of B: \nkappaB: {kappaB}, \nB: {self.B}")
 
         # if ask(e_R) = yes: B \setminus K(e_R)
         # need to project 'e' down to vars in R,
