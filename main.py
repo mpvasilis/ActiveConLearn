@@ -659,8 +659,8 @@ if __name__ == "__main__":
         print("Size of C_T: ", len(C_T))
         #C_l = [constraint for constraint in C_l if constraint not in biasg]
 
-        _bias = C_T - set(bias) - set(C_l)
-        bias.extend(_bias)
+        #_bias = C_T - set(bias) - set(C_l)
+        #bias.extend(_bias)
         C_l = []
         print("-------------------")
         print("Size of bias: ", len(set(bias)))
