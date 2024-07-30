@@ -1,2 +1,3 @@
 CL,Tot_q,top_lvl_q,genacq_q,gen_q,fs_q,fc_q,avg|q|,avg_t,max_t,tot_t,conv,init_bias,init_cl,learned_global_cstrs,type
 817,6332,649,1509,610,5128,555,1.0,0.3244,8.3411,2053.8058,1,0,0,-,mineask
+815,6496,668,1678,629,5251,577,1.0,0.2913,8.3925,1892.417,1,0,0,-,mineask

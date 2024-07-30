@@ -659,8 +659,12 @@ if __name__ == "__main__":
         print("Size of C_T: ", len(C_T))
         #C_l = [constraint for constraint in C_l if constraint not in biasg]
 
-        #_bias = C_T - set(bias) - set(C_l)
-        #bias.extend(_bias)
+        _bias = C_T - set(bias) - set(C_l)
+        biasg_set = set(toplevel_list(biasg))
+        _bias = [b for b in _bias if b not in biasg_set]
+
+        bias.extend(_bias)
+        print(bias)
         C_l = []
         print("-------------------")
         print("Size of bias: ", len(set(bias)))
@@ -715,6 +719,7 @@ if __name__ == "__main__":
     #             constraint = relation.replace("var1", "v1")
     #             constraint = constraint.replace("var2", "v2")
     #             constraint = eval(constraint)
+    #             all_cons.append(constraint)
     #             all_cons.append(constraint)
     #
     # bias = all_cons

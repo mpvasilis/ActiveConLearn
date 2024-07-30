@@ -7,12 +7,27 @@ directory = "./results"
 # List to store dataframes
 dfs = []
 
+def read_first_and_last_row(filepath):
+    with open(filepath, 'r') as f:
+        lines = f.readlines()
+        if len(lines) > 1:
+            header = lines[0]
+            last_row = lines[-1]
+            combined = header + last_row
+            from io import StringIO
+            df = pd.read_csv(StringIO(combined))
+        else:
+            df = pd.read_csv(filepath)  # In case there's only one line
+    return df
+
+
 # Read each file in the directory
 for filename in os.listdir(directory):
     if not filename.endswith("constraints.txt") and not filename.endswith(".html"):
         try:
             filepath = os.path.join(directory, filename)
-            df = pd.read_csv(filepath)
+            df = read_first_and_last_row(filepath)
+            #df = pd.read_csv(filepath)
             problem_name = filename.split('_solution')[0]
             df.insert(0, 'benchmark', problem_name)
             dfs.append(df)
@@ -37,3 +52,5 @@ output_path = os.path.join(directory, "merged_results.html")
 final_df.to_html(output_path, index=False)
 output_path = os.path.join(directory, "merged_results.csv")
 final_df.to_csv(output_path, index=False)
+output_path_excel = os.path.join(directory, "merged_results.xlsx")
+final_df.to_excel(output_path_excel, index=False)
