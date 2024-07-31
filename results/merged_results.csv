@@ -16,7 +16,7 @@ examtt_advanced,6292,13,0.3069,4.5061,1931.1836,1319,0,16,pl_al_genacq
 examtt_advanced,7071,2839,0.568,13.4583,4016.6227,0,0,-,mineask
 examtt_advanced,8922,0,0.2988,5.1951,2665.8468,0,0,-,al
 examtt_simple,2853,0,0.292,2.0752,832.9482,1764,828,16,pl_al
-examtt_simple,6234,40,0.2719,2.1165,1695.1271,717,0,40,countcp_al_genacq
+examtt_simple,6234,40,0.2879,2.1081,1794.584,717,0,40,countcp_al_genacq
 examtt_simple,6745,13,0.3096,3.8026,2087.9801,1764,0,16,pl_al_genacq
 examtt_simple,7535,2809,0.5657,16.0182,4262.6851,0,0,-,mineask
 examtt_simple,9042,0,0.307,5.8536,2775.751,0,0,-,al
@@ -48,12 +48,13 @@ jsudoku,619,47,0.3372,6.8858,208.7091,1362,0,47,pl_al_genacq
 jsudoku,1526,751,0.4452,19.4575,679.3841,0,0,-,genacq
 jsudoku,6337,1408,0.2684,6.5607,1700.9536,0,0,-,mineask
 jsudoku,7676,0,0.1981,8.0049,1520.232,0,0,-,al
+murder_problem,27,4,0.0157,0.1306,0.4246,6,0,4,countcp_al_genacq
 murder_problem,44,0,0.2874,1.9153,12.6462,148,43,5,pl_al
 murder_problem,61,5,0.1496,2.4487,9.1236,148,0,5,pl_al_genacq
 murder_problem,319,8,0.161,2.0277,51.3662,0,0,-,mineask
 murder_problem,376,0,0.1524,2.6418,57.32,0,0,-,al
 nurse_rostering,37,0,0.065,1.1855,2.404,54,21,7,pl_al
-nurse_rostering,44,14,0.0186,0.134,0.8198,12,0,14,countcp_al_genacq
+nurse_rostering,44,14,0.0175,0.1273,0.7687,12,0,14,countcp_al_genacq
 nurse_rostering,59,7,0.062,0.822,3.6569,54,0,7,pl_al_genacq
 nurse_rostering,196,4,0.1422,1.7122,27.8756,0,0,-,mineask
 nurse_rostering,201,0,0.1587,2.8018,31.8896,0,0,-,al
