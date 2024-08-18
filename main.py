@@ -66,7 +66,7 @@ def parse_args():
                                  "golomb8", "murder", "job_shop_scheduling",
                                  "exam_timetabling", "exam_timetabling_simple", "exam_timetabling_adv",
                                  "exam_timetabling_advanced", "nurse_rostering", "nurse_rostering_simple",
-                                 "nurse_rostering_advanced", "nurse_rostering_adv", "custom", "vgc", "genacq", "mineask", "countcp"],
+                                 "nurse_rostering_advanced", "nurse_rostering_adv", "custom", "vgc", "genacq", "mineask", "countcp", "countcp_al", "countcp_only"],
                         help="The name of the benchmark to use")
 
     parser.add_argument("-exp", "--experiment", type=str, required=False,
@@ -412,7 +412,10 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
 
 def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None, fs=None, fc=None, bench=None, start_time=None, conacq=None, init_bias=None, init_cl=None, learned_global_cstrs=None):
 
-    if conacq is None: conacq = ca_system
+    try:
+        if conacq is None: conacq = ca_system
+    except:
+        pass
     if alg is None: alg = args.algorithm
     if qg is None: qg = args.query_generation
     if fs is None: fs = args.findscope
@@ -676,7 +679,37 @@ if __name__ == "__main__":
         save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints)
         exit()
 
+    if args.benchmark == "countcp_al": #count cp al
+        benchmark_name = args.experiment
+        path = args.input
+        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = count_cp(benchmark_name, path, False)
+        print("Size of bias: ", len(set(bias)))
+        print("Size of biasg: ",len(toplevel_list(biasg)), len(biasg))
+        print("Size of C_l: ", len(C_l))
+        print("Size of C_T: ", len(C_T))
+        #C_l = [constraint for constraint in C_l if constraint not in biasg]
 
+        _bias = C_T - set(bias) - set(C_l)
+        biasg_set = set(toplevel_list(biasg))
+
+        bias.extend(biasg_set)
+        print(bias)
+        print("-------------------")
+        print("Size of bias: ", len(set(bias)))
+        ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
+                            time_limit=args.time_limit, findscope_version=fs_version,
+                            findc_version=fc_version, X=X, B=bias, Bg=[], C_l=C_l, benchmark=args.benchmark)
+        ca_system.learn()
+
+        save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints)
+        exit()
+
+    if args.benchmark == "countcp_al":  # count cp al
+        benchmark_name = args.experiment
+        path = args.input
+        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = count_cp(benchmark_name, path, False)
+        save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints)
+        exit()
 
     if args.benchmark == "custom": #mquack2 custom problem
         benchmark_name = args.experiment
