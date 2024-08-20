@@ -120,18 +120,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     benchmarks = [
-         "4sudoku_solution.json",
-         "9sudoku_solution.json",
-         "examtt_advanced_solution.json",
-         "examtt_simple_solution.json",
+          "4sudoku_solution.json",
+          "9sudoku_solution.json",
+          "examtt_advanced_solution.json",
+          "examtt_simple_solution.json",
         "greaterThansudoku_9x9_16b_diverse.json",
-         "greaterThansudoku_9x9_8b_diverse.json",
-        "greaterThansudoku_9x9_8b_nodiverse.json",
-        "jsudoku_solution.json",
-         "murder_problem_solution.json",
-         "nurse_rostering_solution.json",
-         "sudoku_9x9_diverse.json",
-         "sudoku_9x9_nodiverse.json"
+          "greaterThansudoku_9x9_8b_diverse.json",
+         "greaterThansudoku_9x9_8b_nodiverse.json",
+         "jsudoku_solution.json",
+          "murder_problem_solution.json",
+          "nurse_rostering_solution.json",
+          "sudoku_9x9_diverse.json",
+          "sudoku_9x9_nodiverse.json"
     ]
 
     input_directory = "exps/instances/gts/"
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     base_command = "python main.py -a {} -b {} -qg pqgen -exp {} -i {} --output {} --useCon {} --onlyActive {} --emptyCL {} --type {}"
 
     configs = [
-        {"algo": "mquacq2-a", "bench": "countcp_only", "onlyActive": False, "emptyCL": False, "type": "countcp_only"}, # countcp only
+        # {"algo": "mquacq2-a", "bench": "countcp_only", "onlyActive": False, "emptyCL": False, "type": "countcp_only"}, # countcp only
          {"algo": "mquacq2-a", "bench": "countcp_al", "onlyActive": False, "emptyCL": False, "type": "countcp_al"},# countcp + al
         #{"algo": "mquacq2-a", "bench": "countcp", "onlyActive": False, "emptyCL": True, "type": "countcp_al_genacq"},# countcp + al + genacq
        #  {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": False, "emptyCL": True, "type": "pl_al_genacq"},# pl + al + genacq

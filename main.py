@@ -690,21 +690,18 @@ if __name__ == "__main__":
         #C_l = [constraint for constraint in C_l if constraint not in biasg]
 
         _bias = C_T - set(bias) - set(C_l)
-        biasg_set = set(toplevel_list(biasg))
-
-        bias.extend(biasg_set)
         print(bias)
         print("-------------------")
         print("Size of bias: ", len(set(bias)))
         ca_system = MQuAcq2(gamma, grid, C_T, qg="pqgen", obj=args.objective,
                             time_limit=args.time_limit, findscope_version=fs_version,
-                            findc_version=fc_version, X=X, B=bias, Bg=[], C_l=C_l, benchmark=args.benchmark)
+                            findc_version=fc_version, X=X, B=_bias, Bg=[], C_l=C_l, benchmark=args.benchmark)
         ca_system.learn()
 
         save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints)
         exit()
 
-    if args.benchmark == "countcp_al":  # count cp al
+    if args.benchmark == "countcp_only":  # count cp al
         benchmark_name = args.experiment
         path = args.input
         grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = count_cp(benchmark_name, path, False)
