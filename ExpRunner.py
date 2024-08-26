@@ -1,3 +1,4 @@
+import csv
 import os
 import shutil
 import subprocess
@@ -32,9 +33,31 @@ def run_count_cp_and_get_results(exp, output, name, input_file):
             print(f"Source _con file does not exist: {source_con_file}")
     return results_dir
 
+def calculate_constraint_percentage(model_file_path):
+    constraint_counts = {}
+    total_constraints = 0
+
+    with open(model_file_path, 'r') as file:
+        for line in file:
+            if line.strip():
+                constraint_type = line.split()[0]
+                constraint_counts[constraint_type] = constraint_counts.get(constraint_type, 0) + 1
+                total_constraints += 1
+
+    percentages = {k: (v / total_constraints) * 100 for k, v in constraint_counts.items()}
+    return percentages
+
+def write_percentages_to_csv(percentages, output_file):
+    with open(output_file, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['Constraint', 'Percentage'])
+        for constraint, percentage in percentages.items():
+            writer.writerow([constraint, percentage])
+    print(f"Percentages written to {output_file}")
+
 
 def run_jar_with_config(jar_path, config_path):
-    java_command = ['java', '-Xmx30g', '-jar', jar_path, config_path]
+    java_command = [r"C:\Program Files\Eclipse Adoptium\jdk-21.0.2.13-hotspot\bin\java.exe", '-Xmx30g', '-jar', jar_path, config_path]
     result = subprocess.run(java_command, capture_output=True, text=True)
     print(" ".join(['java', '-jar', jar_path, config_path]))
     if result.returncode != 0:
@@ -52,6 +75,8 @@ def generate_config_file(solution_set_path, output_directory):
         'activeLearning': True,
         'constraintsToCheck': [
             "allDifferent",
+            "count",
+            "sum",
             "arithm"
         ],
         'decreasingLearning': False,
@@ -76,6 +101,7 @@ def generate_config_file(solution_set_path, output_directory):
 def run_passive_learning_with_jar(jar_path, solution_set_path, output_directory):
     basename, config_path = generate_config_file(solution_set_path, output_directory)
     run_jar_with_config(jar_path, config_path)
+
     return basename
 
 
@@ -93,6 +119,14 @@ def run_experiment(config, benchmark, jar_path, input_directory, output_director
         else:
             experiment_name = run_passive_learning_with_jar(jar_path, solution_set_path, output_directory)
             experiment_path = "./modules/benchmarks/" + experiment_name
+        model_file_path = os.path.join("./modules/benchmarks/", experiment_name, f"{experiment_name}_model")
+        if os.path.exists(model_file_path):
+            percentages = calculate_constraint_percentage(model_file_path)
+            output_csv_path = os.path.join("./modules/benchmarks/", experiment_name,
+                                           f"{experiment_name}_percentages.csv")
+            write_percentages_to_csv(percentages, output_csv_path)
+        else:
+            print(f"Model file not found: {model_file_path}")
 
     command = base_command.format(
         config["algo"],
@@ -122,16 +156,16 @@ if __name__ == "__main__":
     benchmarks = [
           "4sudoku_solution.json",
           "9sudoku_solution.json",
-          "examtt_advanced_solution.json",
-          "examtt_simple_solution.json",
-        "greaterThansudoku_9x9_16b_diverse.json",
-          "greaterThansudoku_9x9_8b_diverse.json",
-         "greaterThansudoku_9x9_8b_nodiverse.json",
-         "jsudoku_solution.json",
-          "murder_problem_solution.json",
-          "nurse_rostering_solution.json",
-          "sudoku_9x9_diverse.json",
-          "sudoku_9x9_nodiverse.json"
+        #   "examtt_advanced_solution.json",
+        #   "examtt_simple_solution.json",
+        # "greaterThansudoku_9x9_16b_diverse.json",
+        #   "greaterThansudoku_9x9_8b_diverse.json",
+        #  "greaterThansudoku_9x9_8b_nodiverse.json",
+        #  "jsudoku_solution.json",
+        #   "murder_problem_solution.json",
+        #   "nurse_rostering_solution.json",
+        #   "sudoku_9x9_diverse.json",
+        #   "sudoku_9x9_nodiverse.json"
     ]
 
     input_directory = "exps/instances/gts/"
@@ -144,10 +178,10 @@ if __name__ == "__main__":
 
     configs = [
         # {"algo": "mquacq2-a", "bench": "countcp_only", "onlyActive": False, "emptyCL": False, "type": "countcp_only"}, # countcp only
-         {"algo": "mquacq2-a", "bench": "countcp_al", "onlyActive": False, "emptyCL": False, "type": "countcp_al"},# countcp + al
+        # {"algo": "mquacq2-a", "bench": "countcp_al", "onlyActive": False, "emptyCL": False, "type": "countcp_al"},# countcp + al
         #{"algo": "mquacq2-a", "bench": "countcp", "onlyActive": False, "emptyCL": True, "type": "countcp_al_genacq"},# countcp + al + genacq
        #  {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": False, "emptyCL": True, "type": "pl_al_genacq"},# pl + al + genacq
-       #   {"algo": "mquacq2-a", "bench": "custom", "onlyActive": False, "emptyCL": False, "type": "pl_al"},#pl + al
+         {"algo": "mquacq2-a", "bench": "custom", "onlyActive": False, "emptyCL": False, "type": "pl_al"},#pl + al
        #  {"algo": "mquacq2-a", "bench": "custom", "onlyActive": True, "emptyCL": False, "type": "al"},# al
        # {"algo": "mquacq2-a", "bench": "genacq", "onlyActive": True, "emptyCL": False, "type": "genacq"}, #genacq
        # {"algo": "mquacq2-a", "bench": "mineask", "onlyActive": True, "emptyCL": False, "type": "mineask"} #mineask
