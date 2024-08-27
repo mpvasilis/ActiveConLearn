@@ -128,23 +128,24 @@ def run_experiment(config, benchmark, jar_path, input_directory, output_director
         else:
             print(f"Model file not found: {model_file_path}")
 
-    command = base_command.format(
-        config["algo"],
-        config["bench"],
-        experiment_name,
-        experiment_path,
-        output_directory,
-        str(use_constraints),
-        str(config["onlyActive"]),
-        str(config["emptyCL"]),
-        str(config["type"])
-    )
-    print("Running command:", command)
-    result = subprocess.run(command, shell=True)
-    if result.returncode != 0:
-        print(f"Error running command: {command}\n{result.stderr}")
-    else:
-        print(f"Successfully ran command: {command}\nOutput:\n{result.stdout}")
+    if False:
+        command = base_command.format(
+            config["algo"],
+            config["bench"],
+            experiment_name,
+            experiment_path,
+            output_directory,
+            str(use_constraints),
+            str(config["onlyActive"]),
+            str(config["emptyCL"]),
+            str(config["type"])
+        )
+        print("Running command:", command)
+        result = subprocess.run(command, shell=True)
+        if result.returncode != 0:
+            print(f"Error running command: {command}\n{result.stderr}")
+        else:
+            print(f"Successfully ran command: {command}\nOutput:\n{result.stdout}")
 
 
 if __name__ == "__main__":
