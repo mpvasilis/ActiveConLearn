@@ -339,6 +339,9 @@ class ConAcq:
         return G
 
     def get_patterns(self):
+        rows= set()
+        columns = set()
+        blocks = set()
         if len(self.X) == 16:  # For 4x4 Sudoku
             rows = [set(self.X[j:j + 4]) for j in range(0, 16, 4)]
             columns = [set(self.X[j:16:4]) for j in range(4)]
