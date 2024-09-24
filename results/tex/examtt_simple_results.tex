@@ -1,15 +1,15 @@
 \begin{table}[ht]
 \caption{Results for examtt_simple}
-\begin{tabular}{lrrrrrlr}
+\begin{tabular}{lrrlrrrrr}
 \hline
- type              &   Tot\_q &   genacq\_q &    tot\_t &   init\_bias &   init\_cl & CL\_g   &   verified\_gc \\
+ Method            &   Bias\_i &   CL\_i & C\_L   &   Q\_total &   Q\_gen &   T\_learn &   Precision (\%) &   Recall (\%) \\
 \hline
- pl\_al             &    2853 &          0 &  832.948 &        1764 &       828 & 16     &             0 \\
- countcp\_al\_genacq &    6234 &         40 & 1794.58  &         717 &         0 & 40     &             0 \\
- countcp\_al        &    6282 &          0 & 1670.97  &           0 &         0 & -      &             0 \\
- pl\_al\_genacq      &    6745 &         13 & 2087.98  &        1764 &         0 & 16     &             0 \\
- mineask           &    7535 &       2809 & 4262.69  &           0 &         0 & -      &             0 \\
- al                &    9042 &          0 & 2775.75  &           0 &         0 & -      &             0 \\
+ countcp\_al        &        0 &      0 & -     &      6282 &       0 &    1.5055 &             100 &          100 \\
+ countcp\_al\_genacq &      717 &      0 & 40    &      6234 &      40 &    2.1081 &             100 &          100 \\
+ al                &        0 &      0 & -     &      9042 &       0 &    5.8536 &             100 &          100 \\
+ pl\_al             &     1764 &    828 & 16    &      2853 &       0 &    2.0752 &             100 &          100 \\
+ mineask           &        0 &      0 & -     &      7535 &    2809 &   16.0182 &             100 &          100 \\
+ pl\_al\_genacq      &     1764 &      0 & 16    &      6745 &      13 &    3.8026 &             100 &          100 \\
 \hline
 \end{tabular}
 \end{table}

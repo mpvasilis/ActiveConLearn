@@ -1,15 +1,16 @@
 \begin{table}[ht]
 \caption{Results for nurse_rostering}
-\begin{tabular}{lrrrrrlr}
+\begin{tabular}{lrrlrrrrr}
 \hline
- type              &   Tot\_q &   genacq\_q &   tot\_t &   init\_bias &   init\_cl & CL\_g   &   verified\_gc \\
+ Method            &   Bias\_i &   CL\_i & C\_L   &   Q\_total &   Q\_gen &   T\_learn &   Precision (\%) &   Recall (\%) \\
 \hline
- pl\_al             &      37 &          0 &  2.404  &          54 &        21 & 7      &             0 \\
- countcp\_al\_genacq &      44 &         14 &  0.7687 &          12 &         0 & 14     &             0 \\
- pl\_al\_genacq      &      59 &          7 &  3.6569 &          54 &         0 & 7      &             0 \\
- countcp\_al        &      84 &          0 &  2.1729 &           6 &         0 & 14     &             0 \\
- mineask           &     196 &          4 & 27.8756 &           0 &         0 & -      &             0 \\
- al                &     201 &          0 & 31.8896 &           0 &         0 & -      &             0 \\
+ countcp\_al        &        6 &      0 & 14    &        84 &       0 &    0.1118 &             100 &          100 \\
+ countcp\_al\_genacq &       12 &      0 & 14    &        44 &      14 &    0.1273 &             100 &          100 \\
+ al                &        0 &      0 & -     &       201 &       0 &    2.8018 &             100 &          100 \\
+ pl\_al             &       54 &     21 & 7     &        37 &       0 &    1.1855 &             100 &          100 \\
+ genacq            &        0 &      0 & -     &       202 &      12 &    1.3435 &             100 &          100 \\
+ mineask           &        0 &      0 & -     &       196 &       4 &    1.7122 &             100 &          100 \\
+ pl\_al\_genacq      &       54 &      0 & 7     &        59 &       7 &    0.822  &             100 &          100 \\
 \hline
 \end{tabular}
 \end{table}

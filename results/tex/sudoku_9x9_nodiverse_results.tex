@@ -1,16 +1,16 @@
 \begin{table}[ht]
 \caption{Results for sudoku_9x9_nodiverse}
-\begin{tabular}{lrrrrrlr}
+\begin{tabular}{lrrlrrrrr}
 \hline
- type              &   Tot\_q &   genacq\_q &     tot\_t &   init\_bias &   init\_cl & CL\_g   &   verified\_gc \\
+ Method            &   Bias\_i &   CL\_i & C\_L   &   Q\_total &   Q\_gen &   T\_learn &   Precision (\%) &   Recall (\%) \\
 \hline
- pl\_al             &      21 &          0 &   35.1354 &        3854 &       840 & 42     &             0 \\
- pl\_al\_genacq      &      30 &         42 &   69.6305 &        3854 &         0 & 42     &             0 \\
- genacq            &      91 &         36 &  223.5    &           0 &         0 & -      &             0 \\
- countcp\_al\_genacq &     820 &         18 &  146.962  &         162 &         0 & 18     &             0 \\
- countcp\_al        &    3270 &          0 &  685.18   &         648 &         0 & 18     &             0 \\
- mineask           &    6314 &        963 & 1545.13   &           0 &         0 & -      &             0 \\
- al                &    7594 &          0 & 1241.36   &           0 &         0 & -      &             0 \\
+ countcp\_al        &      648 &      0 & 18    &      3270 &       0 &    1.5044 &             nan &          nan \\
+ countcp\_al\_genacq &      162 &      0 & 18    &       820 &      18 &    1.4585 &             nan &          nan \\
+ al                &        0 &      0 & -     &      7594 &       0 &    5.1543 &             nan &          nan \\
+ pl\_al             &     3854 &    840 & 42    &        21 &       0 &    5.9291 &             nan &          nan \\
+ genacq            &        0 &      0 & -     &        91 &      36 &   21.8738 &             nan &          nan \\
+ mineask           &        0 &      0 & -     &      6314 &     963 &    5.3293 &             nan &          nan \\
+ pl\_al\_genacq      &     3854 &      0 & 42    &        30 &      42 &   26.4313 &             nan &          nan \\
 \hline
 \end{tabular}
 \end{table}

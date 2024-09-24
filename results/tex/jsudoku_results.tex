@@ -1,16 +1,16 @@
 \begin{table}[ht]
 \caption{Results for jsudoku}
-\begin{tabular}{lrrrrrlr}
+\begin{tabular}{lrrlrrrrr}
 \hline
- type              &   Tot\_q &   genacq\_q &     tot\_t &   init\_bias &   init\_cl & CL\_g   &   verified\_gc \\
+ Method            &   Bias\_i &   CL\_i & C\_L   &   Q\_total &   Q\_gen &   T\_learn &   Precision (\%) &   Recall (\%) \\
 \hline
- countcp\_al\_genacq &      99 &         18 &    5.3751 &          19 &         0 & 18     &            27 \\
- pl\_al             &     535 &          0 &  181.745  &        1362 &       770 & 47     &             0 \\
- pl\_al\_genacq      &     619 &         47 &  208.709  &        1362 &         0 & 47     &            27 \\
- genacq            &    1526 &        751 &  679.384  &           0 &         0 & -      &            27 \\
- countcp\_al        &    4055 &          0 &  896.173  &          19 &         0 & 18     &             0 \\
- mineask           &    6337 &       1408 & 1700.95   &           0 &         0 & -      &            27 \\
- al                &    7676 &          0 & 1520.23   &           0 &         0 & -      &             0 \\
+ countcp\_al        &       19 &      0 & 18    &      4055 &       0 &    1.3978 &             100 &          100 \\
+ countcp\_al\_genacq &       19 &      0 & 18    &        99 &      18 &    0.7129 &             100 &          100 \\
+ al                &        0 &      0 & -     &      7676 &       0 &    8.0049 &             100 &          100 \\
+ pl\_al             &     1362 &    770 & 47    &       535 &       0 &    8.3664 &             100 &           41 \\
+ genacq            &        0 &      0 & -     &      1526 &     751 &   19.4575 &             100 &          100 \\
+ mineask           &        0 &      0 & -     &      6337 &    1408 &    6.5607 &             100 &          100 \\
+ pl\_al\_genacq      &     1362 &      0 & 47    &       619 &      47 &    6.8858 &             100 &          100 \\
 \hline
 \end{tabular}
 \end{table}

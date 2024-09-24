@@ -1,15 +1,16 @@
 \begin{table}[ht]
 \caption{Results for murder_problem}
-\begin{tabular}{lrrrrrlr}
+\begin{tabular}{lrrlrrrrr}
 \hline
- type              &   Tot\_q &   genacq\_q &   tot\_t &   init\_bias &   init\_cl & CL\_g   &   verified\_gc \\
+ Method            &   Bias\_i &   CL\_i & C\_L   &   Q\_total &   Q\_gen &   T\_learn &   Precision (\%) &   Recall (\%) \\
 \hline
- countcp\_al\_genacq &      27 &          4 &  0.4246 &           6 &         0 & 4      &             0 \\
- pl\_al             &      44 &          0 & 12.6462 &         148 &        43 & 5      &             0 \\
- pl\_al\_genacq      &      61 &          5 &  9.1236 &         148 &         0 & 5      &             0 \\
- countcp\_al        &     153 &          0 &  4.7614 &           0 &         0 & -      &             0 \\
- mineask           &     319 &          8 & 51.3662 &           0 &         0 & -      &             0 \\
- al                &     376 &          0 & 57.32   &           0 &         0 & -      &             0 \\
+ countcp\_al        &        0 &      0 & -     &       153 &       0 &    0.1448 &             nan &          nan \\
+ countcp\_al\_genacq &        6 &      0 & 4     &        27 &       4 &    0.1306 &             nan &          nan \\
+ al                &        0 &      0 & -     &       376 &       0 &    2.6418 &             nan &          nan \\
+ pl\_al             &      148 &     43 & 5     &        44 &       0 &    1.9153 &             nan &          nan \\
+ genacq            &        0 &      0 & -     &        72 &      36 &    1.4066 &             nan &          nan \\
+ mineask           &        0 &      0 & -     &       319 &       8 &    2.0277 &             nan &          nan \\
+ pl\_al\_genacq      &      148 &      0 & 5     &        61 &       5 &    2.4487 &             nan &          nan \\
 \hline
 \end{tabular}
 \end{table}

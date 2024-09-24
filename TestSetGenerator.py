@@ -9,6 +9,7 @@ import cpmpy as cp
 from cpmpy import *
 from cpmpy.expressions.utils import all_pairs
 from cpmpy.transformations.normalize import toplevel_list
+from sympy import Or
 
 
 def ensure_directory(path):
@@ -32,6 +33,39 @@ def save_solution_to_json(grid, file_name, format_template):
     with open(file_path, 'w') as f:
         json.dump(data, f, indent=4)
 
+def save_constraints_readable(constraints, target_filename, grid_shape):
+    """
+    Save constraints in the format:
+    (var8) != (var9)
+    (var8) != (var10)
+    ...
+    where var8 and var9 are 1D indices converted from 2D grid indices.
+    """
+    ensure_directory("results")  # Directory for readable constraints
+    file_path = os.path.join("results", target_filename)
+
+    def convert_2d_to_1d(index, shape):
+        return index[0] * shape[1] + index[1]
+
+    def extract_indices(var_name):
+        match = re.search(r'\[(\d+),(\d+)\]', var_name)
+        if match:
+            return int(match.group(1)), int(match.group(2))
+        raise ValueError(f"Invalid variable name format: {var_name}")
+
+    with open(file_path, 'w') as f:
+        for constraint in constraints:
+            if constraint.name == "!=":
+                var1_name = constraint.args[0].name
+                var2_name = constraint.args[1].name
+                try:
+                    var1_idx = extract_indices(var1_name)
+                    var2_idx = extract_indices(var2_name)
+                    var1 = convert_2d_to_1d(var1_idx, grid_shape)
+                    var2 = convert_2d_to_1d(var2_idx, grid_shape)
+                    f.write(f"(var{var1}) != (var{var2})\n")
+                except ValueError:
+                    pass
 
 def save_constraints_to_txt(constraints, filename, grid_shape):
     ensure_directory("binary_cons")
@@ -65,27 +99,35 @@ def save_constraints_to_txt(constraints, filename, grid_shape):
 def generate_solutions(model_func, json_filename, txt_filename, max_solutions=100):
     grid, C_T, model, format_template = model_func()
     save_constraints_to_txt(C_T, txt_filename, grid.shape)
+    benchmark_name = os.path.splitext(json_filename)[0].replace('_solution', '')
+    target_filename = f"{benchmark_name}_target.txt"
+    save_constraints_readable(C_T, target_filename, grid.shape)
 
+    store = []  # List to store found solutions
     solutions_found = 0
     attempt = 0
     max_attempts = max_solutions * 10  # To prevent infinite loops
 
-    # Shuffle constraints to promote diversity
-    random.shuffle(model.constraints)
-
     while solutions_found < max_solutions and attempt < max_attempts:
+        if store:
+            # Calculate Hamming distance from all stored solutions
+            hamming_distance = sum([
+                sum([grid[idx] != sol[idx] for idx in np.ndindex(grid.shape)])
+                for sol in store
+            ])
+            # Set the objective to maximize the total Hamming distance
+            model.maximize(hamming_distance)
+
         if model.solve():
             solutions_found += 1
+            current_solution = grid.value().copy()
             print(f"Found solution {solutions_found} for {json_filename}")
             save_solution_to_json(grid, json_filename, format_template)
-            # Add constraint to exclude the current solution
-        else:
-            break
+            store.append(current_solution)
         attempt += 1
 
     if solutions_found < max_solutions:
         print(f"Only found {solutions_found} solutions for {json_filename}")
-
 
 def run_benchmarks_in_parallel():
     benchmarks = [
@@ -97,7 +139,9 @@ def run_benchmarks_in_parallel():
         (lambda: _construct_examtt_simple(), 'examtt_simple_solution.json', 'examtt_simple_solution.txt'),
         (lambda: _construct_examtt_advanced(), 'examtt_advanced_solution.json', 'examtt_advanced_solution.txt'),
         (_construct_jsudoku, 'jsudoku_solution.json', 'jsudoku_solution.txt'),
-        (_construct_murder_problem, 'murder_problem_solution.json', 'murder_problem_solution.txt')
+        (_construct_murder_problem, 'murder_problem_solution.json', 'murder_problem_solution.txt'),
+        (_construct_greaterThanSudoku, 'greaterThanSudoku_solution.json', 'greaterThanSudoku_solution.txt', True),
+
     ]
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -301,6 +345,48 @@ def _construct_jsudoku():
             [{"high": 9, "low": 1, "type": "dvar"} for _ in range(9)] for _ in range(9)
         ]
     }
+    return grid, C_T, model, format_template
+
+def _construct_greaterThanSudoku():
+    """
+    Constructs a Greater Than Sudoku where certain cells are constrained to be greater than their neighbors.
+    For simplicity, let's assume that some predefined cells must be greater than their adjacent cells.
+    """
+    grid = intvar(1, 9, shape=(9, 9), name="grid")
+    model = Model()
+
+    # Standard Sudoku constraints
+    for row in grid:
+        model += AllDifferent(row).decompose()
+    for col in grid.T:
+        model += AllDifferent(col).decompose()
+    for i in range(0, 9, 3):
+        for j in range(0, 9, 3):
+            model += AllDifferent(grid[i:i + 3, j:j + 3]).decompose()
+
+    # Additional Greater Than constraints
+    # Example: grid[0,0] > grid[0,1], grid[1,1] > grid[2,1], etc.
+    greater_than_pairs = [
+        ((0, 0), (0, 1)),
+        ((1, 1), (2, 1)),
+        ((3, 3), (3, 4)),
+        ((4, 4), (5, 4)),
+        ((6, 6), (6, 7)),
+        ((7, 7), (8, 7)),
+    ]
+
+    for (x1, y1), (x2, y2) in greater_than_pairs:
+        model += grid[x1, y1] > grid[x2, y2]
+
+    C = list(model.constraints)
+    C_T = set(toplevel_list(C))
+
+    format_template = {
+        "array": [
+            [{"high": 9, "low": 1, "type": "dvar"} for _ in range(9)] for _ in range(9)
+        ]
+    }
+
     return grid, C_T, model, format_template
 
 

@@ -1,16 +1,16 @@
 \begin{table}[ht]
 \caption{Results for 9sudoku}
-\begin{tabular}{lrrrrrlr}
+\begin{tabular}{lrrlrrrrr}
 \hline
- type              &   Tot\_q &   genacq\_q &     tot\_t &   init\_bias &   init\_cl & CL\_g   &   verified\_gc \\
+ Method            &   Bias\_i &   CL\_i & C\_L   &   Q\_total &   Q\_gen &   T\_learn &   Precision (\%) &   Recall (\%) \\
 \hline
- pl\_al             &      17 &          0 &   21.4189 &         954 &       824 & 34     &             0 \\
- pl\_al\_genacq      &      26 &         34 &   33.6621 &         954 &         0 & 34     &            27 \\
- countcp\_al\_genacq &      46 &         28 &    4.1423 &           3 &         0 & 28     &            27 \\
- genacq            &     101 &         36 &  260.369  &           0 &         0 & -      &            27 \\
- countcp\_al        &    4060 &          0 &  892.739  &           3 &         0 & 28     &             0 \\
- mineask           &    6172 &       1234 & 1941.7    &           0 &         0 & -      &            27 \\
- al                &    7643 &          0 & 1567.12   &           0 &         0 & -      &             0 \\
+ countcp\_al        &        3 &      0 & 28    &      4060 &       0 &    1.3645 &             100 &          100 \\
+ countcp\_al\_genacq &        3 &      0 & 28    &        46 &      28 &    0.7888 &             100 &          100 \\
+ al                &        0 &      0 & -     &      7643 &       0 &    5.4047 &             100 &          100 \\
+ pl\_al             &      954 &    824 & 34    &        16 &       0 &    1.3543 &             100 &           37 \\
+ genacq            &        0 &      0 & -     &       101 &      36 &   47.6003 &             100 &          100 \\
+ mineask           &        0 &      0 & -     &      6172 &    1234 &    6.9725 &             100 &          100 \\
+ pl\_al\_genacq      &      954 &      0 & 34    &        26 &      34 &    8.3284 &             100 &          100 \\
 \hline
 \end{tabular}
 \end{table}

@@ -9,6 +9,8 @@ import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from cpmpy import *
 from cpmpy import intvar
+from sympy import Or
+
 
 # --- Verification Functions ---
 
@@ -161,94 +163,142 @@ def extract_solution_variables(solution_array):
         solution_dict[f"var{idx}"] = value
     return solution_dict
 
-def verify_constraints(constraints_file, json_solution_path, verification_output_path):
+
+def verify_constraints(constraints_file_target, json_solutions_learned, constraints_file_learned,
+                       verification_output_path):
     """
-    Verifies all solutions in the JSON file against the constraints defined in the model file.
+    Verifies all solutions in the learned JSON file against the target constraints (Precision)
+    and samples solutions from the target model to verify against the learned constraints (Recall).
 
     Args:
-        constraints_file (str): Path to the constraints file.
-        json_solution_path (str): Path to the JSON solutions file.
+        constraints_file_target (str): Path to the target constraints file.
+        json_solutions_learned (str): Path to the learned model's JSON solutions file.
+        constraints_file_learned (str): Path to the learned constraints file.
         verification_output_path (str): Path to save the verification results.
 
     Returns:
         None
     """
-    # Step 1: Parse Constraints
+    # --- Precision Calculation ---
+
+    # Step 1: Parse Target Constraints
     try:
-        constraints = parse_constraints(constraints_file)
-        print(f"Parsed {len(constraints)} constraints from {constraints_file}")
+        constraints_target = parse_constraints(constraints_file_target)
+        print(f"Parsed {len(constraints_target)} constraints from {constraints_file_target}")
     except Exception as e:
-        print(f"Failed to parse constraints from {constraints_file}: {e}")
+        print(f"Failed to parse target constraints from {constraints_file_target}: {e}")
         return
 
-    # Step 2: Read JSON Solutions
+    # Step 2: Read Learned Solutions
     try:
-        format_template, solutions = read_json_solutions(json_solution_path)
-        print(f"Loaded {len(solutions)} solutions from {json_solution_path}")
+        format_template_learned, solutions_learned = read_json_solutions(json_solutions_learned)
+        print(f"Loaded {len(solutions_learned)} learned solutions from {json_solutions_learned}")
     except Exception as e:
-        print(f"Failed to read solutions from {json_solution_path}: {e}")
+        print(f"Failed to read learned solutions from {json_solutions_learned}: {e}")
         return
 
-    if not solutions:
-        print("No solutions to verify.")
+    if not solutions_learned:
+        print("No learned solutions to verify.")
         return
 
-    # Step 3: Map Variables
+    # Step 3: Map Variables for Target Model
     try:
-        variable_mapping, variable_domains, grid_shape = map_variables(format_template)
-        print(f"Variable mapping complete. Grid shape: {grid_shape}")
+        variable_mapping_target, variable_domains_target, grid_shape_target = map_variables(format_template_learned)
+        print(f"Target variable mapping complete. Grid shape: {grid_shape_target}")
     except Exception as e:
-        print(f"Failed to map variables: {e}")
+        print(f"Failed to map target model variables: {e}")
         return
 
-    # Step 4: Create CPMpy Model
+    # Step 4: Create CPMpy Model for Target Constraints
     try:
-        model, variables = create_cpmpy_model(variable_domains, constraints)
-        print("CPMpy model created.")
+        model_target, variables_target = create_cpmpy_model(variable_domains_target, constraints_target)
+        print("Target CPMpy model created.")
     except Exception as e:
-        print(f"Failed to create CPMpy model: {e}")
+        print(f"Failed to create target CPMpy model: {e}")
         return
 
-    # Step 5: Verify Solutions
-    verification_results = []
-    for idx, sol in enumerate(solutions, 1):
+    # Step 5: Verify Solutions for Precision
+    verification_results_precision = []
+    for idx, sol in enumerate(solutions_learned, 1):
         try:
             solution_array = sol.get("array", [])
             solution_dict = extract_solution_variables(solution_array)
-            is_valid = verify_solution(model, variables, solution_dict)
-            verification_results.append({"solution_index": idx, "is_valid": is_valid})
+            is_valid = verify_solution(model_target, variables_target, solution_dict)
+            verification_results_precision.append({"solution_index": idx, "is_valid": is_valid})
             status = "Valid" if is_valid else "Invalid"
-            print(f"Solution {idx}: {status}")
+            print(f"Solution {idx} (Precision): {status}")
         except Exception as e:
-            print(f"Failed to verify solution {idx}: {e}")
-            verification_results.append({"solution_index": idx, "is_valid": False, "error": str(e)})
+            print(f"Failed to verify solution {idx} (Precision): {e}")
+            verification_results_precision.append({"solution_index": idx, "is_valid": False, "error": str(e)})
 
-    # Step 6: Save Verification Results
+    # Calculate Precision Metrics
+    total_learned = len(verification_results_precision)
+    valid_learned = sum(1 for result in verification_results_precision if result["is_valid"])
+    precision = (valid_learned / total_learned) * 100 if total_learned > 0 else 0
+    print(f"Precision: {precision:.2f}% ({valid_learned}/{total_learned})")
+
+    # --- Recall Calculation ---
+
+    # Step 6: Parse Learned Constraints
     try:
-        # Option 1: Save as JSON (Original Behavior)
-        # with open(verification_output_path, 'w') as f:
-        #     json.dump({"verification_results": verification_results}, f, indent=4)
-        # print(f"Verification results saved to {verification_output_path}")
+        constraints_learned = parse_constraints(constraints_file_learned)
+        print(f"Parsed {len(constraints_learned)} constraints from {constraints_file_learned}")
+    except Exception as e:
+        print(f"Failed to parse learned constraints from {constraints_file_learned}: {e}")
+        return
 
-        # Option 2: Save as Text with Accuracy and Recall Metrics
-        # Here, we'll calculate accuracy and recall based on the verification results.
-        # For demonstration, we'll assume that 'is_valid' indicates correctness.
-        # Adjust these calculations based on your actual ground truth data.
+    # Step 7: Create CPMpy Model for Learned Constraints
+    try:
+        model_learned, variables_learned = create_cpmpy_model(variable_domains_target, constraints_learned)
+        print("Learned CPMpy model created.")
+    except Exception as e:
+        print(f"Failed to create learned CPMpy model: {e}")
+        return
 
-        # Calculate Metrics
-        total = len(verification_results)
-        valid = sum(1 for result in verification_results if result["is_valid"])
-        invalid = total - valid
-        accuracy = (valid / total) * 100 if total > 0 else 0
+    # Step 8: Generate 100 Solutions from Target Model (Recall)
+    target_solutions_generated = []
+    try:
+        while len(target_solutions_generated) < 100:
+            found = model_target.solve()
+            if not found:
+                print("No more solutions found in target model for Recall.")
+                break
+            # Extract variable assignments
+            solution_dict = {var: variables_target[var].value() for var in variables_target}
+            target_solutions_generated.append(solution_dict)
+            print(f"Solution {len(target_solutions_generated)}: {solution_dict}")
+        print(f"Generated {len(target_solutions_generated)} solutions from target model for Recall.")
+    except Exception as e:
+        print(f"Error during solution generation for Recall: {e}")
 
-        # Assuming Recall is the same as Accuracy in this context
-        recall = accuracy  # Modify as needed based on your definitions
+    # Step 9: Verify Generated Target Solutions against Learned Constraints (Recall)
+    verification_results_recall = []
+    for idx, sol in enumerate(target_solutions_generated, 1):
+        try:
+            is_valid = verify_solution(model_learned, variables_learned, sol)
+            verification_results_recall.append({"solution_index": idx, "is_valid": is_valid})
+            status = "Valid" if is_valid else "Invalid"
+            print(f"Solution {idx} (Recall): {status}")
+        except Exception as e:
+            print(f"Failed to verify solution {idx} (Recall): {e}")
+            verification_results_recall.append({"solution_index": idx, "is_valid": False, "error": str(e)})
 
+    # Calculate Recall Metrics
+    total_target = len(verification_results_recall)
+    valid_target = sum(1 for result in verification_results_recall if result["is_valid"])
+    recall = (valid_target / total_target) * 100 if total_target > 0 else 0
+    print(f"Recall: {recall:.2f}% ({valid_target}/{total_target})")
+
+    # --- Save Verification Results ---
+    try:
         with open(verification_output_path, 'w') as f:
-            f.write(f"Total Solutions: {total}\n")
-            f.write(f"Valid Solutions: {valid}\n")
-            f.write(f"Invalid Solutions: {invalid}\n")
-            f.write(f"Accuracy: {accuracy:.2f}%\n")
+            f.write(f"Precision:\n")
+            f.write(f"Total Learned Solutions: {total_learned}\n")
+            f.write(f"Valid Learned Solutions: {valid_learned}\n")
+            f.write(f"Accuracy (Precision): {precision:.2f}%\n\n")
+            f.write(f"Recall:\n")
+            f.write(f"Total Target Solutions: {total_target}\n")
+            f.write(f"Valid Target Solutions: {valid_target}\n")
             f.write(f"Recall: {recall:.2f}%\n")
         print(f"Verification metrics saved to {verification_output_path}")
     except Exception as e:
@@ -492,7 +542,10 @@ def run_experiment(config, benchmark, jar_path, input_directory, output_director
                     f"{base_constraints_name}_accuracy_recall.txt"
                 )
 
-                verify_constraints(constraints_file, json_solution_file, verification_output_file)
+                target = benchmark.replace('_solution.json', '_target.txt')
+                target = os.path.join("results", target)
+                print(target)
+                verify_constraints(target, json_solution_file,constraints_file, verification_output_file)
         else:
             print(
                 f"Constraints or solutions file missing for {experiment_name}. Constraints found: {constraints_files}, Solutions: {json_solution_file}")
@@ -516,6 +569,122 @@ def run_experiment(config, benchmark, jar_path, input_directory, output_director
     # else:
     #     print(f"Successfully ran command: {command}\nOutput:\n{result.stdout}")
 
+
+def merge_verification_results(results_directory, merged_output_file):
+
+    merged_data = []
+
+    # Regular expressions to match the lines
+    total_learned_re = re.compile(r'Total Learned Solutions:\s*(\d+)')
+    valid_learned_re = re.compile(r'Valid Learned Solutions:\s*(\d+)')
+    precision_re = re.compile(r'Accuracy \(Precision\):\s*([\d\.]+)%')
+
+    total_target_re = re.compile(r'Total Target Solutions:\s*(\d+)')
+    valid_target_re = re.compile(r'Valid Target Solutions:\s*(\d+)')
+    recall_re = re.compile(r'Recall:\s*([\d\.]+)%')
+
+    # Traverse the results directory
+    for root, dirs, files in os.walk(results_directory):
+        for file in files:
+            if file.endswith("_recall.txt"):
+                file_path = os.path.join(root, file)
+
+                # Extract Benchmark and Constraints Detail from filename
+                base_name = file[:-len("_recall.txt")]
+                if '_constraints_' in base_name:
+                    parts = base_name.split('_constraints_', 1)
+                    benchmark_name = parts[0]
+                    constraints_detail = parts[1]
+                else:
+                    benchmark_name = base_name
+                    constraints_detail = "N/A"
+
+                # Initialize variables to store extracted metrics
+                total_learned = valid_learned = precision = 0.0
+                total_target = valid_target = recall = 0.0
+
+                # Read and parse the verification file
+                try:
+                    with open(file_path, 'r') as f:
+                        for line in f:
+                            line = line.strip()
+                            print(f"Reading line: {line}")  # Debug: Print the line being read
+
+                            # Match Total Learned Solutions
+                            match = total_learned_re.match(line)
+                            if match:
+                                total_learned = int(match.group(1))
+                                continue
+
+                            # Match Valid Learned Solutions
+                            match = valid_learned_re.match(line)
+                            if match:
+                                valid_learned = int(match.group(1))
+                                continue
+
+                            # Match Accuracy (Precision)
+                            match = precision_re.match(line)
+                            if match:
+                                precision = float(match.group(1))
+                                continue
+
+                            # Match Total Target Solutions
+                            match = total_target_re.match(line)
+                            if match:
+                                total_target = int(match.group(1))
+                                continue
+
+                            # Match Valid Target Solutions
+                            match = valid_target_re.match(line)
+                            if match:
+                                valid_target = int(match.group(1))
+                                continue
+
+                            # Match Recall
+                            match = recall_re.match(line)
+                            if match:
+                                recall = float(match.group(1))
+                                continue
+
+                    # Append the extracted data to merged_data if any metrics were captured
+                    if total_learned > 0 or total_target > 0:
+                        merged_data.append({
+                            "Benchmark": benchmark_name,
+                            "Constraints_Detail": constraints_detail,
+                            "Total_Learned_Solutions": total_learned,
+                            "Valid_Learned_Solutions": valid_learned,
+                            "Precision (%)": f"{precision:.2f}",
+                            "Total_Target_Solutions": total_target,
+                            "Valid_Target_Solutions": valid_target,
+                            "Recall (%)": f"{recall:.2f}"
+                        })
+                        print(f"Parsed verification results from {file_path}")  # Debug: File parsed successfully
+                    else:
+                        print(f"No valid metrics found in {file_path}")  # Debug: No metrics found
+
+                except Exception as e:
+                    print(f"Failed to parse {file_path}: {e}")
+
+    # Write merged data to CSV
+    try:
+        with open(merged_output_file, 'w', newline='') as csvfile:
+            fieldnames = [
+                "Benchmark",
+                "Constraints_Detail",
+                "Total_Learned_Solutions",
+                "Valid_Learned_Solutions",
+                "Precision (%)",
+                "Total_Target_Solutions",
+                "Valid_Target_Solutions",
+                "Recall (%)"
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for data in merged_data:
+                writer.writerow(data)
+        print(f"Merged verification results saved to {merged_output_file}")
+    except Exception as e:
+        print(f"Failed to write merged results to {merged_output_file}: {e}")
 # --- Main Execution ---
 
 if __name__ == "__main__":
@@ -527,23 +696,29 @@ if __name__ == "__main__":
 
     benchmarks = [
         "4sudoku_solution.json",
-        # "9sudoku_solution.json",
-        # "examtt_advanced_solution.json",
-        # "examtt_simple_solution.json",
-        # "greaterThansudoku_9x9_16b_diverse.json",
-        # "greaterThansudoku_9x9_24b_diverse.json",
-        # "greaterThansudoku_9x9_8b_diverse.json",
-        # "greaterThansudoku_9x9_8b_nodiverse.json",
-        # "jsudoku_solution.json",
-        # "murder_problem_solution.json",
-        # "nurse_rostering_solution.json",
-        # "sudoku_9x9_diverse.json",
-        # "sudoku_9x9_nodiverse.json"
+        "9sudoku_solution.json",
+        "examtt_advanced_solution.json",
+        "examtt_simple_solution.json",
+        "greaterThansudoku_9x9_16b_diverse.json",
+        "greaterThansudoku_9x9_24b_diverse.json",
+        "greaterThansudoku_9x9_8b_diverse.json",
+        "greaterThansudoku_9x9_8b_nodiverse.json",
+        "jsudoku_solution.json",
+        "murder_problem_solution.json",
+        "nurse_rostering_solution.json",
+        "sudoku_9x9_diverse.json",
+        "sudoku_9x9_nodiverse.json"
     ]
 
     input_directory = "exps/instances/gts/"
-    output_directory = "C:/Users/Balafas/PycharmProjects/ActiveConLearn/results"  # Updated to absolute path
+    output_directory = "results"  # Updated to absolute path
     use_constraints = True
+
+
+    merged_output_file = os.path.join(output_directory, "merged_accuracy_recall.csv")
+    merge_verification_results(output_directory, merged_output_file)
+    exit()
+
 
     jar_path = './phD.jar'
 
@@ -580,3 +755,9 @@ if __name__ == "__main__":
                     run_experiment(config, benchmark, jar_path, input_directory, output_directory, use_constraints, args.use_count_cp, args.testsets_directory)
                 except Exception as e:
                     print(f"Experiment {benchmark} with config {config} failed with exception: {e}")
+
+    merged_output_file = os.path.join(output_directory, "merged_accuracy_recall.csv")
+    merge_verification_results(output_directory, merged_output_file)
+
+    # exit()
+

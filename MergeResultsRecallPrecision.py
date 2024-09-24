@@ -5,7 +5,9 @@ from tabulate import tabulate
 # Directory containing the CSV files
 directory = "./results"
 directory_tex = "./results/tex"
+accuracy_file = "results/merged_accuracy_recall.csv"  # Path to the new accuracy file
 
+# Ensure output directory exists
 if not os.path.exists(directory_tex):
     os.makedirs(directory_tex)
 else:
@@ -22,13 +24,11 @@ else:
 # List to store dataframes
 dfs = []
 
-
 def shorten_problem_name(name):
     parts = name.split('_')
     if len(parts) > 3:
         return '_'.join(parts[:3])
     return name
-
 
 def read_first_and_last_row(filepath):
     with open(filepath, 'r') as f:
@@ -40,18 +40,17 @@ def read_first_and_last_row(filepath):
             from io import StringIO
             df = pd.read_csv(StringIO(combined))
         else:
-            df = pd.read_csv(filepath)  # In case there's only one line
+            df = pd.read_csv(filepath)
     return df
-
 
 # Read each file in the directory
 for filename in os.listdir(directory):
-    if not filename.endswith("constraints.txt") and not filename.endswith(".html"):
+    if not filename.endswith("constraints.txt") and not filename.endswith("target.txt")  and not filename.endswith("recall.txt") and not filename.endswith(".csv") and not filename.endswith(".html"):
         try:
             filepath = os.path.join(directory, filename)
             df = read_first_and_last_row(filepath)
             problem_name = filename.split('_solution')[0]
-            problem_name = shorten_problem_name(problem_name)  # Shorten the problem name
+            problem_name = shorten_problem_name(problem_name)
             df.insert(0, 'benchmark', problem_name)
             dfs.append(df)
         except Exception as e:
@@ -71,64 +70,65 @@ final_df = final_df.rename(columns={
     'max_t': 'T_learn'
 })
 
-# Add the new column 'verified_global_constraints'
-final_df['verified_gc'] = 0
-
-# Set the number of global constraints based on the problem name
-for idx, row in final_df.iterrows():
-    if row['benchmark'] == '4sudoku':
-        final_df.at[idx, 'verified_gc'] = 12
-    elif row['benchmark'] in ['9sudoku', 'greaterThansudoku', 'jsudoku', 'sudoku_9x9']:
-        final_df.at[idx, 'verified_gc'] = 27
-    elif 'nurse' in row['benchmark']:
-        final_df.at[idx, 'verified_gc'] = 13
-    elif 'exam' in row['benchmark']:
-        final_df.at[idx, 'verified_gc'] = 10
-    elif 'murder' in row['benchmark']:
-        final_df.at[idx, 'verified_gc'] = 9
-
-
-# Calculate Precision and Recall
-def calculate_precision_recall(learned, verified):
-    # Precision: Proportion of learned model solutions satisfying target model
-    if isinstance(learned, (int, float)) and learned > 0:
-        precision = (verified / learned) * 100.0 if learned > 0 else 0
-    else:
-        precision = 0
-
-    # Recall: Proportion of target model solutions satisfying learned model
-    if isinstance(verified, (int, float)) and verified > 0:
-        recall = (verified / verified) * 100.0  # Assuming verified equals target (perfect recall in this case)
-    else:
-        recall = 0
-
-    return round(precision, 2), round(recall, 2)
-
-
-# Apply Precision and Recall calculations
-final_df['P_CL'], final_df['R_CL'] = zip(*final_df.apply(
-    lambda row: (100.0, 100.0)  # Set both Precision and Recall to 100% for specific methods
-    if row['type'] in ['countcp_al_genacq', 'pl_al_genacq', 'al', 'mineask', 'genacq']
-    else calculate_precision_recall(row['C_L'], row['verified_gc']),
-    axis=1
-))
 
 final_df = final_df.rename(columns={'type': 'Method'})
+
+
+def extract_method(constraint_detail):
+    """
+    Extracts the method name from the Constraints_Detail string.
+    Example:
+        '4sudoku_solution_countcp_al_countcp_al_accuracy' -> 'countcp_al'
+    """
+    if isinstance(constraint_detail, str):
+        if '_solution_' in constraint_detail and constraint_detail.endswith('_accuracy'):
+            try:
+                # Remove '_accuracy' suffix
+                method_part = constraint_detail.replace('_accuracy', '')
+                # Split by '_solution_' and take the second part
+                method_part = method_part.split('_solution_')[1]
+                # Split into parts
+                parts = method_part.split('_')
+                # Check for duplication (e.g., 'countcp_al_countcp_al')
+                mid = len(parts) // 2
+                if len(parts) % 2 == 0 and parts[:mid] == parts[mid:]:
+                    return '_'.join(parts[:mid])
+                if method_part == 'countcp_countcp_al_genacq':
+                    method_part = 'countcp_al_genacq'
+                if method_part == 'vgc_pl_al_genacq':
+                    method_part = 'pl_al_genacq'
+                method_part = method_part.replace('custom_', '')
+                method_part = method_part.replace('vgc_', '')
+
+                return method_part
+            except (IndexError, ValueError):
+                # In case the expected pattern is not found
+                return 'Unknown_Method_Pattern'
+    # Return 'Unknown' for non-string or unmatched patterns
+    return 'Unknown'
+accuracy_df = pd.read_csv(accuracy_file)
+accuracy_df['benchmark'] = accuracy_df['Benchmark'].str.split('_solution').str[0]
+accuracy_df['Method'] = accuracy_df['Benchmark'].apply(extract_method)
+accuracy_df['benchmark'] = accuracy_df['benchmark'].apply(shorten_problem_name)
+accuracy_df = accuracy_df.drop(columns=['Benchmark', 'Constraints_Detail'])
+final_df['benchmark'] = final_df['benchmark'].apply(shorten_problem_name)
+accuracy_df['benchmark'] = accuracy_df['benchmark'].apply(shorten_problem_name)
+final_df = final_df.merge(
+    accuracy_df[['benchmark', 'Method', 'Precision (%)', 'Recall (%)']],
+    on=['benchmark', 'Method'],
+    how='left'
+)
 
 # Save the DataFrame as HTML
 final_df.to_html(os.path.join(directory, "merged_results.html"))
 
 # Select only the columns that are needed for the LaTeX table
-final_df = final_df[['benchmark', 'Method', 'Bias_i', 'CL_i', 'C_L', 'Q_total', 'Q_gen', 'T_learn', 'P_CL', 'R_CL']]
+final_df = final_df[['benchmark', 'Method', 'Bias_i', 'CL_i', 'C_L', 'Q_total', 'Q_gen', 'T_learn', 'Precision (%)', 'Recall (%)']]
 
 # Create a separate LaTeX table for each unique problem name (benchmark)
 for problem_name in final_df['benchmark'].unique():
     problem_df = final_df[final_df['benchmark'] == problem_name].copy()
-
-    # Remove the benchmark column
     problem_df = problem_df.drop(columns=['benchmark'])
-
-    # Ensure 'Method' is the first column
     cols = problem_df.columns.tolist()
     cols.insert(0, cols.pop(cols.index('Method')))
     problem_df = problem_df[cols]

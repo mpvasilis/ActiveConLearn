@@ -1,14 +1,14 @@
 \begin{table}[ht]
 \caption{Results for greaterThansudoku_9x9_24b}
-\begin{tabular}{lrrrrrlr}
+\begin{tabular}{lrrlrrrrr}
 \hline
- type         &   Tot\_q &   genacq\_q &     tot\_t &   init\_bias &   init\_cl & CL\_g   &   verified\_gc \\
+ Method       &   Bias\_i &   CL\_i & C\_L   &   Q\_total &   Q\_gen &   T\_learn &   Precision (\%) &   Recall (\%) \\
 \hline
- pl\_al        &      94 &          0 &    4.6297 &          31 &       810 & 27     &             0 \\
- genacq       &     424 &        141 &  435.948  &           0 &         0 & -      &             0 \\
- pl\_al\_genacq &    3041 &          5 &  724.218  &          31 &         0 & 27     &             0 \\
- mineask      &    6414 &       1237 & 1995.2    &           0 &         0 & -      &             0 \\
- al           &    7605 &          0 & 1572.34   &           0 &         0 & -      &             0 \\
+ al           &        0 &      0 & -     &      7605 &       0 &    6.8844 &             nan &          nan \\
+ pl\_al        &       31 &    810 & 27    &        94 &       0 &    0.4063 &             nan &          nan \\
+ genacq       &        0 &      0 & -     &       424 &     141 &   26.961  &             nan &          nan \\
+ mineask      &        0 &      0 & -     &      6414 &    1237 &    7.7986 &             nan &          nan \\
+ pl\_al\_genacq &       31 &      0 & 27    &      3041 &       5 &    2.3407 &             nan &          nan \\
 \hline
 \end{tabular}
 \end{table}
