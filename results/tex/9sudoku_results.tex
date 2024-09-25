@@ -1,16 +1,16 @@
 \begin{table}[ht]
 \caption{Results for 9sudoku}
-\begin{tabular}{lrrlrrrrr}
+\begin{tabular}{lrrrrrrrrr}
 \hline
- Method            &   Bias\_i &   CL\_i & C\_L   &   Q\_total &   Q\_gen &   T\_learn &   Precision (\%) &   Recall (\%) \\
+ \textbackslash{}texttt\{Method\}   &   \textbackslash{}texttt\{B\_i\} &   \textbackslash{}texttt\{CL\_i\} &   \textbackslash{}texttt\{C\_L\} &   \textbackslash{}texttt\{Q\_total\} &   \textbackslash{}texttt\{Q\_gen\} &   \textbackslash{}texttt\{T\_learn\} &   \textbackslash{}texttt\{Precision (\%)\} &   \textbackslash{}texttt\{Recall (\%)\} &   \textbackslash{}texttt\{V\_GC\} \\
 \hline
- countcp\_al        &        3 &      0 & 28    &      4060 &       0 &    1.3645 &             100 &          100 \\
- countcp\_al\_genacq &        3 &      0 & 28    &        46 &      28 &    0.7888 &             100 &          100 \\
- al                &        0 &      0 & -     &      7643 &       0 &    5.4047 &             100 &          100 \\
- pl\_al             &      954 &    824 & 34    &        16 &       0 &    1.3543 &             100 &           37 \\
- genacq            &        0 &      0 & -     &       101 &      36 &   47.6003 &             100 &          100 \\
- mineask           &        0 &      0 & -     &      6172 &    1234 &    6.9725 &             100 &          100 \\
- pl\_al\_genacq      &      954 &      0 & 34    &        26 &      34 &    8.3284 &             100 &          100 \\
+ COUNTCP+AL        &              3 &               0 &             28 &               4060 &                0 &             1.3645 &                      100 &                   100 &          nan    \\
+ COUNTCP+AL+GQs    &              3 &               0 &             28 &                 46 &               28 &             0.7888 &                      100 &                   100 &           96.43 \\
+ AL                &              0 &               0 &            nan &               7643 &                0 &             5.4047 &                      100 &                   100 &          nan    \\
+ PL+AL             &            954 &             824 &             34 &                 16 &                0 &             1.3543 &                      100 &                    37 &          nan    \\
+ GENACQ            &              0 &               0 &            nan &                101 &               36 &            47.6003 &                      100 &                   100 &          nan    \\
+ MINE\&ASK          &              0 &               0 &            nan &               6172 &             1234 &             6.9725 &                      100 &                   100 &          nan    \\
+ PL+AL+GQs         &            954 &               0 &             34 &                 26 &               34 &             8.3284 &                      100 &                   100 &           79.41 \\
 \hline
 \end{tabular}
 \end{table}

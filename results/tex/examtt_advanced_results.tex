@@ -1,14 +1,14 @@
 \begin{table}[ht]
 \caption{Results for examtt_advanced}
-\begin{tabular}{lrrlrrrrr}
+\begin{tabular}{lrrrrrrrrr}
 \hline
- Method       &   Bias\_i &   CL\_i & C\_L   &   Q\_total &   Q\_gen &   T\_learn &   Precision (\%) &   Recall (\%) \\
+ \textbackslash{}texttt\{Method\}   &   \textbackslash{}texttt\{B\_i\} &   \textbackslash{}texttt\{CL\_i\} &   \textbackslash{}texttt\{C\_L\} &   \textbackslash{}texttt\{Q\_total\} &   \textbackslash{}texttt\{Q\_gen\} &   \textbackslash{}texttt\{T\_learn\} &   \textbackslash{}texttt\{Precision (\%)\} &   \textbackslash{}texttt\{Recall (\%)\} &   \textbackslash{}texttt\{V\_GC\} \\
 \hline
- al           &        0 &      0 & -     &      8922 &       0 &    5.1951 &             100 &          100 \\
- pl\_al        &     1319 &    828 & 16    &      2249 &       0 &    3.3956 &             100 &          100 \\
- genacq       &        0 &      0 & -     &      6788 &    4329 &    3.9735 &             100 &          100 \\
- mineask      &        0 &      0 & -     &      7071 &    2839 &   13.4583 &             100 &          100 \\
- pl\_al\_genacq &     1319 &      0 & 16    &      6292 &      13 &    4.5061 &             100 &          100 \\
+ AL                &              0 &               0 &            nan &               8922 &                0 &             5.1951 &                      100 &                   100 &           nan   \\
+ PL+AL             &           1319 &             828 &             16 &               2249 &                0 &             3.3956 &                      100 &                   100 &           nan   \\
+ GENACQ            &              0 &               0 &            nan &               6788 &             4329 &             3.9735 &                      100 &                   100 &           nan   \\
+ MINE\&ASK          &              0 &               0 &            nan &               7071 &             2839 &            13.4583 &                      100 &                   100 &           nan   \\
+ PL+AL+GQs         &           1319 &               0 &             16 &               6292 &               13 &             4.5061 &                      100 &                   100 &            62.5 \\
 \hline
 \end{tabular}
 \end{table}

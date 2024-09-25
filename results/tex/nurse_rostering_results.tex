@@ -1,16 +1,16 @@
 \begin{table}[ht]
 \caption{Results for nurse_rostering}
-\begin{tabular}{lrrlrrrrr}
+\begin{tabular}{lrrrrrrrrr}
 \hline
- Method            &   Bias\_i &   CL\_i & C\_L   &   Q\_total &   Q\_gen &   T\_learn &   Precision (\%) &   Recall (\%) \\
+ \textbackslash{}texttt\{Method\}   &   \textbackslash{}texttt\{B\_i\} &   \textbackslash{}texttt\{CL\_i\} &   \textbackslash{}texttt\{C\_L\} &   \textbackslash{}texttt\{Q\_total\} &   \textbackslash{}texttt\{Q\_gen\} &   \textbackslash{}texttt\{T\_learn\} &   \textbackslash{}texttt\{Precision (\%)\} &   \textbackslash{}texttt\{Recall (\%)\} &   \textbackslash{}texttt\{V\_GC\} \\
 \hline
- countcp\_al        &        6 &      0 & 14    &        84 &       0 &    0.1118 &             100 &          100 \\
- countcp\_al\_genacq &       12 &      0 & 14    &        44 &      14 &    0.1273 &             100 &          100 \\
- al                &        0 &      0 & -     &       201 &       0 &    2.8018 &             100 &          100 \\
- pl\_al             &       54 &     21 & 7     &        37 &       0 &    1.1855 &             100 &          100 \\
- genacq            &        0 &      0 & -     &       202 &      12 &    1.3435 &             100 &          100 \\
- mineask           &        0 &      0 & -     &       196 &       4 &    1.7122 &             100 &          100 \\
- pl\_al\_genacq      &       54 &      0 & 7     &        59 &       7 &    0.822  &             100 &          100 \\
+ COUNTCP+AL        &              6 &               0 &             14 &                 84 &                0 &             0.1118 &                      100 &                   100 &          nan    \\
+ COUNTCP+AL+GQs    &             12 &               0 &             14 &                 44 &               14 &             0.1273 &                      100 &                   100 &           92.86 \\
+ AL                &              0 &               0 &            nan &                201 &                0 &             2.8018 &                      100 &                   100 &          nan    \\
+ PL+AL             &             54 &              21 &              7 &                 37 &                0 &             1.1855 &                      100 &                   100 &          nan    \\
+ GENACQ            &              0 &               0 &            nan &                202 &               12 &             1.3435 &                      100 &                   100 &          nan    \\
+ MINE\&ASK          &              0 &               0 &            nan &                196 &                4 &             1.7122 &                      100 &                   100 &          nan    \\
+ PL+AL+GQs         &             54 &               0 &              7 &                 59 &                7 &             0.822  &                      100 &                   100 &           98.14 \\
 \hline
 \end{tabular}
 \end{table}

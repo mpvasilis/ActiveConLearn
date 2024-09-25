@@ -1,16 +1,16 @@
 \begin{table}[ht]
 \caption{Results for murder_problem}
-\begin{tabular}{lrrlrrrrr}
+\begin{tabular}{lrrrrrrrrr}
 \hline
- Method            &   Bias\_i &   CL\_i & C\_L   &   Q\_total &   Q\_gen &   T\_learn &   Precision (\%) &   Recall (\%) \\
+ \textbackslash{}texttt\{Method\}   &   \textbackslash{}texttt\{B\_i\} &   \textbackslash{}texttt\{CL\_i\} &   \textbackslash{}texttt\{C\_L\} &   \textbackslash{}texttt\{Q\_total\} &   \textbackslash{}texttt\{Q\_gen\} &   \textbackslash{}texttt\{T\_learn\} &   \textbackslash{}texttt\{Precision (\%)\} &   \textbackslash{}texttt\{Recall (\%)\} &   \textbackslash{}texttt\{V\_GC\} \\
 \hline
- countcp\_al        &        0 &      0 & -     &       153 &       0 &    0.1448 &             nan &          nan \\
- countcp\_al\_genacq &        6 &      0 & 4     &        27 &       4 &    0.1306 &             nan &          nan \\
- al                &        0 &      0 & -     &       376 &       0 &    2.6418 &             nan &          nan \\
- pl\_al             &      148 &     43 & 5     &        44 &       0 &    1.9153 &             nan &          nan \\
- genacq            &        0 &      0 & -     &        72 &      36 &    1.4066 &             nan &          nan \\
- mineask           &        0 &      0 & -     &       319 &       8 &    2.0277 &             nan &          nan \\
- pl\_al\_genacq      &      148 &      0 & 5     &        61 &       5 &    2.4487 &             nan &          nan \\
+ COUNTCP+AL        &              0 &               0 &            nan &                153 &                0 &             0.1448 &                      nan &                   nan &          nan    \\
+ COUNTCP+AL+GQs    &              6 &               0 &              4 &                 27 &                4 &             0.1306 &                      nan &                   nan &           97.75 \\
+ AL                &              0 &               0 &            nan &                376 &                0 &             2.6418 &                      nan &                   nan &          nan    \\
+ PL+AL             &            148 &              43 &              5 &                 44 &                0 &             1.9153 &                      nan &                   nan &          nan    \\
+ GENACQ            &              0 &               0 &            nan &                 72 &               36 &             1.4066 &                      nan &                   nan &          nan    \\
+ MINE\&ASK          &              0 &               0 &            nan &                319 &                8 &             2.0277 &                      nan &                   nan &          nan    \\
+ PL+AL+GQs         &            148 &               0 &              5 &                 61 &                5 &             2.4487 &                      nan &                   nan &           98.2  \\
 \hline
 \end{tabular}
 \end{table}
