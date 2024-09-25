@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 from tabulate import tabulate
 
 # Directory containing the CSV files
@@ -45,7 +46,7 @@ def read_first_and_last_row(filepath):
 
 # Read each file in the directory
 for filename in os.listdir(directory):
-    if not filename.endswith("constraints.txt") and not filename.endswith("target.txt")  and not filename.endswith("recall.txt") and not filename.endswith(".csv") and not filename.endswith(".html"):
+    if not filename.endswith("constraints.txt") and not filename.endswith("target.txt") and not filename.endswith("recall.txt") and not filename.endswith(".csv") and not filename.endswith(".html"):
         try:
             filepath = os.path.join(directory, filename)
             df = read_first_and_last_row(filepath)
@@ -63,16 +64,14 @@ merged_df = pd.concat(dfs, ignore_index=True)
 final_df = merged_df.drop_duplicates(subset=['benchmark', 'type'])
 final_df = final_df.rename(columns={
     'learned_global_cstrs': 'C_L',
-    'init_bias': 'Bias_i',
+    'init_bias': 'B_i',
     'init_cl': 'CL_i',
     'Tot_q': 'Q_total',
     'genacq_q': 'Q_gen',
     'max_t': 'T_learn'
 })
 
-
 final_df = final_df.rename(columns={'type': 'Method'})
-
 
 def extract_method(constraint_detail):
     """
@@ -106,6 +105,7 @@ def extract_method(constraint_detail):
                 return 'Unknown_Method_Pattern'
     # Return 'Unknown' for non-string or unmatched patterns
     return 'Unknown'
+
 accuracy_df = pd.read_csv(accuracy_file)
 accuracy_df['benchmark'] = accuracy_df['Benchmark'].str.split('_solution').str[0]
 accuracy_df['Method'] = accuracy_df['Benchmark'].apply(extract_method)
@@ -119,13 +119,69 @@ final_df = final_df.merge(
     how='left'
 )
 
+# Method Mapping
+method_mapping = {
+    'pl_al': 'PL+AL',
+    'pl_al_genacq': 'PL+AL+GQs',
+    'countcp_al': 'COUNTCP+AL',
+    'countcp_al_genacq': 'COUNTCP+AL+GQs',
+    'genacq': 'GENACQ',
+    'mineask': 'MINE&ASK',
+    'al': 'AL'
+}
+
+final_df['Method'] = final_df['Method'].map(method_mapping).fillna(final_df['Method'])
+
+# Define a Function to Assign verified_gc Based on benchmark
+def get_verified_gc(benchmark):
+    """
+    Returns the number of verified global constraints based on the benchmark.
+    """
+    if benchmark == '4sudoku':
+        return 13  # Corrected value
+    elif benchmark in ['9sudoku', 'greaterThansudoku', 'jsudoku', 'sudoku_9x9']:
+        return 27
+    elif 'nurse' in benchmark:
+        return 13
+    elif 'exam' in benchmark:
+        return 10
+    elif 'murder' in benchmark:
+        return 9
+    else:
+        return None  # Return None or a default value if benchmark is not recognized
+
+# Apply the Function to Create verified_gc Column
+final_df['verified_gc'] = final_df['benchmark'].apply(get_verified_gc)
+
+# Ensure Numeric Types
+final_df['C_L'] = pd.to_numeric(final_df['C_L'], errors='coerce')
+final_df['verified_gc'] = pd.to_numeric(final_df['verified_gc'], errors='coerce')
+
+# Calculate V_GC with Correct Logic
+condition = final_df['Method'].isin(['COUNTCP+AL+GQs', 'PL+AL+GQs'])
+
+# Calculate V_GC where Method is in methods_to_apply
+final_df['V_GC'] = np.where( condition &
+    (final_df['verified_gc'] > 0) & (final_df['C_L'] <= final_df['verified_gc']),
+    (100 - (final_df['verified_gc'] / final_df['C_L']))
+    ,
+    np.where( condition &
+        (final_df['verified_gc'] > 0) & (final_df['C_L'] > final_df['verified_gc']),
+       (final_df['verified_gc']  / final_df['C_L']) * 100   ,  # Corrected calculation
+        np.nan  # Assign NaN where verified_gc is not positive
+    )
+)
+
+# Round V_GC to Two Decimal Places
+final_df['V_GC'] = final_df['V_GC'].round(2)
+
 # Save the DataFrame as HTML
 final_df.to_html(os.path.join(directory, "merged_results.html"))
 
-# Select only the columns that are needed for the LaTeX table
-final_df = final_df[['benchmark', 'Method', 'Bias_i', 'CL_i', 'C_L', 'Q_total', 'Q_gen', 'T_learn', 'Precision (%)', 'Recall (%)']]
+# Select Only the Columns That Are Needed for the LaTeX Table, Including V_GC
+final_df = final_df[['benchmark', 'Method', 'B_i', 'CL_i', 'C_L',  'Q_total', 'Q_gen', 'T_learn', 'Precision (%)', 'Recall (%)', 'V_GC']]
 
-# Create a separate LaTeX table for each unique problem name (benchmark)
+# Create a Separate LaTeX Table for Each Unique Problem Name (Benchmark)
 for problem_name in final_df['benchmark'].unique():
     problem_df = final_df[final_df['benchmark'] == problem_name].copy()
     problem_df = problem_df.drop(columns=['benchmark'])
@@ -135,6 +191,11 @@ for problem_name in final_df['benchmark'].unique():
 
     # Format the LaTeX table using tabulate
     latex_table = tabulate(problem_df, headers='keys', tablefmt='latex', showindex=False)
+
+    # Enclose Headers in \texttt{}
+    headers = problem_df.columns.tolist()
+    headers_tt = [f"\\texttt{{{header}}}" for header in headers]
+    latex_table = tabulate(problem_df, headers=headers_tt, tablefmt='latex', showindex=False)
 
     # Add a caption to the LaTeX table
     latex_caption = f"\\caption{{Results for {problem_name}}}\n"

@@ -1,894 +1,1806 @@
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
+      <th></th>
       <th>benchmark</th>
-      <th>Tot_q</th>
-      <th>genacq_q</th>
+      <th>CL</th>
+      <th>Q_total</th>
+      <th>top_lvl_q</th>
+      <th>Q_gen</th>
+      <th>gen_q</th>
+      <th>fs_q</th>
+      <th>fc_q</th>
+      <th>avg|q|</th>
       <th>avg_t</th>
-      <th>max_t</th>
+      <th>T_learn</th>
       <th>tot_t</th>
-      <th>init_bias</th>
-      <th>init_cl</th>
-      <th>learned_global_cstrs</th>
-      <th>type</th>
+      <th>conv</th>
+      <th>B_i</th>
+      <th>CL_i</th>
+      <th>C_L</th>
+      <th>Method</th>
+      <th>Precision (%)</th>
+      <th>Recall (%)</th>
+      <th>verified_gc</th>
+      <th>V_GC</th>
     </tr>
   </thead>
   <tbody>
     <tr>
+      <th>0</th>
       <td>4sudoku</td>
-      <td>4</td>
+      <td>56</td>
+      <td>183</td>
+      <td>56</td>
       <td>0</td>
-      <td>0.1439</td>
-      <td>0.1890</td>
-      <td>0.5755</td>
-      <td>62</td>
-      <td>58</td>
-      <td>13</td>
-      <td>pl_al</td>
+      <td>50</td>
+      <td>127</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.0360</td>
+      <td>0.1920</td>
+      <td>6.5872</td>
+      <td>1</td>
+      <td>16</td>
+      <td>0</td>
+      <td>13.0</td>
+      <td>COUNTCP+AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>13.0</td>
+      <td>NaN</td>
     </tr>
     <tr>
+      <th>1</th>
       <td>4sudoku</td>
-      <td>10</td>
-      <td>13</td>
-      <td>0.1558</td>
-      <td>0.6971</td>
-      <td>1.5584</td>
-      <td>62</td>
-      <td>0</td>
-      <td>13</td>
-      <td>pl_al_genacq</td>
-    </tr>
-    <tr>
-      <td>4sudoku</td>
+      <td>56</td>
       <td>27</td>
+      <td>6</td>
       <td>13</td>
+      <td>4</td>
+      <td>20</td>
+      <td>1</td>
+      <td>1.0</td>
       <td>0.0216</td>
       <td>0.1600</td>
       <td>0.5822</td>
+      <td>1</td>
       <td>16</td>
       <td>0</td>
-      <td>13</td>
-      <td>countcp_al_genacq</td>
+      <td>13.0</td>
+      <td>COUNTCP+AL+GQs</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>13.0</td>
+      <td>99.00</td>
     </tr>
     <tr>
+      <th>2</th>
       <td>4sudoku</td>
-      <td>30</td>
-      <td>18</td>
-      <td>0.2113</td>
-      <td>1.4336</td>
-      <td>6.3395</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-</td>
-      <td>genacq</td>
-    </tr>
-    <tr>
-      <td>4sudoku</td>
-      <td>202</td>
-      <td>0</td>
-      <td>0.0338</td>
-      <td>0.2392</td>
-      <td>6.8288</td>
-      <td>72</td>
-      <td>0</td>
-      <td>13</td>
-      <td>countcp_al</td>
-    </tr>
-    <tr>
-      <td>4sudoku</td>
-      <td>309</td>
-      <td>52</td>
-      <td>0.1651</td>
-      <td>2.1826</td>
-      <td>51.0214</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-</td>
-      <td>mineask</td>
-    </tr>
-    <tr>
-      <td>4sudoku</td>
+      <td>56</td>
       <td>345</td>
+      <td>58</td>
       <td>0</td>
+      <td>51</td>
+      <td>231</td>
+      <td>56</td>
+      <td>1.0</td>
       <td>0.1594</td>
       <td>1.6761</td>
       <td>54.9945</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>al</td>
+      <td>NaN</td>
+      <td>AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>13.0</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>9sudoku</td>
-      <td>17</td>
+      <th>3</th>
+      <td>4sudoku</td>
+      <td>58</td>
+      <td>4</td>
+      <td>4</td>
       <td>0</td>
-      <td>1.2599</td>
-      <td>1.6353</td>
-      <td>21.4189</td>
-      <td>954</td>
-      <td>824</td>
-      <td>34</td>
-      <td>pl_al</td>
+      <td>4</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.1062</td>
+      <td>0.1757</td>
+      <td>0.4248</td>
+      <td>1</td>
+      <td>62</td>
+      <td>58</td>
+      <td>13.0</td>
+      <td>PL+AL</td>
+      <td>100.0</td>
+      <td>99.0</td>
+      <td>13.0</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>9sudoku</td>
-      <td>26</td>
-      <td>34</td>
-      <td>1.2947</td>
-      <td>8.3284</td>
-      <td>33.6621</td>
-      <td>954</td>
+      <th>4</th>
+      <td>4sudoku</td>
+      <td>56</td>
+      <td>30</td>
+      <td>9</td>
+      <td>18</td>
+      <td>8</td>
+      <td>15</td>
+      <td>6</td>
+      <td>1.0</td>
+      <td>0.2113</td>
+      <td>1.4336</td>
+      <td>6.3395</td>
+      <td>1</td>
       <td>0</td>
-      <td>34</td>
-      <td>pl_al_genacq</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>GENACQ</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>13.0</td>
+      <td>NaN</td>
     </tr>
     <tr>
+      <th>5</th>
+      <td>4sudoku</td>
+      <td>56</td>
+      <td>309</td>
+      <td>50</td>
+      <td>52</td>
+      <td>43</td>
+      <td>208</td>
+      <td>51</td>
+      <td>1.0</td>
+      <td>0.1651</td>
+      <td>2.1826</td>
+      <td>51.0214</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>MINE&amp;ASK</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>13.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>4sudoku</td>
+      <td>56</td>
+      <td>10</td>
+      <td>5</td>
+      <td>13</td>
+      <td>5</td>
+      <td>5</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.1558</td>
+      <td>0.6971</td>
+      <td>1.5584</td>
+      <td>1</td>
+      <td>62</td>
+      <td>0</td>
+      <td>13.0</td>
+      <td>PL+AL+GQs</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>13.0</td>
+      <td>99.00</td>
+    </tr>
+    <tr>
+      <th>7</th>
       <td>9sudoku</td>
+      <td>810</td>
+      <td>4060</td>
+      <td>810</td>
+      <td>0</td>
+      <td>772</td>
+      <td>3250</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.2199</td>
+      <td>1.3645</td>
+      <td>892.7385</td>
+      <td>1</td>
+      <td>3</td>
+      <td>0</td>
+      <td>28.0</td>
+      <td>COUNTCP+AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>27.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>9sudoku</td>
+      <td>810</td>
       <td>46</td>
+      <td>10</td>
       <td>28</td>
+      <td>3</td>
+      <td>36</td>
+      <td>0</td>
+      <td>1.0</td>
       <td>0.0901</td>
       <td>0.7888</td>
       <td>4.1423</td>
+      <td>1</td>
       <td>3</td>
       <td>0</td>
-      <td>28</td>
-      <td>countcp_al_genacq</td>
+      <td>28.0</td>
+      <td>COUNTCP+AL+GQs</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>27.0</td>
+      <td>96.43</td>
     </tr>
     <tr>
+      <th>9</th>
       <td>9sudoku</td>
-      <td>101</td>
-      <td>36</td>
-      <td>2.5779</td>
-      <td>47.6003</td>
-      <td>260.3687</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-</td>
-      <td>genacq</td>
-    </tr>
-    <tr>
-      <td>9sudoku</td>
-      <td>4097</td>
-      <td>0</td>
-      <td>0.2206</td>
-      <td>1.4524</td>
-      <td>903.6096</td>
+      <td>810</td>
+      <td>7643</td>
       <td>813</td>
       <td>0</td>
-      <td>28</td>
-      <td>countcp_al</td>
-    </tr>
-    <tr>
-      <td>9sudoku</td>
-      <td>6172</td>
-      <td>1234</td>
-      <td>0.3146</td>
-      <td>6.9725</td>
-      <td>1941.6964</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-</td>
-      <td>mineask</td>
-    </tr>
-    <tr>
-      <td>9sudoku</td>
-      <td>7643</td>
-      <td>0</td>
+      <td>774</td>
+      <td>6178</td>
+      <td>652</td>
+      <td>1.0</td>
       <td>0.2050</td>
       <td>5.4047</td>
       <td>1567.1210</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>al</td>
+      <td>NaN</td>
+      <td>AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>27.0</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>examtt_advanced</td>
-      <td>2249</td>
-      <td>0</td>
-      <td>0.3279</td>
-      <td>3.3956</td>
-      <td>737.4732</td>
-      <td>1319</td>
-      <td>828</td>
+      <th>10</th>
+      <td>9sudoku</td>
+      <td>824</td>
       <td>16</td>
-      <td>pl_al</td>
-    </tr>
-    <tr>
-      <td>examtt_advanced</td>
-      <td>6292</td>
-      <td>13</td>
-      <td>0.3069</td>
-      <td>4.5061</td>
-      <td>1931.1836</td>
-      <td>1319</td>
+      <td>16</td>
       <td>0</td>
       <td>16</td>
-      <td>pl_al_genacq</td>
-    </tr>
-    <tr>
-      <td>examtt_advanced</td>
-      <td>7071</td>
-      <td>2839</td>
-      <td>0.5680</td>
-      <td>13.4583</td>
-      <td>4016.6227</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>mineask</td>
+      <td>1.0</td>
+      <td>1.1579</td>
+      <td>1.3543</td>
+      <td>18.5267</td>
+      <td>1</td>
+      <td>954</td>
+      <td>824</td>
+      <td>34.0</td>
+      <td>PL+AL</td>
+      <td>100.0</td>
+      <td>37.0</td>
+      <td>27.0</td>
+      <td>NaN</td>
     </tr>
     <tr>
+      <th>11</th>
+      <td>9sudoku</td>
+      <td>810</td>
+      <td>101</td>
+      <td>32</td>
+      <td>36</td>
+      <td>28</td>
+      <td>55</td>
+      <td>14</td>
+      <td>1.0</td>
+      <td>2.5779</td>
+      <td>47.6003</td>
+      <td>260.3687</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>GENACQ</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>27.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>9sudoku</td>
+      <td>810</td>
+      <td>6172</td>
+      <td>628</td>
+      <td>1234</td>
+      <td>589</td>
+      <td>4989</td>
+      <td>555</td>
+      <td>1.0</td>
+      <td>0.3146</td>
+      <td>6.9725</td>
+      <td>1941.6964</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>MINE&amp;ASK</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>27.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>9sudoku</td>
+      <td>810</td>
+      <td>26</td>
+      <td>19</td>
+      <td>34</td>
+      <td>19</td>
+      <td>7</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>1.2947</td>
+      <td>8.3284</td>
+      <td>33.6621</td>
+      <td>1</td>
+      <td>954</td>
+      <td>0</td>
+      <td>34.0</td>
+      <td>PL+AL+GQs</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>27.0</td>
+      <td>79.41</td>
+    </tr>
+    <tr>
+      <th>14</th>
       <td>examtt_advanced</td>
+      <td>1431</td>
       <td>8922</td>
+      <td>1431</td>
       <td>0</td>
+      <td>1405</td>
+      <td>6630</td>
+      <td>861</td>
+      <td>1.0</td>
       <td>0.2988</td>
       <td>5.1951</td>
       <td>2665.8468</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>al</td>
+      <td>NaN</td>
+      <td>AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>10.0</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>examtt_simple</td>
-      <td>2853</td>
+      <th>15</th>
+      <td>examtt_advanced</td>
+      <td>1431</td>
+      <td>2249</td>
+      <td>603</td>
       <td>0</td>
-      <td>0.2920</td>
-      <td>2.0752</td>
-      <td>832.9482</td>
-      <td>1764</td>
+      <td>603</td>
+      <td>1646</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.3279</td>
+      <td>3.3956</td>
+      <td>737.4732</td>
+      <td>1</td>
+      <td>1319</td>
       <td>828</td>
-      <td>16</td>
-      <td>pl_al</td>
+      <td>16.0</td>
+      <td>PL+AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>10.0</td>
+      <td>NaN</td>
     </tr>
     <tr>
+      <th>16</th>
+      <td>examtt_advanced</td>
+      <td>1431</td>
+      <td>6788</td>
+      <td>1083</td>
+      <td>4329</td>
+      <td>1081</td>
+      <td>5256</td>
+      <td>449</td>
+      <td>1.0</td>
+      <td>0.2456</td>
+      <td>3.9735</td>
+      <td>1667.3035</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>GENACQ</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>10.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>examtt_advanced</td>
+      <td>1431</td>
+      <td>7071</td>
+      <td>1104</td>
+      <td>2839</td>
+      <td>1078</td>
+      <td>5349</td>
+      <td>618</td>
+      <td>1.0</td>
+      <td>0.5680</td>
+      <td>13.4583</td>
+      <td>4016.6227</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>MINE&amp;ASK</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>10.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>examtt_advanced</td>
+      <td>1429</td>
+      <td>6292</td>
+      <td>1429</td>
+      <td>13</td>
+      <td>1403</td>
+      <td>4863</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.3069</td>
+      <td>4.5061</td>
+      <td>1931.1836</td>
+      <td>1</td>
+      <td>1319</td>
+      <td>0</td>
+      <td>16.0</td>
+      <td>PL+AL+GQs</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>10.0</td>
+      <td>62.50</td>
+    </tr>
+    <tr>
+      <th>19</th>
       <td>examtt_simple</td>
+      <td>1431</td>
+      <td>6282</td>
+      <td>1431</td>
+      <td>0</td>
+      <td>1405</td>
+      <td>4851</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.2660</td>
+      <td>1.5055</td>
+      <td>1670.9734</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>COUNTCP+AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>10.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>examtt_simple</td>
+      <td>1423</td>
       <td>6234</td>
+      <td>1423</td>
       <td>40</td>
+      <td>1397</td>
+      <td>4811</td>
+      <td>0</td>
+      <td>1.0</td>
       <td>0.2879</td>
       <td>2.1081</td>
       <td>1794.5840</td>
+      <td>1</td>
       <td>717</td>
       <td>0</td>
-      <td>40</td>
-      <td>countcp_al_genacq</td>
+      <td>40.0</td>
+      <td>COUNTCP+AL+GQs</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>10.0</td>
+      <td>25.00</td>
     </tr>
     <tr>
+      <th>21</th>
       <td>examtt_simple</td>
-      <td>6353</td>
-      <td>0</td>
-      <td>0.2598</td>
-      <td>1.4814</td>
-      <td>1650.5255</td>
+      <td>1431</td>
+      <td>9042</td>
       <td>1431</td>
       <td>0</td>
-      <td>40</td>
-      <td>countcp_al</td>
-    </tr>
-    <tr>
-      <td>examtt_simple</td>
-      <td>6745</td>
-      <td>13</td>
-      <td>0.3096</td>
-      <td>3.8026</td>
-      <td>2087.9801</td>
-      <td>1764</td>
-      <td>0</td>
-      <td>16</td>
-      <td>pl_al_genacq</td>
-    </tr>
-    <tr>
-      <td>examtt_simple</td>
-      <td>7535</td>
-      <td>2809</td>
-      <td>0.5657</td>
-      <td>16.0182</td>
-      <td>4262.6851</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-</td>
-      <td>mineask</td>
-    </tr>
-    <tr>
-      <td>examtt_simple</td>
-      <td>9042</td>
-      <td>0</td>
+      <td>1405</td>
+      <td>6707</td>
+      <td>904</td>
+      <td>1.0</td>
       <td>0.3070</td>
       <td>5.8536</td>
       <td>2775.7510</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>al</td>
+      <td>NaN</td>
+      <td>AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>10.0</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_16b_diverse_countcp_countcp_al_genacq</td>
+      <th>22</th>
+      <td>examtt_simple</td>
+      <td>1431</td>
+      <td>2853</td>
+      <td>605</td>
+      <td>0</td>
+      <td>605</td>
+      <td>2201</td>
+      <td>47</td>
+      <td>1.0</td>
+      <td>0.2920</td>
+      <td>2.0752</td>
+      <td>832.9482</td>
+      <td>1</td>
+      <td>1764</td>
+      <td>828</td>
+      <td>16.0</td>
+      <td>PL+AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>10.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>examtt_simple</td>
+      <td>1431</td>
+      <td>7535</td>
+      <td>1163</td>
+      <td>2809</td>
+      <td>1137</td>
+      <td>5641</td>
+      <td>731</td>
+      <td>1.0</td>
+      <td>0.5657</td>
+      <td>16.0182</td>
+      <td>4262.6851</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>MINE&amp;ASK</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>10.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>24</th>
+      <td>examtt_simple</td>
+      <td>1431</td>
+      <td>6745</td>
+      <td>1431</td>
+      <td>13</td>
+      <td>1405</td>
+      <td>5192</td>
+      <td>122</td>
+      <td>1.0</td>
+      <td>0.3096</td>
+      <td>3.8026</td>
+      <td>2087.9801</td>
+      <td>1</td>
+      <td>1764</td>
+      <td>0</td>
+      <td>16.0</td>
+      <td>PL+AL+GQs</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>10.0</td>
+      <td>62.50</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>greaterThansudoku_9x9_16b</td>
+      <td>810</td>
+      <td>4096</td>
+      <td>810</td>
+      <td>0</td>
+      <td>771</td>
+      <td>3279</td>
+      <td>7</td>
+      <td>1.0</td>
+      <td>0.2220</td>
+      <td>1.3914</td>
+      <td>909.3037</td>
+      <td>1</td>
+      <td>153</td>
+      <td>0</td>
+      <td>18.0</td>
+      <td>COUNTCP+AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>26</th>
+      <td>greaterThansudoku_9x9_16b</td>
+      <td>813</td>
       <td>1320</td>
+      <td>253</td>
       <td>16</td>
+      <td>235</td>
+      <td>1065</td>
+      <td>2</td>
+      <td>1.0</td>
       <td>0.1884</td>
       <td>1.4932</td>
       <td>248.7365</td>
+      <td>1</td>
       <td>328</td>
       <td>0</td>
-      <td>18</td>
-      <td>countcp_al_genacq</td>
+      <td>18.0</td>
+      <td>COUNTCP+AL+GQs</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_16b_diverse_custom_al</td>
+      <th>27</th>
+      <td>greaterThansudoku_9x9_16b</td>
+      <td>810</td>
       <td>7648</td>
+      <td>813</td>
       <td>0</td>
+      <td>774</td>
+      <td>6160</td>
+      <td>675</td>
+      <td>1.0</td>
       <td>0.2150</td>
       <td>5.4661</td>
       <td>1644.5267</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>al</td>
+      <td>NaN</td>
+      <td>AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_16b_diverse_custom_pl_al</td>
+      <th>28</th>
+      <td>greaterThansudoku_9x9_16b</td>
+      <td>825</td>
       <td>50</td>
+      <td>15</td>
       <td>0</td>
+      <td>15</td>
+      <td>35</td>
+      <td>0</td>
+      <td>1.0</td>
       <td>0.0648</td>
       <td>0.3963</td>
       <td>3.2403</td>
+      <td>1</td>
       <td>19</td>
       <td>810</td>
-      <td>27</td>
-      <td>pl_al</td>
+      <td>27.0</td>
+      <td>PL+AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_16b_diverse_genacq_genacq</td>
+      <th>29</th>
+      <td>greaterThansudoku_9x9_16b</td>
+      <td>825</td>
       <td>300</td>
+      <td>45</td>
       <td>98</td>
+      <td>39</td>
+      <td>235</td>
+      <td>20</td>
+      <td>1.0</td>
       <td>1.3307</td>
       <td>40.7096</td>
       <td>399.2230</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>genacq</td>
+      <td>NaN</td>
+      <td>GENACQ</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_16b_diverse_mineask_mineask</td>
+      <th>30</th>
+      <td>greaterThansudoku_9x9_16b</td>
+      <td>821</td>
       <td>6469</td>
+      <td>659</td>
       <td>1348</td>
+      <td>620</td>
+      <td>5253</td>
+      <td>557</td>
+      <td>1.0</td>
       <td>0.2968</td>
       <td>7.4821</td>
       <td>1919.8797</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>mineask</td>
+      <td>NaN</td>
+      <td>MINE&amp;ASK</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_16b_diverse_vgc_pl_al_genacq</td>
+      <th>31</th>
+      <td>greaterThansudoku_9x9_16b</td>
+      <td>810</td>
       <td>716</td>
+      <td>184</td>
       <td>20</td>
+      <td>179</td>
+      <td>524</td>
+      <td>8</td>
+      <td>1.0</td>
       <td>0.2408</td>
       <td>3.4132</td>
       <td>172.3845</td>
+      <td>1</td>
       <td>19</td>
       <td>0</td>
-      <td>27</td>
-      <td>pl_al_genacq</td>
+      <td>27.0</td>
+      <td>PL+AL+GQs</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_24b_diverse_custom_al</td>
+      <th>32</th>
+      <td>greaterThansudoku_9x9_24b</td>
+      <td>810</td>
       <td>7605</td>
+      <td>815</td>
       <td>0</td>
+      <td>776</td>
+      <td>6137</td>
+      <td>653</td>
+      <td>1.0</td>
       <td>0.2068</td>
       <td>6.8844</td>
       <td>1572.3398</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>al</td>
+      <td>NaN</td>
+      <td>AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_24b_diverse_custom_pl_al</td>
+      <th>33</th>
+      <td>greaterThansudoku_9x9_24b</td>
+      <td>834</td>
       <td>94</td>
+      <td>24</td>
       <td>0</td>
+      <td>24</td>
+      <td>70</td>
+      <td>0</td>
+      <td>1.0</td>
       <td>0.0493</td>
       <td>0.4063</td>
       <td>4.6297</td>
+      <td>1</td>
       <td>31</td>
       <td>810</td>
-      <td>27</td>
-      <td>pl_al</td>
+      <td>27.0</td>
+      <td>PL+AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_24b_diverse_genacq_genacq</td>
+      <th>34</th>
+      <td>greaterThansudoku_9x9_24b</td>
+      <td>834</td>
       <td>424</td>
+      <td>58</td>
       <td>141</td>
+      <td>52</td>
+      <td>341</td>
+      <td>25</td>
+      <td>1.0</td>
       <td>1.0282</td>
       <td>26.9610</td>
       <td>435.9482</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>genacq</td>
+      <td>NaN</td>
+      <td>GENACQ</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_24b_diverse_mineask_mineask</td>
+      <th>35</th>
+      <td>greaterThansudoku_9x9_24b</td>
+      <td>829</td>
       <td>6414</td>
+      <td>678</td>
       <td>1237</td>
+      <td>639</td>
+      <td>5211</td>
+      <td>525</td>
+      <td>1.0</td>
       <td>0.3111</td>
       <td>7.7986</td>
       <td>1995.2028</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>mineask</td>
+      <td>NaN</td>
+      <td>MINE&amp;ASK</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_24b_diverse_vgc_pl_al_genacq</td>
+      <th>36</th>
+      <td>greaterThansudoku_9x9_24b</td>
+      <td>809</td>
       <td>3041</td>
+      <td>634</td>
       <td>5</td>
+      <td>597</td>
+      <td>2383</td>
+      <td>24</td>
+      <td>1.0</td>
       <td>0.2382</td>
       <td>2.3407</td>
       <td>724.2180</td>
+      <td>1</td>
       <td>31</td>
       <td>0</td>
-      <td>27</td>
-      <td>pl_al_genacq</td>
+      <td>27.0</td>
+      <td>PL+AL+GQs</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_8b_diverse_countcp_countcp_al_genacq</td>
+      <th>37</th>
+      <td>greaterThansudoku_9x9_8b</td>
+      <td>810</td>
+      <td>4112</td>
+      <td>810</td>
+      <td>0</td>
+      <td>771</td>
+      <td>3296</td>
+      <td>6</td>
+      <td>1.0</td>
+      <td>0.2234</td>
+      <td>1.3959</td>
+      <td>918.6766</td>
+      <td>1</td>
+      <td>203</td>
+      <td>0</td>
+      <td>18.0</td>
+      <td>COUNTCP+AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>38</th>
+      <td>greaterThansudoku_9x9_8b</td>
+      <td>811</td>
       <td>1396</td>
+      <td>251</td>
       <td>16</td>
+      <td>234</td>
+      <td>1143</td>
+      <td>2</td>
+      <td>1.0</td>
       <td>0.1843</td>
       <td>1.4872</td>
       <td>257.2749</td>
+      <td>1</td>
       <td>373</td>
       <td>0</td>
-      <td>18</td>
-      <td>countcp_al_genacq</td>
+      <td>18.0</td>
+      <td>COUNTCP+AL+GQs</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_8b_diverse_custom_al</td>
+      <th>39</th>
+      <td>greaterThansudoku_9x9_8b</td>
+      <td>810</td>
       <td>7736</td>
+      <td>813</td>
       <td>0</td>
+      <td>774</td>
+      <td>6241</td>
+      <td>682</td>
+      <td>1.0</td>
       <td>0.1952</td>
       <td>6.1040</td>
       <td>1509.7917</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>al</td>
+      <td>NaN</td>
+      <td>AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_8b_diverse_custom_pl_al</td>
+      <th>40</th>
+      <td>greaterThansudoku_9x9_8b</td>
+      <td>818</td>
       <td>21</td>
+      <td>8</td>
       <td>0</td>
+      <td>8</td>
+      <td>13</td>
+      <td>0</td>
+      <td>1.0</td>
       <td>0.0726</td>
       <td>0.6929</td>
       <td>1.5237</td>
+      <td>1</td>
       <td>11</td>
       <td>810</td>
-      <td>27</td>
-      <td>pl_al</td>
+      <td>27.0</td>
+      <td>PL+AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_8b_diverse_genacq_genacq</td>
+      <th>41</th>
+      <td>greaterThansudoku_9x9_8b</td>
+      <td>818</td>
       <td>199</td>
+      <td>38</td>
       <td>70</td>
+      <td>33</td>
+      <td>144</td>
+      <td>17</td>
+      <td>1.0</td>
       <td>1.6199</td>
       <td>30.2583</td>
       <td>322.3588</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>genacq</td>
+      <td>NaN</td>
+      <td>GENACQ</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_8b_diverse_mineask_mineask</td>
+      <th>42</th>
+      <td>greaterThansudoku_9x9_8b</td>
+      <td>818</td>
       <td>6330</td>
+      <td>654</td>
       <td>1216</td>
+      <td>615</td>
+      <td>5129</td>
+      <td>547</td>
+      <td>1.0</td>
       <td>0.3542</td>
       <td>6.5198</td>
       <td>2242.0618</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>mineask</td>
+      <td>NaN</td>
+      <td>MINE&amp;ASK</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_8b_diverse_vgc_pl_al_genacq</td>
+      <th>43</th>
+      <td>greaterThansudoku_9x9_8b</td>
+      <td>810</td>
       <td>1260</td>
+      <td>290</td>
       <td>16</td>
+      <td>280</td>
+      <td>962</td>
+      <td>8</td>
+      <td>1.0</td>
       <td>0.2450</td>
       <td>2.7521</td>
       <td>308.6891</td>
+      <td>1</td>
       <td>11</td>
       <td>0</td>
-      <td>27</td>
-      <td>pl_al_genacq</td>
+      <td>27.0</td>
+      <td>PL+AL+GQs</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>greaterThansudoku_9x9_8b_nodiverse_countcp_countcp_al_genacq</td>
-      <td>1065</td>
-      <td>17</td>
-      <td>0.1977</td>
-      <td>1.4450</td>
-      <td>210.5203</td>
-      <td>193</td>
-      <td>0</td>
-      <td>18</td>
-      <td>countcp_al_genacq</td>
-    </tr>
-    <tr>
-      <td>greaterThansudoku_9x9_8b_nodiverse_custom_al</td>
-      <td>7720</td>
-      <td>0</td>
-      <td>0.2034</td>
-      <td>5.4647</td>
-      <td>1569.9848</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-</td>
-      <td>al</td>
-    </tr>
-    <tr>
-      <td>greaterThansudoku_9x9_8b_nodiverse_custom_pl_al</td>
-      <td>117</td>
-      <td>0</td>
-      <td>0.5422</td>
-      <td>7.2030</td>
-      <td>63.4429</td>
-      <td>3883</td>
-      <td>824</td>
-      <td>34</td>
-      <td>pl_al</td>
-    </tr>
-    <tr>
-      <td>greaterThansudoku_9x9_8b_nodiverse_genacq_genacq</td>
-      <td>203</td>
-      <td>75</td>
-      <td>1.7978</td>
-      <td>57.8724</td>
-      <td>364.9518</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-</td>
-      <td>genacq</td>
-    </tr>
-    <tr>
-      <td>greaterThansudoku_9x9_8b_nodiverse_mineask_mineask</td>
-      <td>6496</td>
-      <td>1678</td>
-      <td>0.2913</td>
-      <td>8.3925</td>
-      <td>1892.4170</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-</td>
-      <td>mineask</td>
-    </tr>
-    <tr>
+      <th>44</th>
       <td>jsudoku</td>
+      <td>811</td>
+      <td>4055</td>
+      <td>811</td>
+      <td>0</td>
+      <td>772</td>
+      <td>3244</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.2210</td>
+      <td>1.3978</td>
+      <td>896.1729</td>
+      <td>1</td>
+      <td>19</td>
+      <td>0</td>
+      <td>18.0</td>
+      <td>COUNTCP+AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>27.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>45</th>
+      <td>jsudoku</td>
+      <td>648</td>
       <td>99</td>
       <td>18</td>
+      <td>18</td>
+      <td>9</td>
+      <td>81</td>
+      <td>0</td>
+      <td>1.0</td>
       <td>0.0543</td>
       <td>0.7129</td>
       <td>5.3751</td>
+      <td>1</td>
       <td>19</td>
       <td>0</td>
-      <td>18</td>
-      <td>countcp_al_genacq</td>
+      <td>18.0</td>
+      <td>COUNTCP+AL+GQs</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>27.0</td>
+      <td>98.50</td>
     </tr>
     <tr>
+      <th>46</th>
       <td>jsudoku</td>
-      <td>535</td>
-      <td>0</td>
-      <td>0.3397</td>
-      <td>8.3664</td>
-      <td>181.7451</td>
-      <td>1362</td>
-      <td>770</td>
-      <td>47</td>
-      <td>pl_al</td>
-    </tr>
-    <tr>
-      <td>jsudoku</td>
-      <td>619</td>
-      <td>47</td>
-      <td>0.3372</td>
-      <td>6.8858</td>
-      <td>208.7091</td>
-      <td>1362</td>
-      <td>0</td>
-      <td>47</td>
-      <td>pl_al_genacq</td>
-    </tr>
-    <tr>
-      <td>jsudoku</td>
-      <td>1526</td>
-      <td>751</td>
-      <td>0.4452</td>
-      <td>19.4575</td>
-      <td>679.3841</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-</td>
-      <td>genacq</td>
-    </tr>
-    <tr>
-      <td>jsudoku</td>
-      <td>3294</td>
-      <td>0</td>
-      <td>0.2112</td>
-      <td>1.4309</td>
-      <td>695.8385</td>
-      <td>667</td>
-      <td>0</td>
-      <td>18</td>
-      <td>countcp_al</td>
-    </tr>
-    <tr>
-      <td>jsudoku</td>
-      <td>6337</td>
-      <td>1408</td>
-      <td>0.2684</td>
-      <td>6.5607</td>
-      <td>1700.9536</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-</td>
-      <td>mineask</td>
-    </tr>
-    <tr>
-      <td>jsudoku</td>
+      <td>811</td>
       <td>7676</td>
+      <td>815</td>
       <td>0</td>
+      <td>776</td>
+      <td>6218</td>
+      <td>643</td>
+      <td>1.0</td>
       <td>0.1981</td>
       <td>8.0049</td>
       <td>1520.2320</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>al</td>
+      <td>NaN</td>
+      <td>AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>27.0</td>
+      <td>NaN</td>
     </tr>
     <tr>
+      <th>47</th>
+      <td>jsudoku</td>
+      <td>836</td>
+      <td>535</td>
+      <td>83</td>
+      <td>0</td>
+      <td>83</td>
+      <td>452</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.3397</td>
+      <td>8.3664</td>
+      <td>181.7451</td>
+      <td>1</td>
+      <td>1362</td>
+      <td>770</td>
+      <td>47.0</td>
+      <td>PL+AL</td>
+      <td>100.0</td>
+      <td>41.0</td>
+      <td>27.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>48</th>
+      <td>jsudoku</td>
+      <td>811</td>
+      <td>1526</td>
+      <td>150</td>
+      <td>751</td>
+      <td>146</td>
+      <td>1291</td>
+      <td>85</td>
+      <td>1.0</td>
+      <td>0.4452</td>
+      <td>19.4575</td>
+      <td>679.3841</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>GENACQ</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>27.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>49</th>
+      <td>jsudoku</td>
+      <td>811</td>
+      <td>6337</td>
+      <td>656</td>
+      <td>1408</td>
+      <td>617</td>
+      <td>5163</td>
+      <td>518</td>
+      <td>1.0</td>
+      <td>0.2684</td>
+      <td>6.5607</td>
+      <td>1700.9536</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>MINE&amp;ASK</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>27.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>50</th>
+      <td>jsudoku</td>
+      <td>811</td>
+      <td>619</td>
+      <td>106</td>
+      <td>47</td>
+      <td>106</td>
+      <td>513</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.3372</td>
+      <td>6.8858</td>
+      <td>208.7091</td>
+      <td>1</td>
+      <td>1362</td>
+      <td>0</td>
+      <td>47.0</td>
+      <td>PL+AL+GQs</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>27.0</td>
+      <td>57.45</td>
+    </tr>
+    <tr>
+      <th>51</th>
       <td>murder_problem</td>
+      <td>46</td>
+      <td>153</td>
+      <td>46</td>
+      <td>0</td>
+      <td>39</td>
+      <td>107</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.0311</td>
+      <td>0.1448</td>
+      <td>4.7614</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>COUNTCP+AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>9.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>52</th>
+      <td>murder_problem</td>
+      <td>46</td>
       <td>27</td>
+      <td>10</td>
       <td>4</td>
+      <td>4</td>
+      <td>17</td>
+      <td>0</td>
+      <td>1.0</td>
       <td>0.0157</td>
       <td>0.1306</td>
       <td>0.4246</td>
+      <td>1</td>
       <td>6</td>
       <td>0</td>
-      <td>4</td>
-      <td>countcp_al_genacq</td>
+      <td>4.0</td>
+      <td>COUNTCP+AL+GQs</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>9.0</td>
+      <td>97.75</td>
     </tr>
     <tr>
+      <th>53</th>
       <td>murder_problem</td>
-      <td>44</td>
-      <td>0</td>
-      <td>0.2874</td>
-      <td>1.9153</td>
-      <td>12.6462</td>
-      <td>148</td>
-      <td>43</td>
-      <td>5</td>
-      <td>pl_al</td>
-    </tr>
-    <tr>
-      <td>murder_problem</td>
-      <td>61</td>
-      <td>5</td>
-      <td>0.1496</td>
-      <td>2.4487</td>
-      <td>9.1236</td>
-      <td>148</td>
-      <td>0</td>
-      <td>5</td>
-      <td>pl_al_genacq</td>
-    </tr>
-    <tr>
-      <td>murder_problem</td>
-      <td>121</td>
-      <td>0</td>
-      <td>0.0287</td>
-      <td>0.1246</td>
-      <td>3.4770</td>
-      <td>40</td>
-      <td>0</td>
-      <td>4</td>
-      <td>countcp_al</td>
-    </tr>
-    <tr>
-      <td>murder_problem</td>
-      <td>319</td>
-      <td>8</td>
-      <td>0.1610</td>
-      <td>2.0277</td>
-      <td>51.3662</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-</td>
-      <td>mineask</td>
-    </tr>
-    <tr>
-      <td>murder_problem</td>
+      <td>46</td>
       <td>376</td>
+      <td>46</td>
       <td>0</td>
+      <td>38</td>
+      <td>278</td>
+      <td>52</td>
+      <td>1.0</td>
       <td>0.1524</td>
       <td>2.6418</td>
       <td>57.3200</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>al</td>
+      <td>NaN</td>
+      <td>AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>9.0</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>nurse_rostering</td>
-      <td>37</td>
-      <td>0</td>
-      <td>0.0650</td>
-      <td>1.1855</td>
-      <td>2.4040</td>
-      <td>54</td>
-      <td>21</td>
-      <td>7</td>
-      <td>pl_al</td>
-    </tr>
-    <tr>
-      <td>nurse_rostering</td>
+      <th>54</th>
+      <td>murder_problem</td>
+      <td>49</td>
       <td>44</td>
+      <td>11</td>
+      <td>0</td>
+      <td>11</td>
+      <td>33</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.2874</td>
+      <td>1.9153</td>
+      <td>12.6462</td>
+      <td>1</td>
+      <td>148</td>
+      <td>43</td>
+      <td>5.0</td>
+      <td>PL+AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>9.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>55</th>
+      <td>murder_problem</td>
+      <td>46</td>
+      <td>72</td>
+      <td>17</td>
+      <td>36</td>
       <td>14</td>
+      <td>45</td>
+      <td>10</td>
+      <td>1.0</td>
+      <td>0.1674</td>
+      <td>1.4066</td>
+      <td>12.0524</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>GENACQ</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>9.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>56</th>
+      <td>murder_problem</td>
+      <td>46</td>
+      <td>319</td>
+      <td>41</td>
+      <td>8</td>
+      <td>31</td>
+      <td>231</td>
+      <td>47</td>
+      <td>1.0</td>
+      <td>0.1610</td>
+      <td>2.0277</td>
+      <td>51.3662</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>MINE&amp;ASK</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>9.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>57</th>
+      <td>murder_problem</td>
+      <td>46</td>
+      <td>61</td>
+      <td>14</td>
+      <td>5</td>
+      <td>11</td>
+      <td>47</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.1496</td>
+      <td>2.4487</td>
+      <td>9.1236</td>
+      <td>1</td>
+      <td>148</td>
+      <td>0</td>
+      <td>5.0</td>
+      <td>PL+AL+GQs</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>9.0</td>
+      <td>98.20</td>
+    </tr>
+    <tr>
+      <th>58</th>
+      <td>nurse_rostering</td>
+      <td>27</td>
+      <td>84</td>
+      <td>27</td>
+      <td>0</td>
+      <td>20</td>
+      <td>57</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.0259</td>
+      <td>0.1118</td>
+      <td>2.1729</td>
+      <td>1</td>
+      <td>6</td>
+      <td>0</td>
+      <td>14.0</td>
+      <td>COUNTCP+AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>13.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>59</th>
+      <td>nurse_rostering</td>
+      <td>27</td>
+      <td>44</td>
+      <td>13</td>
+      <td>14</td>
+      <td>6</td>
+      <td>30</td>
+      <td>1</td>
+      <td>1.0</td>
       <td>0.0175</td>
       <td>0.1273</td>
       <td>0.7687</td>
+      <td>1</td>
       <td>12</td>
       <td>0</td>
-      <td>14</td>
-      <td>countcp_al_genacq</td>
+      <td>14.0</td>
+      <td>COUNTCP+AL+GQs</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>13.0</td>
+      <td>92.86</td>
     </tr>
     <tr>
+      <th>60</th>
       <td>nurse_rostering</td>
-      <td>59</td>
-      <td>7</td>
-      <td>0.0620</td>
-      <td>0.8220</td>
-      <td>3.6569</td>
-      <td>54</td>
-      <td>0</td>
-      <td>7</td>
-      <td>pl_al_genacq</td>
-    </tr>
-    <tr>
-      <td>nurse_rostering</td>
-      <td>67</td>
-      <td>0</td>
-      <td>0.0208</td>
-      <td>0.1073</td>
-      <td>1.3947</td>
       <td>27</td>
-      <td>0</td>
-      <td>14</td>
-      <td>countcp_al</td>
-    </tr>
-    <tr>
-      <td>nurse_rostering</td>
-      <td>196</td>
-      <td>4</td>
-      <td>0.1422</td>
-      <td>1.7122</td>
-      <td>27.8756</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-</td>
-      <td>mineask</td>
-    </tr>
-    <tr>
-      <td>nurse_rostering</td>
       <td>201</td>
+      <td>30</td>
       <td>0</td>
+      <td>21</td>
+      <td>138</td>
+      <td>33</td>
+      <td>1.0</td>
       <td>0.1587</td>
       <td>2.8018</td>
       <td>31.8896</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>al</td>
+      <td>NaN</td>
+      <td>AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>13.0</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>sudoku_9x9_diverse_countcp_countcp_al_genacq</td>
+      <th>61</th>
+      <td>nurse_rostering</td>
+      <td>27</td>
+      <td>37</td>
+      <td>8</td>
+      <td>0</td>
+      <td>8</td>
+      <td>29</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.0650</td>
+      <td>1.1855</td>
+      <td>2.4040</td>
+      <td>1</td>
+      <td>54</td>
+      <td>21</td>
+      <td>7.0</td>
+      <td>PL+AL</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>13.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>62</th>
+      <td>nurse_rostering</td>
+      <td>27</td>
+      <td>202</td>
+      <td>32</td>
+      <td>12</td>
+      <td>23</td>
+      <td>131</td>
+      <td>39</td>
+      <td>1.0</td>
+      <td>0.1347</td>
+      <td>1.3435</td>
+      <td>27.2072</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>GENACQ</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>13.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>63</th>
+      <td>nurse_rostering</td>
+      <td>27</td>
+      <td>196</td>
+      <td>29</td>
+      <td>4</td>
+      <td>20</td>
+      <td>132</td>
+      <td>35</td>
+      <td>1.0</td>
+      <td>0.1422</td>
+      <td>1.7122</td>
+      <td>27.8756</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>MINE&amp;ASK</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>13.0</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>64</th>
+      <td>nurse_rostering</td>
+      <td>27</td>
+      <td>59</td>
+      <td>14</td>
+      <td>7</td>
+      <td>8</td>
+      <td>45</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.0620</td>
+      <td>0.8220</td>
+      <td>3.6569</td>
+      <td>1</td>
+      <td>54</td>
+      <td>0</td>
+      <td>7.0</td>
+      <td>PL+AL+GQs</td>
+      <td>100.0</td>
+      <td>100.0</td>
+      <td>13.0</td>
+      <td>98.14</td>
+    </tr>
+    <tr>
+      <th>65</th>
+      <td>sudoku_9x9_diverse</td>
+      <td>810</td>
+      <td>4100</td>
+      <td>810</td>
+      <td>0</td>
+      <td>773</td>
+      <td>3290</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>0.2225</td>
+      <td>4.9392</td>
+      <td>912.2142</td>
+      <td>1</td>
+      <td>167</td>
+      <td>0</td>
+      <td>18.0</td>
+      <td>COUNTCP+AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>66</th>
+      <td>sudoku_9x9_diverse</td>
+      <td>810</td>
       <td>959</td>
+      <td>180</td>
       <td>18</td>
+      <td>169</td>
+      <td>777</td>
+      <td>2</td>
+      <td>1.0</td>
       <td>0.1835</td>
       <td>1.4489</td>
       <td>175.9975</td>
+      <td>1</td>
       <td>329</td>
       <td>0</td>
-      <td>18</td>
-      <td>countcp_al_genacq</td>
+      <td>18.0</td>
+      <td>COUNTCP+AL+GQs</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>sudoku_9x9_nodiverse_countcp_al_countcp_al</td>
+      <th>67</th>
+      <td>sudoku_9x9_nodiverse</td>
+      <td>648</td>
       <td>3270</td>
+      <td>648</td>
       <td>0</td>
+      <td>610</td>
+      <td>2622</td>
+      <td>0</td>
+      <td>1.0</td>
       <td>0.2095</td>
       <td>1.5044</td>
       <td>685.1798</td>
+      <td>1</td>
       <td>648</td>
       <td>0</td>
-      <td>18</td>
-      <td>countcp_al</td>
+      <td>18.0</td>
+      <td>COUNTCP+AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>sudoku_9x9_nodiverse_countcp_countcp_al_genacq</td>
+      <th>68</th>
+      <td>sudoku_9x9_nodiverse</td>
+      <td>810</td>
       <td>820</td>
+      <td>180</td>
       <td>18</td>
+      <td>155</td>
+      <td>640</td>
+      <td>0</td>
+      <td>1.0</td>
       <td>0.1792</td>
       <td>1.4585</td>
       <td>146.9621</td>
+      <td>1</td>
       <td>162</td>
       <td>0</td>
-      <td>18</td>
-      <td>countcp_al_genacq</td>
+      <td>18.0</td>
+      <td>COUNTCP+AL+GQs</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>sudoku_9x9_nodiverse_custom_al</td>
+      <th>69</th>
+      <td>sudoku_9x9_nodiverse</td>
+      <td>810</td>
       <td>7594</td>
+      <td>814</td>
       <td>0</td>
+      <td>775</td>
+      <td>6115</td>
+      <td>665</td>
+      <td>1.0</td>
       <td>0.1635</td>
       <td>5.1543</td>
       <td>1241.3644</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>al</td>
+      <td>NaN</td>
+      <td>AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>sudoku_9x9_nodiverse_custom_pl_al</td>
+      <th>70</th>
+      <td>sudoku_9x9_nodiverse</td>
+      <td>840</td>
+      <td>21</td>
       <td>21</td>
       <td>0</td>
+      <td>21</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1.0</td>
       <td>1.6731</td>
       <td>5.9291</td>
       <td>35.1354</td>
+      <td>1</td>
       <td>3854</td>
       <td>840</td>
-      <td>42</td>
-      <td>pl_al</td>
+      <td>42.0</td>
+      <td>PL+AL</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>sudoku_9x9_nodiverse_genacq_genacq</td>
+      <th>71</th>
+      <td>sudoku_9x9_nodiverse</td>
+      <td>810</td>
       <td>91</td>
+      <td>33</td>
       <td>36</td>
+      <td>29</td>
+      <td>44</td>
+      <td>14</td>
+      <td>1.0</td>
       <td>2.4560</td>
       <td>21.8738</td>
       <td>223.5004</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>genacq</td>
+      <td>NaN</td>
+      <td>GENACQ</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>sudoku_9x9_nodiverse_mineask_mineask</td>
+      <th>72</th>
+      <td>sudoku_9x9_nodiverse</td>
+      <td>810</td>
       <td>6314</td>
+      <td>649</td>
       <td>963</td>
+      <td>610</td>
+      <td>5105</td>
+      <td>560</td>
+      <td>1.0</td>
       <td>0.2447</td>
       <td>5.3293</td>
       <td>1545.1286</td>
+      <td>1</td>
       <td>0</td>
       <td>0</td>
-      <td>-</td>
-      <td>mineask</td>
+      <td>NaN</td>
+      <td>MINE&amp;ASK</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
-      <td>sudoku_9x9_nodiverse_vgc_pl_al_genacq</td>
+      <th>73</th>
+      <td>sudoku_9x9_nodiverse</td>
+      <td>810</td>
       <td>30</td>
+      <td>22</td>
       <td>42</td>
+      <td>22</td>
+      <td>8</td>
+      <td>0</td>
+      <td>1.0</td>
       <td>2.3210</td>
       <td>26.4313</td>
       <td>69.6305</td>
+      <td>1</td>
       <td>3854</td>
       <td>0</td>
-      <td>42</td>
-      <td>pl_al_genacq</td>
+      <td>42.0</td>
+      <td>PL+AL+GQs</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
   </tbody>
 </table>
