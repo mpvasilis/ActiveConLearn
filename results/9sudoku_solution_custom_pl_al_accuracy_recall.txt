@@ -1,0 +1,9 @@
+Precision:
+Total Learned Solutions: 6
+Valid Learned Solutions: 6
+Accuracy (Precision): 100.00%
+
+Recall:
+Total Target Solutions: 100
+Valid Target Solutions: 37
+Recall: 37.00%
