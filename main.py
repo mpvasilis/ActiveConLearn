@@ -15,6 +15,13 @@ from MQuAcq import MQuAcq
 from MQuAcq2 import MQuAcq2
 from GrowAcq import GrowAcq
 from utils import *
+from BenchmarksGenerator import (
+    _construct_magic_square,
+    _construct_schurs_lemma,
+    _construct_golomb_ruler,
+    _construct_BIBD,
+    _construct_greaterThanSudoku,
+)
 
 jar_path = './phD.jar'
 output_directory = './results'
@@ -155,6 +162,21 @@ def parse_args():
 
     return args
 
+def construct_benchmark_from_name(experiment_name):
+    if experiment_name == 'magic_square':
+        return _construct_magic_square(N=3)
+    elif experiment_name == 'schurs_lemma':
+        return _construct_schurs_lemma(N=4)
+    elif experiment_name == 'golomb_ruler':
+        return _construct_golomb_ruler(num_marks=6)
+    elif experiment_name == 'greater_than_sudoku':
+        return _construct_greaterThanSudoku()
+    elif experiment_name == 'BIBD':
+        return _construct_BIBD(v=7, b=7, r=3, k=3, l=1)
+    else:
+        raise ValueError(f"Unknown experiment name: {experiment_name}")
+
+
 def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
     """
     Constructs a custom model based on the given experiment.
@@ -203,7 +225,16 @@ def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
 
     if args.useCon:
         con_file = f"{data_dir}/{experiment}_con"
-        fixed_arity_ct = parse_and_apply_constraints(con_file, variables, model)
+        if os.path.isfile(con_file):
+            fixed_arity_ct = parse_and_apply_constraints(con_file, variables, model)
+        else:  #TODO: Implement this
+            # Use models from BenchMarkGenerator as oracle
+            print(f"{con_file} does not exist. Using model from BenchMarkGenerator as oracle.")
+            grid, C_T, model_bench, format_template = construct_benchmark_from_name(experiment)
+            fixed_arity_ct = list(C_T)
+            total_global_constraints += len(fixed_arity_ct)
+            variables = list(grid.flatten())
+            model += model_bench.constraints
 
     if args.onlyActive:
         biases = []
@@ -331,7 +362,7 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
                 "constraint_type": int(parts[0]),
                 "var1_index": int(parts[1]),
                 "var2_index": int(parts[2]),
-                "partition_type": parts[3],  # Simplify partition type
+                "partition_type": parts[3],
                 "partition_number": parts[4],
                 "sequence": parts[5]
             }
@@ -637,8 +668,10 @@ if __name__ == "__main__":
             bias = []
             C_l = []
         else:
-            _bias = C_T - set(bias) - set(C_l)
-            bias.extend(_bias)
+           # _bias = C_T - set(bias) - set(C_l)
+            #bias.extend(_bias)
+            pass
+
 
         if args.emptyCL:
             C_l = []
@@ -676,7 +709,7 @@ if __name__ == "__main__":
                             findc_version=fc_version, X=X, B=bias, Bg=biasg, C_l=C_l, benchmark=args.benchmark)
         ca_system.learn()
 
-        save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints)
+        save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints,conacq=ca_system)
         exit()
 
     if args.benchmark == "countcp_al": #count cp al
@@ -689,7 +722,12 @@ if __name__ == "__main__":
         print("Size of C_T: ", len(C_T))
         #C_l = [constraint for constraint in C_l if constraint not in biasg]
 
+        #_bias = set(bias)
         _bias = C_T - set(bias) - set(C_l)
+        biasg_set = set(toplevel_list(biasg))
+        _bias = [b for b in _bias if b not in biasg_set]
+
+        bias.extend(_bias)
         print(bias)
         print("-------------------")
         print("Size of bias: ", len(set(bias)))
