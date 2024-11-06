@@ -20,6 +20,7 @@ def run_count_cp_and_get_results(exp, output, name, input_file):
         '--name', name,
         '--input', input_file
     ]
+    print(f"Running count-cp with command: {' '.join(count_cp_command)}")
     result = subprocess.run(count_cp_command, capture_output=True, text=True)
     if result.returncode != 0:
         print(f"Error running count-cp with command: {' '.join(count_cp_command)}\n{result.stderr}")
@@ -58,6 +59,7 @@ def write_percentages_to_csv(percentages, output_file):
 
 def run_jar_with_config(jar_path, config_path):
     java_command = [r"C:\Program Files\Eclipse Adoptium\jdk-21.0.2.13-hotspot\bin\java.exe", '-Xmx30g', '-jar', jar_path, config_path]
+    print(java_command)
     result = subprocess.run(java_command, capture_output=True, text=True)
     print(" ".join(['java', '-jar', jar_path, config_path]))
     if result.returncode != 0:
@@ -75,8 +77,6 @@ def generate_config_file(solution_set_path, output_directory):
         'activeLearning': True,
         'constraintsToCheck': [
             "allDifferent",
-            "count",
-            "sum",
             "arithm"
         ],
         'decreasingLearning': False,
@@ -109,10 +109,11 @@ def run_experiment(config, benchmark, jar_path, input_directory, output_director
     solution_set_path = os.path.join(input_directory, benchmark)
     experiment_name = os.path.normpath(os.path.basename(solution_set_path).replace('.json', ''))
 
-    if use_count_cp:
-
+    if "countcp" in config["type"]:
+        print(f"Running {config["type"]} for", experiment_name)
         experiment_path = run_count_cp_and_get_results(experiment_name, output_directory, experiment_name, solution_set_path)
     else:
+        print(f"Running {config["type"]} for", experiment_name)
         if os.path.exists(f"./modules/benchmarks/{experiment_name}"):
             print(f"Skipping {experiment_name} as it has already been run")
             experiment_path = "./modules/benchmarks/" + experiment_name
@@ -128,7 +129,7 @@ def run_experiment(config, benchmark, jar_path, input_directory, output_director
         else:
             print(f"Model file not found: {model_file_path}")
 
-    if False:
+    if True:
         command = base_command.format(
             config["algo"],
             config["bench"],
@@ -141,6 +142,7 @@ def run_experiment(config, benchmark, jar_path, input_directory, output_director
             str(config["type"])
         )
         print("Running command:", command)
+
         result = subprocess.run(command, shell=True)
         if result.returncode != 0:
             print(f"Error running command: {command}\n{result.stderr}")
@@ -149,25 +151,53 @@ def run_experiment(config, benchmark, jar_path, input_directory, output_director
 
 
 if __name__ == "__main__":
+    #print current working dir
+    print(os.getcwd())
     parser = argparse.ArgumentParser(description="Run experiments in parallel or serial mode")
     parser.add_argument("--parallel", action="store_true", help="Run experiments in parallel mode")
     parser.add_argument("--use_count_cp", action="store_true", help="Use count-cp instead of the JAR")
     args = parser.parse_args()
-
     benchmarks = [
-          "4sudoku_solution.json",
-          "9sudoku_solution.json",
-        #   "examtt_advanced_solution.json",
-        #   "examtt_simple_solution.json",
-        # "greaterThansudoku_9x9_16b_diverse.json",
-        #   "greaterThansudoku_9x9_8b_diverse.json",
-        #  "greaterThansudoku_9x9_8b_nodiverse.json",
-        #  "jsudoku_solution.json",
-        #   "murder_problem_solution.json",
-        #   "nurse_rostering_solution.json",
-        #   "sudoku_9x9_diverse.json",
-        #   "sudoku_9x9_nodiverse.json"
-    ]
+         # "4sudoku_solution.json",
+              "9sudoku_solution.json",
+        #     "jsudoku_solution.json",
+        #       "murder_problem_solution.json",
+        #       "nurse_rostering_solution.json",
+        #  "examtt_simple_solution.json",
+        #  "greaterThansudoku_solution.json",
+        # "BIBD.json",
+        # "job.json",
+        # "Golomb.json",
+        ]
+
+    # benchmarks = [
+    #    # "BIBD.json",
+    #   # "job.json",
+    #    #   "Golomb.json",
+    #    #  "GraphColoring.json",
+    #      #   "Interval.json",
+    #      #   "Latin.json",
+    #      # "Magic.json",
+    #      #  "Nqueens2.json",
+    #      #  "Nqueens3.json",
+    #     #  "Schur.json",
+    #     # "Schur2.json",
+    #     #  "Warehouse.json",
+    #     # "Warehouse2.json"
+    #      "greaterThansudoku_solution.json",
+    #         "4sudoku_solution.json",
+    #          "9sudoku_solution.json",
+    #        "examtt_advanced_solution.json",
+    #         "examtt_simple_solution.json",
+    #     # "greaterThansudoku_9x9_16b_diverse.json",
+    #        #"greaterThansudoku_9x9_8b_diverse.json",
+    #       #"greaterThansudoku_9x9_8b_nodiverse.json",
+    #        "jsudoku_solution.json",
+    #         "murder_problem_solution.json",
+    #         "nurse_rostering_solution.json",
+    #     #    "sudoku_9x9_diverse.json",
+    #     #   "sudoku_9x9_nodiverse.json"
+    # ]
 
     input_directory = "exps/instances/gts/"
     output_directory = "results"
@@ -178,14 +208,13 @@ if __name__ == "__main__":
     base_command = "python main.py -a {} -b {} -qg pqgen -exp {} -i {} --output {} --useCon {} --onlyActive {} --emptyCL {} --type {}"
 
     configs = [
-        # {"algo": "mquacq2-a", "bench": "countcp_only", "onlyActive": False, "emptyCL": False, "type": "countcp_only"}, # countcp only
         # {"algo": "mquacq2-a", "bench": "countcp_al", "onlyActive": False, "emptyCL": False, "type": "countcp_al"},# countcp + al
-        #{"algo": "mquacq2-a", "bench": "countcp", "onlyActive": False, "emptyCL": True, "type": "countcp_al_genacq"},# countcp + al + genacq
-       #  {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": False, "emptyCL": True, "type": "pl_al_genacq"},# pl + al + genacq
-         {"algo": "mquacq2-a", "bench": "custom", "onlyActive": False, "emptyCL": False, "type": "pl_al"},#pl + al
-       #  {"algo": "mquacq2-a", "bench": "custom", "onlyActive": True, "emptyCL": False, "type": "al"},# al
-       # {"algo": "mquacq2-a", "bench": "genacq", "onlyActive": True, "emptyCL": False, "type": "genacq"}, #genacq
-       # {"algo": "mquacq2-a", "bench": "mineask", "onlyActive": True, "emptyCL": False, "type": "mineask"} #mineask
+       #  {"algo": "mquacq2-a", "bench": "countcp", "onlyActive": False, "emptyCL": True, "type": "countcp_al_genacq"},# countcp + al + genacq
+           {"algo": "mquacq2-a", "bench": "vgc", "onlyActive": False, "emptyCL": True, "type": "pl_al_genacq"},# pl + al + genacq
+          #{"algo": "mquacq2-a", "bench": "custom", "onlyActive": False, "emptyCL": False, "type": "pl_al"},#pl + al
+         # {"algo": "mquacq2-a", "bench": "custom", "onlyActive": True, "emptyCL": False, "type": "al"},# al
+       #  {"algo": "mquacq2-a", "bench": "genacq", "onlyActive": True, "emptyCL": False, "type": "genacq"}, #genacq
+      # {"algo": "mquacq2-a", "bench": "mineask", "onlyActive": True, "emptyCL": False, "type": "mineask"} #mineask
     ]
 
     if args.parallel:

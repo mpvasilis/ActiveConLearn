@@ -3,12 +3,14 @@ import os
 import argparse
 import subprocess
 import random
+from itertools import combinations
+
 import cpmpy as cp
 from cpmpy import *
 from cpmpy.transformations.normalize import toplevel_list
-
 import pandas as pd
 import yaml
+
 
 from QuAcq import QuAcq
 from MQuAcq import MQuAcq
@@ -21,6 +23,7 @@ from BenchmarksGenerator import (
     _construct_golomb_ruler,
     _construct_BIBD,
     _construct_greaterThanSudoku,
+    construct_job_shop_scheduling_problem
 )
 
 jar_path = './phD.jar'
@@ -162,20 +165,102 @@ def parse_args():
 
     return args
 
+def map_expression_to_constraints(expr_str, var1, var2, bounds):
+    """
+    Maps an expression string to CPMpy constraints based on the expression type.
+
+    Args:
+        expr_str (str): The expression string (e.g., 'x - y', 'x + y', 'Abs(x - y)').
+        var1 (cpmpy.intvar): The first variable in the expression.
+        var2 (cpmpy.intvar): The second variable in the expression.
+        bounds (tuple): The lower and upper bounds for the expression.
+
+    Returns:
+        list: A list of CPMpy constraints.
+    """
+    constraints = []
+    lb, ub = bounds
+
+    if expr_str == "x - y":
+        # Without specific bounds, default to x == y
+        # Adjust as needed based on bounds
+        if lb is None and ub is None:
+            constraints.append(var1 == var2)
+        else:
+            if lb is not None:
+                constraints.append(var1 - var2 >= lb)
+            if ub is not None:
+                constraints.append(var1 - var2 <= ub)
+
+    elif expr_str == "x + y":
+        # Without specific bounds, default to x + y >= 0
+        if lb is None and ub is None:
+            constraints.append(var1 + var2 >= 0)
+        else:
+            if lb is not None:
+                constraints.append(var1 + var2 >= lb)
+            if ub is not None:
+                constraints.append(var1 + var2 <= ub)
+
+    elif expr_str == "Abs(x - y)":
+        # Without specific bounds, default to |x - y| <= 1
+        # Implemented as two constraints: (x - y <= c) and (y - x <= c)
+        # Adjust 'c' based on bounds
+        if lb is None and ub is None:
+            c = 1  # Default bound
+            constraints.append(var1 - var2 <= c)
+            constraints.append(var2 - var1 <= c)
+        else:
+            if lb is not None:
+                # |x - y| >= lb translates to (x - y >= lb) OR (x - y <= -lb)
+                # CPMpy does not support OR directly, so handle accordingly if needed
+                # For simplicity, skip OR constraints or use auxiliary variables
+                # Here, we'll just implement |x - y| >= lb as separate constraints
+                constraints.append(var1 - var2 >= lb)
+                constraints.append(var1 - var2 <= -lb)
+            if ub is not None:
+                # |x - y| <= ub translates to (x - y <= ub) AND (y - x <= ub)
+                constraints.append(var1 - var2 <= ub)
+                constraints.append(var2 - var1 <= ub)
+
+    else:
+        print(f"Unsupported expression: {expr_str}. No constraints applied.")
+
+    return constraints
+
+
+def apply_partitions_to_model(model, partitions, list_vars):
+    for partition in partitions:
+        expr = partition["Expression"]
+        partition_indices = partition["Partition Indices"]
+        bounds = partition["Bounds"]
+
+        # Extract variable indices
+        var_indices = [idx for tensor, idx in partition_indices]
+        vars_in_partition = [list_vars[idx] for idx in var_indices]
+
+        # Generate all unique unordered pairs (ALL_PAIRS)
+        for var1, var2 in combinations(vars_in_partition, 2):
+            constraints = map_expression_to_constraints(expr, var1, var2, bounds)
+            if constraints:
+                for constr in constraints:
+                    model += constr
+
 def construct_benchmark_from_name(experiment_name):
-    if experiment_name == 'magic_square':
+    if experiment_name == 'magic_square' or 'Magic' in experiment_name:
         return _construct_magic_square(N=3)
-    elif experiment_name == 'schurs_lemma':
+    elif experiment_name == 'schurs_lemma' or 'Schur' in experiment_name:
         return _construct_schurs_lemma(N=4)
-    elif experiment_name == 'golomb_ruler':
+    elif experiment_name == 'golomb_ruler' or 'Golomb' in experiment_name:
         return _construct_golomb_ruler(num_marks=6)
     elif experiment_name == 'greater_than_sudoku':
         return _construct_greaterThanSudoku()
     elif experiment_name == 'BIBD':
         return _construct_BIBD(v=7, b=7, r=3, k=3, l=1)
+    elif experiment_name == 'job_shop_scheduling' or 'job' in experiment_name:
+        return construct_job_shop_scheduling_problem(n_jobs=10, machines=3, horizon=40, seed=42)
     else:
         raise ValueError(f"Unknown experiment name: {experiment_name}")
-
 
 def construct_custom(experiment, data_dir="data/exp", use_learned_model=False):
     """
@@ -278,33 +363,51 @@ def verify_global_constraints(experiment, data_dir="data/exp", use_learned_model
 
     model = Model()
     vars_file = f"{data_dir}/{experiment}_var"
-    vars = parse_vars_file(vars_file)
     dom_file = f"{data_dir}/{experiment}_dom"
-    domain_constraints = parse_dom_file(dom_file)
-    variables = [intvar(domain_constraints[0][0], domain_constraints[0][1], name=f"var{var}") for var in vars]
-    grid = intvar(domain_constraints[0][0], domain_constraints[0][1], shape=(1, len(variables)), name="grid")
-    for i, var in enumerate(variables):
-        grid[1:i] = var
-
+    if os.path.isfile(vars_file) and os.path.isfile(dom_file):
+        vars = parse_vars_file(vars_file)
+        domain_constraints = parse_dom_file(dom_file)
+        variables = [intvar(domain_constraints[0][0], domain_constraints[0][1], name=f"var{var}") for var in vars]
+        grid = intvar(domain_constraints[0][0], domain_constraints[0][1], shape=(1, len(variables)), name="grid")
+        for i, var in enumerate(variables):
+            grid[1:i] = var
+        variables = [intvar(domain_constraints[0][0], domain_constraints[0][1], name=f"var{var}") for var in vars]
+    else:
+        # Use variables from the model
+        print(f"{vars_file} does not exist. Using variables from BenchMarkGenerator model.")
+        grid, C_T, model_bench, format_template = construct_benchmark_from_name(experiment)
+        variables = list(grid.flatten())
+        model += model_bench.constraints
 
     model_file = f"{data_dir}/{experiment}_model"
-    parsed_constraints, max_index = parse_model_file(model_file)
-    total_global_constraints = len(parsed_constraints)
-    for constraint_type, indices in parsed_constraints:
-        if constraint_type == 'ALLDIFFERENT':
-            if use_learned_model:
+    if os.path.isfile(model_file):
+        parsed_constraints, max_index = parse_model_file(model_file)
+        total_global_constraints = len(parsed_constraints)
+        for constraint_type, indices in parsed_constraints:
+            if constraint_type == 'ALLDIFFERENT':
+                if use_learned_model:
+                    try:
+                        model += AllDifferent([variables[i] for i in indices])
+                    except:
+                        print("Error in AllDifferent")
                 try:
-                    model += AllDifferent([variables[i] for i in indices])
+                    biasg.append(AllDifferent([variables[i] for i in indices]).decompose()[0])
                 except:
                     print("Error in AllDifferent")
-            try:
-                biasg.append(AllDifferent([variables[i] for i in indices]).decompose()[0])
-            except:
-                print("Error in AllDifferent")
 
     if args.useCon:
         con_file = f"{data_dir}/{experiment}_con"
-        fixed_arity_ct = parse_and_apply_constraints(con_file, variables, model)
+        if os.path.isfile(con_file):
+            fixed_arity_ct = parse_and_apply_constraints(con_file, variables, model)
+        else:
+            # Use models from BenchMarkGenerator as oracle
+            print(f"{con_file} does not exist. Using model from BenchMarkGenerator as oracle.")
+            grid, C_T, model_bench, format_template = construct_benchmark_from_name(experiment)
+            fixed_arity_ct = list(C_T)
+            variables = list(grid.flatten())
+            model += model_bench.constraints
+            total_global_constraints = len(fixed_arity_ct)
+
 
     if args.onlyActive:
         biases = []
@@ -347,8 +450,13 @@ def simplify_partition_type(partition_description):
         if len(parts) > 1:
             return parts[1].strip(' )')
     return partition_description
-def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
+def count_cp(experiment, data_dir="data/exp", use_learned_model=False,benchmark=None):
     biasg = []
+    C_L = []
+    constraint_set = set()
+    total_global_constraints = 0
+    oracle =None
+
     def read_constraints_file(filepath):
         with open(filepath, 'r') as file:
             lines = file.readlines()
@@ -370,7 +478,6 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
             constraints_by_partition[partition_key].append(constraint)
         return constraints_by_partition
 
-
     def parse_and_apply_constraints(file_path, variables, model=None):
         parsed_data = parse_con_file(file_path)
         constraints = []
@@ -383,22 +490,116 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
                     model += constraint
             except:
                 print(f"Error in {con_type} {var1} {var2}")
-        return constraints
+            return constraints
+
+    def read_all_partitions_constraints(filepath):
+        with open(filepath, 'r') as file:
+            lines = file.readlines()
+        return lines
+
+    def parse_line(line):
+        import re
+        pattern = r"var(\d+)\s*(==|!=|<=|>=|<|>)\s*var(\d+)"
+        match = re.match(pattern, line.strip())
+        if match:
+            var1_index = int(match.group(1))
+            operator = match.group(2)
+            var2_index = int(match.group(3))
+            return var1_index, var2_index, operator
+        else:
+            print(f"Line does not match pattern: {line}")
+            return None, None, None
 
     model = Model()
     vars_file = f"{data_dir}/output_vars.txt"
-    vars = parse_vars_file(vars_file)
     dom_file = f"{data_dir}/output_dom.txt"
-    domain_constraints = parse_dom_file(dom_file)
-    variables = [intvar(domain_constraints[0][0], domain_constraints[0][1], name=f"var{var}") for var in vars]
-    grid = intvar(domain_constraints[0][0], domain_constraints[0][1], shape=(1, len(variables)), name="grid")
-    for i, var in enumerate(variables):
-        grid[1:i] = var
+
+    if os.path.isfile(vars_file) and os.path.isfile(dom_file):
+        vars = parse_vars_file(vars_file)
+        domain_constraints = parse_dom_file(dom_file)
+        variables = [intvar(domain_constraints[0][0], domain_constraints[0][1], name=f"var{var}") for var in vars]
+        grid = intvar(domain_constraints[0][0], domain_constraints[0][1], shape=(1, len(variables)), name="grid")
+        for i, var in enumerate(variables):
+            grid[0, i] = var
+    else:
+        # Use variables from the model
+        print(f"{vars_file} does not exist. Using variables from BenchMarkGenerator model.")
+        grid, C_T, model_bench, format_template = construct_benchmark_from_name(experiment)
+        variables = list(grid.flatten())
+        model += model_bench.constraints
+
+    # Read and parse the all_partitions_constraints.txt file
+    constraints_lines = read_all_partitions_constraints(f"{data_dir}/all_partitions_constraints.txt")
+    for line in constraints_lines:
+        var1_index, var2_index, operator = parse_line(line)
+        if var1_index is not None:
+            print(var1_index, var2_index, operator)
+            try:
+                var1 = variables[var1_index]
+                var2 = variables[var2_index]
+                if operator == '!=':
+                    constraint = var1 != var2
+                elif operator == '==':
+                    constraint = var1 == var2
+                elif operator == '<':
+                    constraint = var1 < var2
+                elif operator == '>':
+                    constraint = var1 > var2
+                elif operator == '<=':
+                    constraint = var1 <= var2
+                elif operator == '>=':
+                    constraint = var1 >= var2
+                else:
+                    print(f"Unknown operator {operator}")
+                    continue
+                constraint_str = str(constraint)
+                if constraint_str not in constraint_set:
+                    constraint_set.add(constraint_str)
+                    C_L.append(constraint)
+                else:
+                    #print(f"Duplicate constraint detected and skipped: {constraint_str}")
+                    pass
+            except:
+                print(f"Error in {var1_index} {var2_index} {operator}")
+
+
+    print(f"Number of constraints in C_L: {len(C_L)}")
+    for c in C_L:
+        print(c)
+    output_dir = "results"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    output_file = os.path.join(output_dir, f"{experiment}_{benchmark}_constraints.txt")
+
+    with open(output_file, 'w') as f:
+        for constraint in C_L:
+            # Extract variables and operator from constraint
+            # Assuming constraint is a Comparison object
+            if isinstance(constraint, (cpmpy.expressions.core.Operator, cpmpy.expressions.core.Comparison)):
+                op = constraint.name
+                args = constraint.args
+                var1 = args[0].name
+                var2 = args[1].name
+                # Map CPMPy's operator names to symbols
+                op_symbol = {
+                    '==': '==',
+                    '!=': '!=',
+                    '<=': '<=',
+                    '>=': '>=',
+                    '<': '<',
+                    '>': '>'
+                }.get(op, op)
+                f.write(f"({var1}) {op_symbol} ({var2})\n")
+            else:
+                # If constraint is not a Comparison, convert to string
+                f.write(f"{constraint}\n")
     constraints_lines = read_constraints_file(f"{data_dir}/output_necf.txt")
     constraints_by_partition = parse_constraints_by_partition(constraints_lines)
+    total_global_constraints = 0
     for partition_key, constraints in constraints_by_partition.items():
         print(partition_key)
-    # append constraints_by_partition to biasg
+        total_global_constraints +=1
+    # Append constraints_by_partition to biasg
     for partition_key, constraints in constraints_by_partition.items():
         temp_biasg = []
         for constraint in constraints:
@@ -411,19 +612,23 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
                 temp_biasg.append(var1 != var2)
         biasg.append(temp_biasg)
 
-    if args.useCon:
+    if True:
         con_file = f"{data_dir}/_con"
-        fixed_arity_ct = parse_and_apply_constraints(con_file, variables, model)
-
-    if args.onlyActive:
-        biases = []
-        cls = []
-    else:
-        bias_file = f"{data_dir}/bc.txt"
-        if os.path.isfile(bias_file):
-            biases = parse_and_apply_constraints(bias_file, variables)
+        if os.path.isfile(con_file):
+            fixed_arity_ct = parse_and_apply_constraints(con_file, variables, model)
         else:
-            biases = []
+            # Use models from BenchMarkGenerator as oracle
+            print(f"{con_file} does not exist. Using model from BenchMarkGenerator as oracle.")
+            grid, C_T, model_bench, format_template = construct_benchmark_from_name(experiment)
+            fixed_arity_ct = list(C_T)
+            variables = list(grid.flatten())
+            model += model_bench.constraints
+
+    bias_file = f"{data_dir}/bc.txt"
+    if os.path.isfile(bias_file):
+        biases = parse_and_apply_constraints(bias_file, variables)
+    else:
+        biases = []
 
     for b in biasg:
         print(b)
@@ -437,7 +642,7 @@ def count_cp(experiment, data_dir="data/exp", use_learned_model=False):
     else:
         C_T = set(fixed_arity_ct)
 
-    return grid, C_T, model, variables, biases, biasg, [], len(biasg)
+    return grid, C_T, model, variables, biases, biasg, C_L, total_global_constraints
 
 
 
@@ -475,7 +680,7 @@ def save_results(alg=None, inner_alg=None, qg=None, tl=None, t=None, blimit=None
     print("Maximum waiting time for a query: ", conacq.metrics.max_waiting_time)
     print("Size of B: ", len(conacq.B)+len(toplevel_list(conacq.Bg)))
     print("C_L size: ", len(toplevel_list(conacq.C_l.constraints)))
-    print((toplevel_list(conacq.C_l.constraints)))
+    #print((toplevel_list(conacq.C_l.constraints)))
     res_name = ["results"]
     res_name.append(alg)
 
@@ -609,14 +814,18 @@ if __name__ == "__main__":
         fc_version = args.findc
     start = time.time()
     gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 <= var2", "var1 >= var2"]
+    # gamma = ["var1 == var2", "var1 != var2", "var1 < var2", "var1 > var2", "var1 <= var2", "var1 >= var2",
+    #          "abs(var1 - var2) != abs(var3 - var4)"] + \
+    #             [f"var1 + {i} == var2" for i in range(1, 4 + 1)] + \
+    #             [f"var2 + {i} == var1" for i in range(1, 4 + 1)] # 4 = max duration
 
     if args.benchmark == "mineask":
         print("Running Mine&Ask")
         benchmark_name = args.experiment
         path = args.input
-        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = verify_global_constraints(benchmark_name,
+        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = count_cp(benchmark_name,
                                                                                                      path,
-                                                                                         False)
+                                                                                         False,benchmark_name)
         print("Size of bias: ", len(set(bias)))
         print("Size of biasg: ", len(toplevel_list(biasg)), len(biasg))
         print("Size of C_l: ", len(C_l))
@@ -673,7 +882,7 @@ if __name__ == "__main__":
             pass
 
 
-        if args.emptyCL:
+        if args.emptyCL or True:
             C_l = []
         print("-------------------")
         print("Size of bias: ", len(set(bias)))
@@ -686,9 +895,10 @@ if __name__ == "__main__":
         exit()
 
     if args.benchmark == "countcp": #count cp
+        #run_count_cp_and_get_results(args.countcp_exp, args.countcp_output_dir, args.countcp_name, args.countcp_input)
         benchmark_name = args.experiment
         path = args.input
-        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = count_cp(benchmark_name, path, False)
+        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = count_cp(benchmark_name, path, False,benchmark_name)
         print("Size of bias: ", len(set(bias)))
         print("Size of biasg: ",len(toplevel_list(biasg)), len(biasg))
         print("Size of C_l: ", len(C_l))
@@ -715,8 +925,9 @@ if __name__ == "__main__":
     if args.benchmark == "countcp_al": #count cp al
         benchmark_name = args.experiment
         path = args.input
-        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = count_cp(benchmark_name, path, False)
+        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = count_cp(benchmark_name, path, False,benchmark_name)
         print("Size of bias: ", len(set(bias)))
+
         print("Size of biasg: ",len(toplevel_list(biasg)), len(biasg))
         print("Size of C_l: ", len(C_l))
         print("Size of C_T: ", len(C_T))
@@ -742,7 +953,7 @@ if __name__ == "__main__":
     if args.benchmark == "countcp_only":  # count cp al
         benchmark_name = args.experiment
         path = args.input
-        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = count_cp(benchmark_name, path, False)
+        grid, C_T, oracle, X, bias, biasg, C_l, total_global_constraints = count_cp(benchmark_name, path, False,benchmark_name)
         save_results(init_bias=bias, init_cl=C_l, learned_global_cstrs=total_global_constraints)
         exit()
 
@@ -757,13 +968,12 @@ if __name__ == "__main__":
             bias = []
             C_l = []
         else:
-            _bias = C_T - set(bias) - set(C_l)
+            _bias = (C_T - set(bias))
             bias.extend(_bias)
 
-        if args.emptyCL:
-            C_l = []
+        # if args.emptyCL:
+        #     C_l = []
         print("Size of bias: ", len(bias))
-        print(bias)
         ca_system = MQuAcq2(gamma, grid, C_T, qg=args.query_generation, obj=args.objective,
                             time_limit=args.time_limit, findscope_version=fs_version,
                             findc_version=fc_version, B=bias, Bg=[], C_l=C_l, X=X)

@@ -301,6 +301,7 @@ def get_relation(c, gamma):
 
 
 def get_var_name(var):
+
     name = re.findall("\[\d+[,\d+]*\]", var.name)
     if not name:
         name = var.name.replace('var','')

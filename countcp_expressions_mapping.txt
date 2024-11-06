@@ -1,0 +1,24 @@
+x - y:
+
+x - y > 0 → x > y
+x - y < 0 → x < y
+x - y == 0 → x == y
+x - y >= 0 → x >= y
+x - y <= 0 → x <= y
+x - y != 0 → x != y
+x + y:
+
+x + y > 0 → x > -y
+x + y < 0 → x < -y
+x + y == 0 → x == -y
+x + y >= 0 → x >= -y
+x + y <= 0 → x <= -y
+x + y != 0 → x != -y
+Abs(x - y):
+
+Abs(x - y) > c → x > y + c or x < y - c
+Abs(x - y) < c → y - c < x < y + c
+Abs(x - y) == c → x == y + c or x == y - c
+Abs(x - y) >= c → x >= y + c or x <= y - c
+Abs(x - y) <= c → y - c <= x <= y + c
+Abs(x - y) != c → x != y + c and x != y - c
