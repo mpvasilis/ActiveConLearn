@@ -67,7 +67,7 @@ def save_constraints_to_txt(constraints, filename, grid_shape):
                     f.write(f"{con_type} {var1} {var2}\n")
                 except ValueError:
                     pass
-def generate_solutions(model_func, json_filename, txt_filename, max_solutions=1000, min_hamming=5):
+def generate_solutions(model_func, json_filename, txt_filename, max_solutions=1000, min_hamming=2):
     grid, C_T, model, format_template = model_func()
     save_constraints_to_txt(C_T, txt_filename, grid.shape)
     print(f"Constraints saved for {json_filename}")
@@ -89,7 +89,6 @@ def generate_solutions(model_func, json_filename, txt_filename, max_solutions=10
         for sol in store:
             hamming_distance = sum(var != val for var, val in zip(flattened_grid, sol))
             hamming_constraints.append(hamming_distance >= min_hamming)
-        # Combine all Hamming distance constraints
         model += hamming_constraints
 
         if len(solutions) % 100 == 0:
@@ -98,15 +97,15 @@ def generate_solutions(model_func, json_filename, txt_filename, max_solutions=10
 
 def run_benchmarks_in_parallel():
     benchmarks = [
-        # (_construct_4sudoku, '4sudoku_solution.json', '4sudoku_solution.txt'),
-        # (_construct_9sudoku, '9sudoku_solution.json', '9sudoku_solution.txt'),
+        (_construct_4sudoku, '4sudoku_solution.json', '4sudoku_solution.txt'),
+        (_construct_9sudoku, '9sudoku_solution.json', '9sudoku_solution.txt'),
         (lambda: _construct_nurse_rostering(5, 3, 7), 'nurse_rostering_solution.json', 'nurse_rostering_solution.txt'),
         # (lambda: _construct_nurse_rostering_advanced(5, 3, 2, 7), 'nurse_rostering_advanced_solution.json', 'nurse_rostering_advanced_solution.txt'),
-        # (lambda: _construct_examtt_simple(), 'examtt_simple_solution.json', 'examtt_simple_solution.txt'),
+        (lambda: _construct_examtt_simple(), 'examtt_simple_solution.json', 'examtt_simple_solution.txt'),
         # (lambda: _construct_examtt_advanced(), 'examtt_advanced_solution.json', 'examtt_advanced_solution.txt'),
-        # (_construct_jsudoku, 'jsudoku_solution.json', 'jsudoku_solution.txt'),
+        (_construct_jsudoku, 'jsudoku_solution.json', 'jsudoku_solution.txt'),
         (_construct_murder_problem, 'murder_problem_solution.json', 'murder_problem_solution.txt'),
-       #  (_construct_greaterThanSudoku, 'greaterThansudoku_solution.json', 'greaterThanSudoku_solution.txt'),
+        (_construct_greaterThanSudoku, 'greaterThansudoku_solution.json', 'greaterThanSudoku_solution.txt'),
        # (lambda: construct_job_shop_scheduling_problem(n_jobs=3, machines=3, horizon=10, seed=42),
        #   'job_shop_scheduling_solution.json',
        #   'job_shop_scheduling_constraints.txt'),
@@ -696,8 +695,25 @@ def main():
         for bench in selected_benchmarks
     ]
 
-    run_benchmarks_in_parallel(benchmarks_to_run, max_solutions, min_hamming)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [
+            executor.submit(
+                generate_solutions,
+                bench["func"],
+                bench["json"],
+                bench["txt"],
+                max_solutions,
+                min_hamming
+            )
+            for bench in selected_benchmarks
+        ]
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                print(f"Benchmark failed with exception: {e}")
 
 
 if __name__ == "__main__":
-    main()
+    #main()
+    run_benchmarks_in_parallel()

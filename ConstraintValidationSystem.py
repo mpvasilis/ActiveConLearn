@@ -309,7 +309,7 @@ def verify_constraints(constraints_file_target, json_solutions_learned, constrai
 
 def run_count_cp_and_get_results(exp, output, name, input_file):
     """
-    Runs the COUNT-CP experiments and handles output files.
+    Runs the COUNTCP experiments and handles output files.
 
     Args:
         exp (str): Experiment identifier.
@@ -478,7 +478,7 @@ def run_experiment(config, benchmark, jar_path, input_directory, output_director
         input_directory (str): Directory containing input solution files.
         output_directory (str): Directory to save experiment results.
         use_constraints (bool): Flag to determine if constraints should be used for verification.
-        use_count_cp (bool): Flag to determine if COUNT-CP should be used.
+        use_count_cp (bool): Flag to determine if COUNTCP should be used.
         testsets_directory (str): Directory containing test set solutions.
 
     Returns:
@@ -543,6 +543,8 @@ def run_experiment(config, benchmark, jar_path, input_directory, output_director
                 )
 
                 target = benchmark.replace('_solution.json', '_target.txt')
+                target = benchmark.replace('.json', '_target.txt')
+
                 target = os.path.join("results", target)
                 print(target)
                 verify_constraints(target, json_solution_file,constraints_file, verification_output_file)
@@ -695,19 +697,21 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     benchmarks = [
-        "4sudoku_solution.json",
-        "9sudoku_solution.json",
-        "examtt_advanced_solution.json",
-        "examtt_simple_solution.json",
-        "greaterThansudoku_9x9_16b_diverse.json",
-        "greaterThansudoku_9x9_24b_diverse.json",
-        "greaterThansudoku_9x9_8b_diverse.json",
-        "greaterThansudoku_9x9_8b_nodiverse.json",
-        "jsudoku_solution.json",
-        "murder_problem_solution.json",
-        "nurse_rostering_solution.json",
-        "sudoku_9x9_diverse.json",
-        "sudoku_9x9_nodiverse.json"
+          "4sudoku_solution.json",
+            "9sudoku_solution.json",
+           # "examtt_advanced_solution.json",
+            "examtt_simple_solution.json",
+         # "greaterThansudoku_9x9_16b_diverse.json",
+         # "greaterThansudoku_9x9_24b_diverse.json",
+         #"greaterThansudoku_9x9_8b_diverse.json",
+        # # "greaterThansudoku_9x9_8b_nodiverse.json",
+            "jsudoku_solution.json",
+           "murder_problem_solution.json",
+           "nurse_rostering_solution.json",
+        # # "sudoku_9x9_diverse.json",
+        # #  "sudoku_9x9_nodiverse.json"
+          "greaterThansudoku_solution.json"
+
     ]
 
     input_directory = "exps/instances/gts/"
@@ -715,9 +719,9 @@ if __name__ == "__main__":
     use_constraints = True
 
 
-    merged_output_file = os.path.join(output_directory, "merged_accuracy_recall.csv")
-    merge_verification_results(output_directory, merged_output_file)
-    exit()
+    # merged_output_file = os.path.join(output_directory, "merged_accuracy_recall.csv")
+    # merge_verification_results(output_directory, merged_output_file)
+    # exit()
 
 
     jar_path = './phD.jar'
