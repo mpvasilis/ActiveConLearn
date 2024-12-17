@@ -554,4 +554,150 @@ def _construct_jsudoku():
 
 
 #generate_solutions((lambda: construct_job_shop_scheduling_problem(n_jobs=10, machines=3, horizon=40, seed=42)), "job.json", "job.txt", 1000)
-run_benchmarks_in_parallel()
+# run_benchmarks_in_parallel()
+available_benchmarks = [
+    {
+        "name": "Nurse Rostering",
+        "func": lambda: _construct_nurse_rostering(5, 3, 7),
+        "json": "nurse_rostering_solution.json",
+        "txt": "nurse_rostering_solution.txt"
+    },
+    {
+        "name": "Murder Problem",
+        "func": _construct_murder_problem,
+        "json": "murder_problem_solution.json",
+        "txt": "murder_problem_solution.txt"
+    },
+    {
+        "name": "Magic Square",
+        "func": lambda: _construct_magic_square(3), 
+        "json": "magic_square_solution.json",
+        "txt": "magic_square_solution.txt"
+    },
+    {
+        "name": "Schur's Lemma",
+        "func": lambda: _construct_schurs_lemma(5),  
+        "json": "schurs_lemma_solution.json",
+        "txt": "schurs_lemma_solution.txt"
+    },
+    {
+        "name": "Golomb Ruler",
+        "func": lambda: _construct_golomb_ruler(6),
+        "json": "golomb_ruler_solution.json",
+        "txt": "golomb_ruler_solution.txt"
+    },
+    {
+        "name": "BIBD",
+        "func": lambda: _construct_BIBD(7, 7, 3, 3, 1),
+        "json": "BIBD_solution.json",
+        "txt": "BIBD_solution.txt"
+    },
+    {
+        "name": "Job Shop Scheduling",
+        "func": lambda: construct_job_shop_scheduling_problem(n_jobs=5, machines=3, horizon=40, seed=42),
+        "json": "job_shop_scheduling_solution.json",
+        "txt": "job_shop_scheduling_solution.txt"
+    },
+    {
+        "name": "4x4 Sudoku",
+        "func": _construct_4sudoku,
+        "json": "4sudoku_solution.json",
+        "txt": "4sudoku_solution.txt"
+    },
+    {
+        "name": "9x9 Sudoku",
+        "func": _construct_9sudoku,
+        "json": "9sudoku_solution.json",
+        "txt": "9sudoku_solution.txt"
+    },
+    {
+        "name": "VM to PM Allocation",
+        "func": lambda: _construct_vm_pm_allocation(10, 5, seed=42), 
+        "json": "vm_pm_allocation_solution.json",
+        "txt": "vm_pm_allocation_solution.txt"
+    },
+    {
+        "name": "Exam Timetabling Simple",
+        "func": lambda: _construct_examtt_simple(),
+        "json": "examtt_simple_solution.json",
+        "txt": "examtt_simple_solution.txt"
+    },
+    {
+        "name": "Exam Timetabling Advanced",
+        "func": lambda: _construct_examtt_advanced(),
+        "json": "examtt_advanced_solution.json",
+        "txt": "examtt_advanced_solution.txt"
+    },
+    {
+        "name": "Greater Than Sudoku",
+        "func": _construct_greaterThanSudoku,
+        "json": "greaterThansudoku_solution.json",
+        "txt": "greaterThanSudoku_solution.txt"
+    },
+]
+
+
+def display_benchmark_options():
+    print("Available Benchmarks:")
+    for idx, bench in enumerate(available_benchmarks, start=1):
+        print(f"{idx}. {bench['name']}")
+
+
+def get_user_selection():
+    display_benchmark_options()
+    selected_indices = input("Enter the numbers of the benchmarks you want to run (e.g., 1,3,5): ")
+    selected_indices = selected_indices.split(',')
+    selected_benchmarks = []
+    for idx in selected_indices:
+        idx = idx.strip()
+        if not idx.isdigit():
+            print(f"Invalid input '{idx}'. Skipping.")
+            continue
+        idx = int(idx)
+        if 1 <= idx <= len(available_benchmarks):
+            selected_benchmarks.append(available_benchmarks[idx - 1])
+        else:
+            print(f"Benchmark number {idx} is out of range. Skipping.")
+    if not selected_benchmarks:
+        print("No valid benchmarks selected. Exiting.")
+        exit(0)
+    return selected_benchmarks
+
+
+def get_user_parameters():
+    while True:
+        try:
+            max_solutions = int(input("Enter the maximum number of solutions to generate (default 1000): ") or "1000")
+            if max_solutions <= 0:
+                raise ValueError
+            break
+        except ValueError:
+            print("Please enter a valid positive integer for maximum solutions.")
+
+    while True:
+        try:
+            min_hamming = int(input("Enter the minimum Hamming distance between solutions (default 5): ") or "5")
+            if min_hamming < 0:
+                raise ValueError
+            break
+        except ValueError:
+            print("Please enter a valid non-negative integer for Hamming distance.")
+
+    return max_solutions, min_hamming
+
+
+def main():
+    selected_benchmarks = get_user_selection()
+
+    max_solutions, min_hamming = get_user_parameters()
+
+    benchmarks_to_run = [
+        (bench["func"], bench["json"], bench["txt"])
+        for bench in selected_benchmarks
+    ]
+
+    run_benchmarks_in_parallel(benchmarks_to_run, max_solutions, min_hamming)
+
+
+if __name__ == "__main__":
+    main()
